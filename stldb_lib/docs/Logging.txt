@@ -1,0 +1,81 @@
+
+The Logging Infrastructure is concerned with the durability of a transaction.
+More specifically, with achieving that durability through synchronized writes.
+
+Some features of the logging infrastructure:
+
+1) As processes perform a transaction, they accumulate the records in-memory.
+   I don't think that this strategy allows the log records to be flushed out prior
+   to commit, because they are needed for undo processing in case the user calls
+   rollback/abort on the transaction.  Note however that once the commit occurs
+   the serialized records could be written out in piecemeal.
+
+2) Ideally, these accumulated log records should be put in shared memory, with a 
+   corresponding handle object in heap (allowing the polymorphic aspects.)  This
+   is to support a future feature where the database can recover from failures
+   which leave in-progress transactions, but don't otherwise leave any hung locks.
+
+3) When the time comes to log the changes for the transaction, the transaction is
+   changed into a sequence of log records.  This sequence has a header:
+    
+    struct log_header {
+        uint64_t txn_id;
+        uint64_t length;
+        uint64_t checksum; // to validate it was written correctly and in whole.
+        bool  end_of_txn;  // to permit multiple log recs for a big transaction.
+    }
+    
+4) Each transaction record is a serialized form of the polymorphic transaction
+   object returned by the containers.  When these records are re-applied, they
+   use a factory to reconstitute the handle to support the run-time polymorphic
+   re-application of the change.  Each log record thus looks as follows:
+    
+   struct log_rec_header {
+        uint16_t  container_id;
+        uint16_t  op_id;
+   }
+
+   where container_id is the ID# of the container object in the database schema,
+   and op_id is the specific operation # relative to that container Id.   The combination
+   of these two allows the factory to work to reconstitute the log object if this record
+   must be read back from disk.
+
+5) The commit sequence is:
+       1) create the serialized form of all operations in the transaction.
+           This can be done by each thread independently.
+            portions of the transaction can be queued for write as this occurs,
+            but not the very last one (with end_of_txn == true)
+       2) get the lock on the containers, in container_id order.
+       3) make the changes to each container permanent.
+       4) get the lock on the commit queue.  This is part of a lock move/latching.  Put the buffer in the queue, assign it a log_seq value.
+       6) release the container locks.  at this point, other txns can start building on the committed info from this txn.
+       7) send the final tnx log record to the commit queue.
+       8) release the queue lock.  Optionally, wait for the last record to go to disk.
+       
+
+Txn_id vs. Log_seq
+~~~~~~~~~~~~~~~
+
+They aren't the same thing.
+
+transactions are assigned txn_id when they are started, and it is this txn_id value 
+which is assigned to the locking_id of rows when they are locked, and to the txn_id
+value on rows after they commit.
+
+But because txn_id reflects a value assigned at txn start, it isn't guaranteed that
+commits occur in order of txn_id, and thus it would make it hard for the snapshot
+process to indicate what log records need to be recovered.  Can't just say all
+txn_id > 10000.
+
+So to address that, txn_ids are also given a commit_seq value when they are
+put into the commit buffer queue of the Logger, and thus lock in their order of
+log buffer writes.  Because of that, the commit_seq reflects the order in which
+commits were done.   A checkpoint can indicate that it includes all changes
+through a given commit_seq value, which will in turn tell recovery which
+log records need to be re-applied to the container during recovery.
+
+txn_id is on the records in the container.
+commit_seq is only on txn log records in the log files, and also on checkpoint
+images, to help guide recovery.
+
+

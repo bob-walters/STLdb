@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+<h1>Database</h1>
+The Database object is the first thing constructed by the application.
+
+A database consists of:
+<li>A managed shared memory region which is shared by all processes which open the database.</li>
+<li>A transactional infrastructure</li>
+<li>One or more "Containers", which are stored within the database by name, and manipulated transactionally.</li>
+
+<h2>Opening a Database</h2>
+
+A Database is opened via a constructor.  The constructor automatically performs any appropriate and/or necessary
+actions to get the process attached to the database.   There are different constructors which can limit the action taken.
+What occurs during construction will typically fall into one of 3 categories.
+<li>Creating the database from scratch, including creating new initial instances of all containers in the database.</li>
+<li>Attaching to the existing shared memory region, and reacquiring handles to the existing containers</li>
+<li>Recovering the database by creating or destroying and recreating the shared memory region for the Database, 
+and creating new instances of the containers within it.  Then loading the containers using the data in the 
+checkpoints and logs to rebuild the contents of the shared region.</li>
+
+Note that "Recovery", as it is referred to hereafter, applies in multiple circumstances.  It can apply simply because 
+the shared memory region of the database no longer exists for some reason.  As a result, the Database constructor
+must recreate it, and the containers within it, and then load the containers from their last checkpoint.
+
+Alternatively, recovery might be needed because the registry determines that some process terminated while
+accessing the database.  Under such circumstances, the region might be corrupt, process shared mutexes
+might still be locked by the dead process, so recovery is needed.  In that case, the existing region is destroyed, 
+and a new one is created to take its place.  This recovers the database from any form of error which has not
+made it into the checkpoint or log files.
+
+Either way, recovery processing consists of the same steps:
+<li>Any existing region is marked invalid, and removed.  Removing the region causes any existing region that
+processes ae attached to to become an anonymous region that the OS reclaims once they release it.  It does not
+cause the region to immediately 'vanish' causing SEGVs in those processes.  The marking of the region as invalid
+ensures that no further transactional writes, or checkpoints, by processes connected to that region will occur.</li>
+<li>A new region is created from scratch, and the container instances within the region are all recreated<li>
+<li>Each container's contents are reloaded from the latest checkpoint file.</li>
+<li>All log entries which have a transaction_id after the checkpoint transaction_id are applied against the containers
+to restore them fully to their last comitted (logged) transaction<li>
+
+Once open, the mehods of the Database object allow a process to get handles to the containers within the database,
+and also start transactions against the database for the manipulation of those containers.
+
+<h1>The Database Registry</h1>
+
+During the process of opening the Database, the process first checks the registry to determine if the
+managed shared memory region is valid.  The registry consists of a vector<pid_t> which identifies all
+processes that have connected to the Database, and have not yet disconnected normally.
+
+In addition, for each connected pid, there is a list of transactions.  The transactions in this list are all
+those which have made at least one pending change to the Databse, and not yet been comitted.
+
+While this information is kept up to date by well behaved processes, if a process dies, it will not have
+removed itself or its transactions from these data structures.  That then identifies that the region may
+have some corruption in it.
+
+To determine if the processes are running, each process which is registered in the pid list also
+acquires a file lock (some lock which has process scope) against a specific resource (named after the pid).
+
+So to check the registry for the need for recovery, a new process just connects to the Database record,
+and then gets the list of pid_t in the registery.  For each pid_t, it checks to see that the process still has
+its expected file lock.  If the file lock is no longer held, then the that pid is assumed to have terminated.
+If the pid then has in-progress write transactions, recovery is needed.  If it has no write transactions
+in progress, the entry of the dead process is simply cleaned up.  If it has in-progress write transactions
+then recovery is needed.
+
+Note that the regstry itself is not really protected against possible corruption.
+
+</body>
+</html>

@@ -1,0 +1,53 @@
+#  STLdb library documentation Jamfile  ---------------------------------
+#
+#  Copyright Bob Walters 2005-2007. Use, modification and
+#  distribution is subject to the Boost Software License, Version
+#  1.0. (See accompanying file LICENSE_1_0.txt or copy at
+#  http://www.boost.org/LICENSE_1_0.txt)
+#
+
+import os ;
+import doxygen ;
+import quickbook ;
+
+path-constant BOOST_ROOT : [ os.environ BOOST_ROOT ] ;
+
+doxygen autodoc
+   :
+      [ glob ../stldb/*.h ]
+      [ glob ../stldb/*.hpp ]
+      [ glob ../stldb/allcators/*.h ]
+      [ glob ../stldb/containers/*.h ]
+      [ glob ../stldb/sync/*.h ]
+      [ glob ../stldb/*.h ]
+   :
+      <doxygen:param>EXTRACT_ALL=NO
+      <doxygen:param>HIDE_UNDOC_MEMBERS=NO
+      <doxygen:param>EXTRACT_PRIVATE=NO
+      <doxygen:param>ENABLE_PREPROCESSING=YES
+      <doxygen:param>EXPAND_ONLY_PREDEF=NO
+      <doxygen:param>MACRO_EXPANSION=YES
+      <xsl:param>"boost.doxygen.reftitle=STLdb Reference"
+   ;
+
+xml stldb : stldb.qbk ;
+
+boostbook standalone
+   :
+      stldb
+   :
+      <xsl:param>boost.root=$(BOOST_ROOT)
+      <xsl:param>boost.libraries=$(BOOST_ROOT)/libs/libraries.htm
+      <xsl:param>toc.max.depth=2
+      <xsl:param>toc.section.depth=2
+      <xsl:param>chunk.first.sections=1
+      <xsl:param>chunk.section.depth=2
+      <xsl:param>boost.image.src=../images/stldb_logo.png
+      <xsl:param>boost.image.alt="\"STLdb\""
+      <xsl:param>boost.image.w=253
+      <xsl:param>boost.image.h=108
+      <xsl:param>nav.layout=none
+      <dependency>autodoc
+      <format>pdf:<xsl:param>boost.url.prefix=http://www.boost.org/doc/libs/release/doc/html
+
+   ;

@@ -1,0 +1,314 @@
+
+Locking of the Container itself.  Based on One Sharable Mutex, plus one regular mutex, and a cond variable for waiting on row-level locks.  The cond var
+would actually work with the container-level lock.
+
+Container Lock:
+Insert or Delete of entries to Map itself - Exclusive Lock
+All others (any op which doesn't change map structure) - Shared Lock
+
+~~~~~~~
+PROBLEM: cond_var can't be used unless a mutex is locked.
+~~~~~~~~
+technique:  for combining a cond_var with a shared lock & mutex pair:
+
+// read
+get read lock
+release shared lock
+
+// insert (non-blocking) / commit (exclusive ops)
+get write lock
+release write lock
+
+// insert (blocking form)
+get write lock
+try insert, when row-level contention found,
+get mutex for row-level operation  // get mutex while holding write lock (DEADLOCK)
+release write lock
+cond wait (mutex)
+release mutex.
+get write lock                                      // get write lock (no mutex)
+    // note - interval above with no lock held.  Safe anyway because
+    // we can invalidate the hint iterator if there have been any deletes committed,
+    // and retry the insert operation.
+retry insert
+release write lock
+
+// update/remove (non-blocking)
+get read lock
+find row (work)
+get mutex for row-level operation   // get mutex while holding read lock.
+modify row
+release mutex
+release read lock.
+
+// update (blocking)
+get read lock
+find row
+get mutex for row-level operation // get mutex while holding read lock.
+try update.  suppose fails, need to wait.
+release read lock
+cond wait (mutex) releases & reacquires mutex.
+    // in the interval between 2 locks above, iterators can go invalid.
+    // we refresh i only once we get the read lock again.
+retry update.
+release mutex.
+get read lock                                      // get read lock while  holding mutex
+release read lock
+
+// commit
+get write lock	
+do commit logic.	
+release write lock
+    // must release lock prior to getting mutex to avoid deadlock possibility.
+get mutex
+cond notify all
+release mutex
+
+
+Conclusion:
+No chance of lock deadlocks.  
+No chance of missed cond_notify when a transaction completes.
+* find, update, erase just acquire shared read lock.
+* insert just acquires write lock
+* commit has to acquire write lock, then mutex
+* an operation which blocks on a row lock ends up acquiring both mutexes
+
+General:
+to wait on rw_lock:
+    1) already have rw_lock (either shared or exclusive)
+    2) get mutex
+    3) cond_wait(mutex)
+    4) release mutex
+    5) reacquire rw_lock (as before)
+Conclusion: rw_lock NEVER acquired while holding MUTEX prevents deadlock.
+
+~~~~~~~~~~
+Entry Design:
+~~~~~~~~~~
+Pattern which probably applies to many types of containers which hold individual entries, like list, dequeue, etc.
+
+Each entry within the container has to record:
+
+1) field txn_id.  This holds one of two values:
+a) if the op code is "No_op", then this holds the txn_id of the last transaction to commit a change to that row.
+b) otherwise, it is the txn_id of an in-progress transaction.
+
+2) pending operation - when a row is locked, it might be for update, for delete, for insert, or just to grant exclusive access.  
+The operation being performed needs to be indicated.  The value of 0 means no_op, while any value >0 indicates
+some pending operation is in place.
+
+OpCode != no_op -> row has a pending change of some kind, and txn_id identifies the txn_id of the locker.
+Opcode == no_op -> row has no pending change, and txn_id is the id of the last committed transaction.
+
+~~~~~~~~~~~~~
+Row_lock handling:
+~~~~~~~~~~~~~
+
+I really need atomic operations (with defined memory barriers, but in lieu of that, I am currently using
+picket lock mutxes.
+
+A row-level mutex must be siezed when updating the data on a row.  The mutex does
+not need to be siezed when reading a row.  While that makes it possible that stale data
+might be seen, this only allows it to miss changes which have been initiated by other threads
+which hold shared mutexes on the main map.  So it might not see an in progress lock, insert, or
+erase indicator.  In all 3 of these cases, the key & value of the row is not yet altered, as the
+change is not yet committed, (commit requiring an exclusive lock), so the result is that
+no mutex lock is required when reading the rows with a shared lock held.
+
+To minimize contentino between threads trying to update different objects, a picket
+locking aproach can be used.
+
+MVCC:
+~~~~~
+newValues are temporarilly stored in a map<iterator,V> which only needs to be accessed to store new values while updates are in progress.
+I had originally thought of putting this map within the transMap, to be accessed when new updates were posted, but this makes another 
+locking bottleneck.
+
+Alternative - since each transaction would only ever need to read its own outstanding changes, each transaction can maintain its own
+map<iterator,V> to hold new values for pending updates.  An op can then find the pending update without any extra locking needed.
+
+
+Multiple Ops affecting 1 row in a transaction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Multiple Ops affecting one row within a transaction create some complications for the transactional ops of this map.  The following 
+analysis shows this impact:
+
+Valid 2-OP Scenarios where this can happen.
+Insert -> Update
+Insert -> Delete
+Update -> Update
+Update -> Delete
+Delete -> Insert
+
+Insert followed by update:
+    insert:  normal.
+    update: The update can just change the value on the pending insert.  No new trans op added to transaction.
+
+Insert followed by Delete:
+    insert: during commit, insert must not revert opcode back to No_op, since existing value is delete_following_insert.
+    delete: A special Delete-following-Insert op must be used.  On commit, delete the row.  On rollback, the row pointed 
+    to by the iterator will have vanished, so do nothing.
+
+Update followed by Update:
+    update: normal
+    update2: Second update just changes the pre-existing updated value in the pending values map.  No new trans op added.
+
+Update followed by Delete:
+    update: if pending_op is not Update_op, then don't change it.  likewise on rollback, do nothing.
+    delete: normal
+
+Delete followed by insert:
+    delete: during commit, will not that op code is no longer Delete_op, and will thus not delete it.  During rollback, would also do nothing. During rollback, will need to clear out any note of a pending insert.
+    Insert: When insert  is performed, the existing pending delete row will be found.  Can't add a second row with the same key to the map (invalid), So would instead change the op to an update, and add a pending value.  Commit/rollback of this update becomes normal.
+
+Based on that, the designs of the trans_ops now becomes:
+
+Insert_op:
+    Commit:  Set row->op to No_op if the value on it is still Insert_op
+    Rollback: Remove the row.
+
+Update_op:
+    Commit:  If op code is not Update_op, don't change the row.  Otherise, update row with pending op value.
+    Rollback:  If op code is Update_op, revert it to its normal value. 
+
+Delete_op:
+    Commit: delete the row pointed to by iterator if the op code is still Delete_op
+    Rollback:  if op code is Delete_op, clear it back to No_op.
+
+Delete_following_insert_op:
+    Commit:  delete the row pointed to by iterator if the op code is still Delete_following_insert_op
+    Rollback:  do nothing (iterator has become invalid.)
+
+Confirmation Activity - analysis of 3 sequential ops on one row (confirming transitive effect of above design):
+
+Insert -> Update -> Delete
+    insert (apply) - new row with op=Insert_op on it.
+    update (apply) - value on pending insert changed.  Op code unchanged
+    delete (apply) - set op = Delete_following_insert_op, so code will not return the inserted values as if committed.
+    insert (commit) - nothing done since Op_code is no longer commit.
+    delete (commit) - row deleted.
+    insert (rollback) - remove row.
+    delete (rollback) - do nothing.
+  
+Delete -> Insert -> Update
+    delete (apply) - row marked with op = Delete_op.
+    insert (apply) - row changed to Update_op.  New value in pending updates, rows value not changed.  Update_op added to transaction.
+    update (apply) - pending value change to new updated value.  No new op added.
+    delete (commit) - because Op != Delete_op, do nothing.
+    update (commit) - replace row with new value, set op = No_op.
+    delete (rollback) - because Op != Delete_op, do nothing.
+    update (rollback) - set op = No_op, delete pending value.
+
+Update -> Delete -> Insert
+    update (apply) - row marked with op = Update_op.  Create pending value.
+    delete (apply) - row marked with Delete_op.
+    insert (apply) - row marked with Update_op.  Existing pending update changed to have new value.  Update_op added to transaction.
+    update (commt) - existing row replaced with new pending value.  Op set to no-op.
+    delete (commit) - since op != Delete_op, do nothing.
+    update (commit) - since op != Update_op, do nothing.
+    update (rollback) - op reverted to No_op, pendng value purged.
+    delete (rollback) - since op != Delete_op, do nothing.
+    update (rollback) - since op != Update_op, do nothing.
+
+Delete -> Insert -> Delete
+
+Insert -> Delete -> Insert
+PROBLEM?  Not if insert() is changed to deal with existing dows with Delete_op, or Delete_pending_insert_op.
+    insert (apply) - row added to map, makred with op = insert.
+    delete (apply) - row op changed to Delete_pending_insert_op.
+    insert (apply ) - row op changed back to insert_op, with new value overlaying.
+    insert (commit) - op changed to N_op to make insert permanent.
+    delete (commit) - since op != Delete_pending_insert_op, do nothing.
+    insert (commit) - since op != insert_op, do nothing.
+
+Insert -> Update -> Update
+
+Update -> Update -> Delete
+
+
+
+Exclusive Transactions:
+~~~~~~~~~~~~~~~~~~
+Some operations, like clear(), and swap() are incredibly expensive if done as an array of deletes.  In designing them like that, they would be 
+required to adhere to the concurrency practive, and would have to iterate over the whole map, mark rows deleted, then later remove them when the
+change had been made permanent.
+
+An alternative to that is the concept of exclusive transactions.  This is like exclusive locks.  If an exclusive transaction is in place, no other
+transaction can be in progress, nor can any new transactions work on that container until the exclusive
+transaction is committed or rolled back.  As a result, the commit/abort/logging process of that transaction is more easily
+recorded.  This provides a basis for many types of operations which might be hard to model concurrently, like clear() and swap().
+
+Interation with normal transactional operations:
+Seems like there are some problems with mixing exclusive and non-exclusive operations.
+
+CLEAR:
+
+clear -> anything:
+	commit: commit just returns true, allowing the following op to then do whatever it needs to, and it should complete fine.
+	rollback: clear reverts the map to its values prior to call to clear(), returns false so that no subsequent operations will
+	execute.
+
+insert -> clear:
+	commit : insert's iterator points to data in clear's _old_values, but can adjust the row, and so works without SEGV.
+*	rollback: insert's calls container->erase with its previously saved iterator.  This is a mismatch of containers and iterators.
+	  most std::map<> implementations will probably handle this without segv-ing, but map's size might then be wrong.
+
+update -> clear:
+lock -> clear:	
+	these work so long as clear returns false on rollback, because update/lock uses only its entry, and not the _container for commit/rollback
+
+erase -> clear:
+*	commit : erase calls _container.erase(iter) with an iterator no longer in _container.  A problem, as in insert.
+	rollback: erase works only on its iterator'ed entry.
+
+Conclusion - it is possible to have non-exclusive ops follow exclusive ones, but not the other way around.
+Allowing any ops is OK if the addition of a clear() operation can go set the _container::baseclass() which is to be used by
+insert and erase operations for their final baseclass::erase() calls, and if that works as needed after a swap() call.
+
+SWAP:
+
+Swap poses several problems:
+1) The restoriation process which is applying log records needs to pass the containers for multiple container_ids to the
+   restoration, in order for the swap to be re-applied.  So I need a way to indicate ops which affect a second container
+   as a 
+
+2) Ordering.  Unlike clear, with swap, I have to adjust the ops on a second container, and ultimately, whether the ops
+   on that container apply to one basclass (map) or the other depends on whether or not the swap operation was rolled back.
+   So that's complicated.
+
+SWAP is going to be deferred until later.
+
+
+Concurrency Analysis:
+~~~~~~~~~~~~~~~~~~~~~
+
+Commit Sequence (Locks):
+
+Database::commit():
+[	1) short duration exclusive on _dbinfo held to check for reusable commit buffer.  else one created
+	call:
+Transaction::commit():
+	does serialization to buffer without any locks.
+	(Buffer & Transaction not shared with other threads.)
+	In order of container ref:
+[		2) get container lock
+|		commit operations (sequentially) on that container (sequence of fast ops)
+| [	3) exclusive mutex on commit queue (do enqueue)
+|	In order of container ref
+[		complete commit (release exclusive lock on containers)
+	calls:
+Logger::log():
+[	4) get file lock (right to write)
+|	[	get queue lock
+|	|		pull set of entries from queue, prepare iovec
+|	[	release queue lock
+|	write()
+[	release file lock
+	sync()
+[	5) get file lock (to update max_sync value)
+|	set max_sync = max_write right before previous release file lock
+[	release file lock (goes out of scope)
+Database::commit()
+[ 	6) Put the commit buffers back into the database.
+
+

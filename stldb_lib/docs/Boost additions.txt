@@ -1,0 +1,19 @@
+Boost.Interprocess additions:
+
+(1) Allocator with default constructor. 
+ -  The idea here is to allow the alocator to be initialized with a valid segment manager
+     via any of the following techniques.
+     1) By explicitly passing the segment manager to the constructor (per today)
+     2) By having the allocator notice that its own location is within the range of memory
+         controlled by one of the segment managers of managed regions in use by the current
+         process.  It then "assumes" that it is that segment manager which it is to work with.
+     3) By getting the segment manager to use from an explicit value which is put in
+         thread-specific memory for a scope of time which includes the construction of the allocator.
+     
+ TODO - How compatible, or not, is this idea with the notion of scoped allocators from C++0x?
+    Will it be throw away once scoped allocators become available.
+    
+(2) Growable Managed Region type, based on Posix OS support for explicit mapping addresses,
+      and SEGV signal handling.
+      
+(3) File Locking with offset/size indications - locking a portion of the file, rather than the whole thing.
