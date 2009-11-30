@@ -1,0 +1,25 @@
+
+Declaration of a Loki Factory:
+
+class MyFactory : public Loki::Factory<BaseType, IdType, Seq<Arg1, ...> >
+{
+private:
+     BaseType* newType1(Arg1 arg1, ...) { return new SubType1(arg1,...); }
+     BaseType* newType2(Arg1 arg1, ...) { return new SubType2(arg1,...); }
+
+public:
+     MyFactory()
+         : Loki::Factory<BaseType, IdType, Seq<Arg1, ...>
+     {
+         this->Register( 1, &newType1 );
+         this->Register( 2, &newType2 );
+     }
+};
+
+
+Use of the Factory:
+ 
+MyFactory factory;
+BaseType *something = factory.CreateObject(1, arg1, ...);
+
+ 

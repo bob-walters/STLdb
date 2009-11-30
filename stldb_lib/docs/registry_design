@@ -1,0 +1,69 @@
+
+Registry Design:
+
+The registry has the following data to permit the detection of a corrupt database:
+
+	  boost::interprocess::vector<OS_process_id_t, pid_alloc_t>  _registry;
+
+      // This is set to true once some thread successfully completes the initialization of
+      // the database containing this region.
+      bool _database_construct_complete;
+
+      // Indicates that the region needs to undergo recovery processing.
+      bool _database_invalid;
+
+When the registry is initially constructed during a Database constructor, _database_construct_complete==false.
+If the Database constructor finishes, it will be set to true.  Thus, the only time it should ever
+be seen as false is by the thread which is creating the database shared region, and only while the file lock is held.
+
+The _registry vector itself is not guarded by the file lock, but rather by an internal mutex.  The reason for this
+is because a process waiting in the database constructor for peers to disconnect has to let them unregister without
+having to get the file lock, otherwise, things will deadlock.  This internal mutex could get hung if a process
+dies or is killed just as it is unregistering.
+
+The _database_invalid flag can be set to true without holdng the file lock.  By convention, I have been protecting it
+with the mutex.  Ironically, it probably doesn't need it.  The value of this field always is initialized to true,
+(during Database construction.)
+and then is set to false, but never back to true.  So the change doesn't need a mutex as much as a memory barrier.
+
+Registry Methods:
+check_need_for_recovery() - without getting the mutex on the region, it can initially check:
+if (! _database_construct_complete || _database_invalid )  because if it can see that, then recovery is needed,
+and getting the mutex and rechecking is not really going to make much difference.
+Otherwise, however, it does then need to get the mutex and check the _registry vector for dead processes.
+
+Registry Mutex is the one concern - viable 'hanging' point.
+Mutex is acquired and held for:
+* Call to check_need_for_recovery in Database constructor (while checking existing region for need to recover)
+* Briefly when the pid is registered in Database constructor (after recovery / during construction)
+* While setting construction complete at end of Database constructor.
+* During Database::close() - to unregister the pid.
+* During check_integrity() of the Database - prior to calling check_need_for_recovery.
+* During call to Database::region_remove, as a way to wait for other connected threads to signal that they
+  have disconnected, via calls to unregister_pid. i.e. This has to do with calling cond_wait.
+--end.
+
+REDESIGN:
+Instead of using a mutex, use a registry file lock.
+The trick is how to deal with the condition_wait for all process disconnects once the region is
+panicked.  I have a simple idea for that:
+1) Get the name of a connected pid file from _registry[0].
+2) Release the registry file lock (so other threads could unregister.
+3) block on an attempt to get the file lock of the pid, until it succeeds.
+4) after getting the lock check to see if the pid has removed itself from the _registry.
+
+During unregister:
+1) Remove your pid from the _registry first,
+2) then unlock you file.
+3) then remove that file.
+
+Oddities of Registry Behavior:
+1) If a process is connected to a database, and registered,
+and then starts calling the await_disconnect() routine, it will loop
+forever waiting for its own PID to disconnect.
+
+
+
+
+
+

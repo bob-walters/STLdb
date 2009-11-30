@@ -1,0 +1,579 @@
+[/
+ / Copyright (c) 2009 Bob Walters
+ /
+ / Distributed under the Boost Software License, Version 1.0. (See accompanying
+ / file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ /]
+
+[library STLdb
+    [quickbook 1.3]
+    [version 1.0]
+    [id stldb]
+    [dirname stldb]
+    [copyright 2009 Bob Walters]
+    [purpose ACID-compliant database composed of STL containers]
+    [authors [Walters, Bob]]
+    [license 
+        Distributed under the Boost Software License, Version 1.0.
+        (See accompanying file LICENSE_1_0.txt or copy at
+        [@http://www.boost.org/LICENSE_1_0.txt])
+    ]
+]
+
+[section:intro Introduction]
+
+STLdb is a C++ library which implements an ACID compliant database composed
+of STL containers.  The active data set of the database is held within a
+shared memory region (shared memory, memory mapped file, etc.) and can be
+simultaneously used by multiple processes (all running on the same machine).
+The library provides direct (embedded) access to the database.  Operations
+directly manipulate the STL containers within the shared region, avoiding
+the overhead of inter-process communication.
+
+The most common database paradigm for applications is to employ a separate
+relational database, and then map relational constructs to object-oriented
+equivalents using ORM software.  One of the goals of STLdb is to allow a
+more direct approach.  i.e. The database itself consists of STL containers
+managed under a database infrastructure.  Thus the difference between
+the standard paradigm of working with a set of STL containers in global memory 
+and working with STL containers in an STLdb database is minimized.
+
+The database is [*['embedded]] because access if via the direct invocation 
+of database routines.  Processes using the database connect directly to 
+a shared memory region containing the database data, and manipulate it 
+within that region.  Access to this region is properly synchronized, so 
+that multiple process can connect to, and share a single region at the 
+same time.  This direct mode of access minimizes the overhead associated 
+with accessing the data.
+
+The database is [*['object-oriented]] because the contents of the database 
+are simply one or more STL contaiers, which in turn contain 
+application-specific data types per their template parmeters.  
+You manipulate the database contents 
+by manipulating these containers, and the data they contain, using their 
+familiar APIs.
+
+The database is [*['memory-resident]] because the full data set is loaded 
+into the shared memory region and manipulated within that region.  The 
+database does not perform paging between the persistent storage and the 
+shared memory region on demand.  Rather, during the initial connection, 
+all data is loaded into the region.   
+
+The database is ACID compliant.  The acronym ACID refers to the 4 essential
+characteristics desired in a database implementation:  Atomicity, Consistency,
+Isolation, and Durability.
+
+The STLdb database enforces the [*['atomicity]] of all transactions.  The transaction
+infrastructure allows the application to indicate the transactions that each
+change occurs under.  The transaction is completed via an explicit call to
+either a commit() or rollback() method, which in turn guarantees that all of
+the changes in that transaction are either successfully performed (and logged)
+or that all changes are undone.
+
+The [*['consistency]] of STLdb databases is largely a application-specific matter.
+Because the STLdb database consists of one or more STL containers, consistency
+constraints which apply across the containers are not handled by the STLdb database
+itself, but rather by the application code using the database.  Still, there is
+a desire to make STLdb able to work with multi-index containers, like
+boost::multi_index::multi_index_container, which in turn would provide a way
+to represent such consstency constraints within the database.  This support
+is planned for a future release.
+
+STLdb provides [*['isolation]] to the extent of isolation level 1 (read committed.)
+What this means is that a thread reading the data will not see uncommitted changes
+that are associated with any other transaction. Some containers, like the 
+stldb::map, provide multi-version concurrency control as part of their implementation,
+so that processes trying to read an entry in the map can always see the last
+committed copy of an entry, and are never blocked by in-progress changes.
+
+While the database doesn't page data in or out, it does provide for the
+ [*['durability]] of all changes via
+write-ahead logging and checkpoints.  When a transaction is committed, the
+commit processing perform write-ahead logging of all changes ensuring the
+ability to recover the transaction thereafter.  In addition, applications
+can periodically checkpoint the database, writing out the containers
+contents to checkpoint files.  These conventions assure the durability
+of all changes, and the ability to load data quickly (with 
+a minimal need to re-apply log records).   It's an approach aimed at 
+ensuring that the database consistently employs as much sequential disk 
+I/O as possible, while minimizing the per-transaction I/O which must be 
+done to ensure durability.
+
+[section:features Overview of features]
+
+In summary, here's a run-down of features:
+
+* Multiple processes, can connect to a common database and use it concurrently.
+* The need for database loading or recovery processing is detected automatically 
+  whenever any process connects (attaching) to a database.  This is based on 
+  a mechanism for reliably detecting when previously attached processes disconnect 
+  abnormally, thereby leaving potential corruption in the shared memory region.
+* Recovery processing is automatic but also optional.  An application can
+  specify the desired mode of connection. You can 
+  allow the library to perform any required recovery, have it throw an exception 
+  if recovery is needed, or force recovery to occur by abandoning any already 
+  existing  memory regions.  The intention with this is to support architectures 
+  where all processes are equal peers, or where processes are specialized into 
+  roles.  (e.g. wanting a CGI script to never perform recovery, preferring to 
+  fail the request instead.)
+* The database's durability approach involves continuous sequential write of 
+  redo logs in response to committed transactions.   The option is available to 
+  do synchronous or asynchronous writes, permitting a tradeoff between high 
+  disk throughput vs. the chance of loosing some committed transactions in the 
+  event of  OS or machine failure.  It is also possible to specify transactions
+  which should not be logged at all, thereby suporting a disk-less database.
+
+[endsect]
+
+[endsect]
+
+[section:Building stldb]
+
+STLdb depends on several modules within the Boost library.  
+
+[endsect]
+
+[section:databases Using Databases]
+
+[section:connecting Connecting to a Database]
+
+The [classref stldb::Database] class represents a connection to an STLdb 
+database, in much the same manner that a 
+[classref boost::interprocess::managed_shared_region] is a connection to 
+a shared memory region.  Constructing a [classref stldb::Database] object 
+constructs the associated interprocess region object, and finds or 
+constructs the key structures which support the database infrastructure,
+along with the containers which make up the contents of the database.
+
+The Database constructor will create, load, and/or recover the database, 
+if those operations are needed, and allowed, based on the constructor 
+arguments.
+
+There are a number of different scenarios that could happen during a 
+connection to a database:
+
+* The database could be created (i.e. from nothing, no prior region, checkpoints or logs)
+* The process could connect to an already existing shared memory region, and use the already open and loaded database.
+* The shared memory region could be created, and the contents of the region could be loaded from existing checkpoints and logs, left behind from previous runs.
+* The process could discover that the existing region is potentially corrupt, and perform recovery.  When recovery is done, any existing region is destroyed, and then the contents of the database are reloaded from checkpoint and log files.
+
+From this assessment, the [classref stldb::Database] class includes
+a set of overloaded constructors which each correspond to a desired
+connection behavior.  They dictate which forms of connection are allowed.
+The most permissive option 
+will perform any and all operations required to establish the connection.
+More restrictive variants will succeed only if the database is already
+created, loaded, or in a healthy state.
+
+The constructor variants and their associated behavior are as followed:
+
+[table Database Constructors
+    [[Constructor Variant] [Create/Load] [Connect] [Recover]]
+    [[open_or_recover] [] [yes] [yes]]
+    [[open_create_or_recover] [yes] [yes] [yes]]
+    [[create_or_recover] [yes] [] [yes]]
+    [[open_or_create] [yes] [yes] []]
+    [[open_only] [] [yes] []]
+]
+
+The specific constructor arguments which define the available behaviors when connecting to the database are as follows:
+
+* [*open_or_recover] - either attach to an existing shared region and use the database, or perform recovery if it is needed.   An exception is thrown if the region does not already exist.
+* [*open_create_or_recover] - do whatever is appropriate to create, load, open, or recover the database.
+* [*create_or_recover] - this option avoids the use of any existing shared memory region, either creating the region, and  loading it from any existing checkpoints and logs, or destroying the existing region and reloading it  per recovery processing.   This approach can be used to ensure that the process of establishing the connection won&apos;t be adversely affected by corruption in any existing region.
+* [*open_or_create] - if recovery is needed, throw an error.  Otherwise, the database can be created, loaded, or opened.
+* [*open_only] - succeed if connecting does not require creating, loading, or recovering the database. This mode of connection is guaranteed to be fast.
+
+[note Creating a region, and loading it from any existing 
+checkpoints and/or log files is always done together.  There is no 
+explicit option to create the region and ignore checkpoint and log files.]
+
+
+[section:constructor_args Constructor Arguments]
+
+Aside from the first parameter of the Database constructor which determines the create/load/recover/open options that apply while connecting, the constructors take additional parameters as follows:
+
+* Database Name - used as the name of the database, and also the name given to the constructor of the underlying boost::interprocess::managed_region object.  If a managed_mapped_file is used as the database&apos;s region type, this name should not include any preceeding path.  This name serves to identify the database.
+* Database Directory - the directory where the region will be placed (if a managed mapped file is used), and also where various other file-based locks related to the database are located.   This directory contains the &apos;active set&apos; of files for the database.  
+* Checkpoint Directory - the directory where checkpoint files will be written.
+* Log Directory - the directory where write-ahead log files will be written.
+* Region size - this parameter is passed to the underlying boost::interprocess managed_region constructor to determine the size of the region for those cases where the region may be constructed.  It can also be used to resize a region.  (See below.)
+* fixed mapping address - designates a desired address for the mapping of the underlying managed shared region.    This value is passed to the constructor of the shared region.
+* maximum log file length - designates the maximum allows size for an individual log file before that file is closed and a new file begun.
+* synchronous logging (bool) - indicates whether or not the database infrastructure should issue an fsync call (or equivalent) after each write to the log buffer in order to guarantee the persistence of transactions through all forms of failure, including loss of power.  This options is described in grater detail in the section on logging.
+* container proxies.  A std::list&lt;container_proxy_base*&gt; which indicates the set of containers which should exist within the database.  This list is needed when constructing a new database to establish the set of containers that should exist within it.  It is also used when recovering the database.  This list (and the reason why it is required) is described below.
+
+[/Note that the Database, Checkpoint, and Log directories should be different for different databases. i.e. Two databases should not share any of the same directories, even though the database names, and container names within them may be different./]
+
+[endsect]
+
+[endsect]
+
+[section:resizing Resizing Regions]
+
+All data in the database is loaded into the managed shared region while the database is in use.  Thus the size of the shared region determines the limit on the amount of data which the database can contain.  The database region can be resized by changing the region size parameter given to the constructor of the Database object.  The value passed is used to resize any existing region under the following circumstances:
+
+* If the region exists, and no other processes are already connected to the region, then the region will be resized using the grow() or shrink_to_fit() methods of the underlying managed region type.  Thus in this case, the region can be resized without invalidating its contents or requiring that it be recovered or reloaded.
+* If the Database must be recovered, the recovery process destroys the existing region and recreates it.  Under this circumstance, the newly created region will be created with the desired size, regardless of its previous size.
+
+Finally, if for any reason, the region does not exist when the process connects to the database, the size passed is used when creating the region.  The static Database::remove_region method can be used to delete the managed shared region of the database prior to establishing a connection, thus guaranteeing that it will be reconnected.
+
+[endsect]
+
+[section:removing Removing Regions and Databases]
+
+To discard the contents of an existing database, and recreate it from 
+scratch (empty), the static [memberref stldb::Database::remove] method can be 
+used to delete checkpoints, logs, and existing regions.  Following 
+this with one of the constructor forms which can create the Database will 
+effectively re-initialize the database as an empty database.
+
+There is also a [memberref stldb::Database::remove_region] method which 
+can be used to remove the existing database region.  This method does not
+remove the database logs or checkpoints, and thus no data is lost.
+
+When a database or database region is removed, the exact behavior can
+depend on whether or not any processes are currently connected to the database.
+
+On Windows systems, the removal of the database shared region is not
+possible while any processes are connected.  Accordingly, the remove
+method will wait for all connected processes to detach (destroy their
+Database objects) before it can proceed.  To ensure that other processes
+will disconnect, the region is marked invalid when the remove() or
+remove_region() operation begins.  Any process connected to the shared
+region which is being deleted will receive an exception if it
+attempts to start any further transactions, or open any new connections
+to the database.  Once all existing connections are closed,
+the remove() or remove_region() operation can complete.  Other processes
+can then reconnect.
+
+On Unix systems, the process performing the remove() operation does not
+need to wait for connected processes to disconnect, it can proceed
+immediately.  The region which is removed persists as an anonymous region
+until the last process disconnects from it.  Because of this, the
+the existing region is still marked as invalid, as described previously.
+
+[endsect]
+
+[section:database Database Containers]
+
+During the construction of the database, a list of container proxies 
+(subclasses of container_proxy_base) is provided. 
+These proxies identify the containers which should exist 
+within the database.  The reason for using the proxy types (as opposed 
+to passing the container types) is because the database infrastructure 
+requires a means to interact with all of the containers within it via a 
+single polymorphic interface.  The containers themselves must exist within 
+the boost::interprocess shared memory region, and thus cannot contain 
+the necessary virtual methods, so the proxy class is used as an 
+intermediary for acting on its associated container.
+
+[note The list of proxies is taken by the Database constructor because 
+it is needed immediately if recovery processing or database loading is 
+done. (i.e. if the
+region must be recreated or the database reloaded.)]
+
+When the database constructor completes, the shared memory region 
+contains the data for the indictaed containers, either because the 
+region already existed, or as a result of data loading or database 
+recovery.  Pointers to these containers can be acquired by calling 
+the database::get_container().
+
+[section:add_remove_containers Adding and Removing Containers]
+
+Containers can be added to, and removed from databases while processes 
+are connected to them.  This is done via the add_container() or 
+remove_container() methods.
+
+It is important that once a container is added to a database, 
+subsequent calls to the Database contructor, by any process, must include 
+the proxy for the added containers.  Likewise, once a container is removed 
+from a database, subsequent calls to the Database constructor should not 
+include that proxy in the constructor arguments.  It is the application's
+responsibility to keep track of the containers which should exist within 
+the database.
+
+If the container proxies passed to the database constructor do not 
+correspond to the containers that are already within the database, the 
+discrepancy is handled as follows:
+
+* If the container defintion is not removed from a subsequent Database constructor call after calling remove_container(), and if the database is recovered, then the deleted container will re-appear, with contents recovered to the point in time when the remove_container() call was made.
+* If the container definition is missing from the database constructor, after a call to add_container() method, then the container will not exist if the database is recovered.  Otherwise, if the process is connecting to an existing region, then it succeeds, and is simply unaware of the existing container within the region.
+
+The schema of a database can also be altered by changing the list of proxies passed to the database constructor:
+
+* Adding a container to the database constructor call causes the container to be added to the database during the processes of connecting to the database. 
+* Removing a container from the database constructor call causes the container to be dropped from the region the next time that the region is recreated.  (Region recreation occurs during recovery processing, or during reloading after an explicit call to database::remove_region().)
+
+[endsect]
+
+[endsect]
+
+[endsect]
+
+[section:trans Using Transactions]
+
+Containers within the database are manipulated using APIs which conform 
+as much as possible to the APIs of the STL.  However, all modifications 
+against a container in a database must occur within the context of a 
+transaction.  Accordingly, those APIs will require a transaction parameter.
+
+A transaction designates a set of operations which must be atomically committed 
+or rolled back, and from which other threads accessing the database must be 
+isolated until that transaction completes.
+
+Transactions are optional when calling methods of containers which do not 
+modify the container.   You can, for example, iterate over the contents of a 
+map without creating a transaction.  When containers are accessed without 
+using a transaction, the methods and iterators returned by those methods show 
+only the currently committed data within the container.
+
+To call any methods which modify data within a container, a transaction must be passed.
+
+[section:create_trans Creating and Destroying Transactions]
+
+A transaction is started by calling the Database<regionType>::begin_transaction() method. 
+That method returns a pointer to a transaction object which the application can then 
+pass to methods which require the transaction.
+
+The transaction class itself has no public methods.  It is meant to be used as an 
+opaque type.  The transaction object does accumulate data as it is used to perform 
+various operations.  This accumulated data serves to facilitate the commit or 
+rollback of operations when the transaction is concluded.  Because of this, it is 
+not safe to pass a transaction object from one process to another via any means.  
+However, a transaction does not have any specific association with a particular 
+thread, and could be used by different threads during its lifetime.   See the section 
+on threads and transactions (below).
+
+[endsect]
+
+[section:complete_trans Completing Transactions]
+
+A transaction is ultimately completed by either committing the transaction, or by rolling it back, undoing all changes.
+
+A transaction is committed by calling Database&lt;regionType&gt;::commit( transaction*, boolean diskless=false ).  This method completes the transacton by doing the following:
+
+* All operations performed as part fo the transaction become visible to all other threads accessing the database, atomically.
+
+* If diskless=false, a log record is written to the database log which encapsulates all of the operations done as part of that transaction, ensuring their durability, by permitting the operations to be recovered in the event of a crash.
+
+If the application determines at some point in its processing that a transaction should be cancelled, all pending changes can be undone by calling the Database&lt;regionType&gt;::rollback( transaction* ) method.  Rolling back a transaction undoes all changes that were done as part of that transaction.
+
+After calling either commit or rollback, the transaction object can and must then be deleted by the caller.
+
+The processing of a commit() operation can fail, due to factors like a failure to write the transaction log to disk.  In the event of such failures, the operation will have been committed to the in-memory container data, but will not have been written to disk.   It is up to the application to determine its approach for handling these failures.  However, not that once commit() is called, a subsequent call to rollback() cannot be issued, even in the case that the commit operation fails.
+
+[endsect]
+
+[sect:thread_trans Threads and Transactions]
+
+In the STLdb design, there is no direct correlation between transactions and threads.  A single thread can create and  use multiple transactions against a database.  It is not required to have only one outstanding transaction at a time.
+
+Similarly, multiple threads can use one transaction.  However, the transaction is not in itself thread-safe.  Thus only one thread should make use of a transaction at any particular moment in time.
+
+A transaction is tied to the process which creates it, and to the database which it was created from.
+
+[endsect]
+
+[section:ex_trans Exclusive Transactions]
+
+Certain operations on containers, like swap() and clear(), are implemented in a manner which does not permit concurrency.  Threads must gate around the call to swap() and clear() in order to keep those methods efficient, and avoid  imposing an unacceptably long period of exclusive access against the containers.   To address this need in the design, STLdb includes the concept of an exclusive transaction.
+
+An exclusive transaction is so named because when an exclusive transaction is in progress, no other transaction can be in progress against that same database.  Until the exclusive transaction is completed, no other transaction (standard or exclusive) can begin.  This implies that the begin_exclusive_transaction() must block if there are any standard transaction in progress.  Likewise, calls to begin_transaction() can block if there is an exclusive transaction in progress.    If the application does not make use of exclusive transactions, then the begin_transaction() method will never block.
+
+An exclusive transaction is started by calling the Database&lt;regionType&gt;::begin_exclusive_transaction() method.  The exclusive_transaction class is a subclass of the standard transaction class.  As such, exclusive transactions are completed by passing them to the same standard Database&lt;regionType&gt;::commit() or rollback() methods that are used to complete standard transactions.  The exclusive transaction can also be passed to any method which takes a standard transaction, and thus can perform any transactional operation.
+
+An exclusive transaction, as with a standard transaction, can be used to perform any number of operations against any of the containers within the database.
+
+[endsect]
+
+
+[section:map Using stldb::map]
+
+stldb::map is a concurrent, transactional implementation of std::map.  While the goal of 
+STLdb has been to keep to the API of std::map as much as possible, some changes were 
+necessary to allow for a transactional map.  Accordingly, the API
+of the map template is changed in the following ways:
+  
+* The map has a mutex(), which is used by callers for concurrency control.
+* Methods of map which modify the map contents require a transactional parameter to indicate
+  the transaction that the change is being made under.
+* Some methods of std::map could end up blocked on an entry-level lock in the case of a transactional map.  For such methods, a variant is added which takes a wait_policy parameter to determine the
+  blocking behavior of those methods.
+* To modify an existing value in the map, new methods, update() and lock() have been added to the
+  map to support the transactional record of modifications.  The use of these methods is required as
+  opposed to the use of the direct use of a referenced entry as an lvalue.
+
+The rationalization for these changes to the map API is discussed n the remaining sections.  
+Aside from these changes, the stldb::map interface is otherwise identical to the std::map interface, 
+for the sake of minimizing the learning curve associated with this library..
+
+[section:map_locking Locking Maps]
+
+Concurrency control with stldb::map is via a mutex which is exposed through the mutex() method
+of the map.  The type of this mutex is determined by template parameters.  It can be an interprocess_mutex
+or a interprocess_upgradable_mutex.  The map container supports a degree of concurrency via shared locking.
+If an interprocess_upgradable_mutex is used the type of lock acquired can be shared for all
+operations except calls to insert().
+   
+Applications using the stldb::map must first acquire a lock on the maps mutex() and can then
+call one or more methods of the map while the lock is held.  This approach allows the application
+to decide the granularity of locks at the level of map.  A lock might be held for one or several
+operations.  This convention also allows you to choose the type of lock (shared or exclusive) in
+cases where the mutex type is an upgradable mutex.
+   
+TODO - example of insert, alongside find.
+
+[endsect]
+
+[section:map_entrylock Entry-level locks]
+
+When an application uses a method which inserts, erases, or modifies an entry within the map, 
+the entry in question is locked by that transaction, using an entry-level lock.  This is the
+equivalent of a row-level lock in traditional RDBMS databases.  The duration of the entry-level
+lock is tied to the transaction which creates it.  It is held until the transaction is committed
+or rolled back.
+ 
+stldb::map implements multi-version concurrency control.  This means that the last committed
+value of any given entry remains in the map, even when there is a pending change or erase of an
+entry.  This in turn allows accessor methods like find(), lower_bond(), and upper_bound() to
+continue to show the last committed value for any entry, corresponding to iso isolation level 1
+(read committed).  row-level locks never block accessor methods.
+   
+TODO - example of read isolation.
+
+There are versions of the accessor() methods which take a transaction as a parameter.  Such accessor methods (and any iterators returned by them) return results which reflect any outstanding changes which have been made as part of that transaction.  So for example, iterators can point to newly inserted entries which have not yet been committed.  The use of these accessor methods yields results which are consistent from the perspective of the transaction.  Methods whch do not take a transaction() always return committed information, and return iterators which show only committed information.
+
+[endsect]
+
+[section:map_updates Updating Entries]
+
+A normal map permits the modification of entries within the map by using a dereferenced iterator directly as an lvalue.  The transactional infrastructure of STLdb needs to know when the application is modifying the entries within the map.  Attempting to infer this from the use of operator* or operator-&gt; on iterators is subject to false positives in which routine access could be incorrectly inferred to be an update.   stldb::map makes use of a more explicit technique to avoid that problem.
+
+stdb::map has an update( iterator, V newValue, txn ) method.   When called, this method sets the value component of  the entry at the iterator to the newValue passed, and does so within the context of the transaction passed.  This method establishes an entry-level lock on the entry, if one is not alread in place. 
+
+TODO - example of find() followed by update()
+
+One point with regard to find() and update() should be kept in mind.   With the example above, threads could overwrite each other&apos;s values because a shared lock is being used during the scope of the find() and update() methods.  Specifically, the following paths of execution, by two different threads on a shared processor, shows the problems that can occur:
+
+# thread A find()s the value for a given key under transaction 1.
+# thread B find()s the value for the same key under transaction 2.
+# thread A updates() the entry to a new value, and commits transaction 1.
+# thread B updates() the entry to a new value, discarding the change that was made by thread A, and commits transaction 2.
+
+Under that sequence, the second thread overwrites the value that had just been committed by the first.  To avoid this problem, the application could use an exclusive lock when locking the map, however that can reduce the overall concurrency of the map, and could be a significant problem if a great deal of processing is required between the initial find() of a row and the subsequent update().
+
+As an alternative, stldb::map includes support for a lock( iterator, txn ) method, which can be usedto establish a row-level lock on an entry without modifying it in the process.  This then allows the application to use the entry without fear that any other transaction could change the value.
+
+A revised version of the prior example which addresses the overwrite problem would look as follows:
+
+TODO - example of find(), lock(), increment value attribute, and update()
+
+[endsect]
+
+[section:map_blocking Blocking on row-level locks]
+
+The locking  example in the previous section, is almost a complete, ready-to-run example.  One detail remains.  When a thread attempts to update() or erase() an entry which currently has an entry-level lock held by another transaction, one of two results are possible:
+
+* The operation could fail, requiring that it be retried later once the transaction holding the lock has completed.
+* The operation could block, waiting for the transaction which holds the lock to complete, at whcih point the operation can then proceed.
+
+STLdb, as with most relational databases, supports both of those options.  Those versions of insert(), erase(), update(), and lock() which do not take a wait_policy parameter do not block, and will instead throw an stldb::row_level_lock_contention exception to indicate that the operation cannot be done without blocking.
+
+Alternative versions of insert(), erase(), update(), and lock() exist which take a final 'wait_policy' parameter.  The wait_policy argument permits blocking behavior and determines the blocking policy.  The wait_policy can, for example, determine a timeout whch applies to the wait.
+
+[c++]
+
+	class wait_policy {
+	    void unlock_container();
+	    void relock_container();
+	
+	    template <class row_mutex_t, class condition_t>
+	    void wait(
+	      boost::interprocess::scoped_lock<row_mutex_t> &mutex, condition_t &condition );
+	}
+
+The wait_policy is assumed to have a reference to the lock that the application currently has on the container.   This allows it to implement the unlock_container() and relock_container() methods.  The wait() method is invoked to perform a wait on the condition variable passed.  Internally, stldb::map uses an interprocess_condition to implement blocking on entry-level locks.   The wait() method must wait on that vairable, but may do so conditionally.
+
+STLdb comes with two pre-implemented wait policies.  stldb::wait_indefinitely_policy blocks until the entry is unlocked.  stldb::bounded_wait_policy will wait for the entry-level lock to be released for a designated maximum amount of time.  If it is not released within that timeframe, a stldb::lock_timeout_exception is thrown.
+
+TODO - Example find(), lock(), update() with wait policy.
+
+[endsect]
+
+[endsect]
+
+[section:logging_opt Logging Options]
+
+STLdb uses a write-ahead log to ensure the durability of changes.  The logging directory is separate to enable it to be a dedicated (or different) filesystem.  As transactions are committed, the data is written to the log as part of the commit() logic.  In the case of an unexpected failure in the database (e.g. operator kills a process, or machine crashes), the log ensures that changes can be recovered from disk.  (For more details on the rationale behind write-ahead logging, see TBD.)
+
+STLdb provides three options when logging is being used:
+
+# Applications can selectively specify that some, or all transactions against the database should not be logged at all.  In this case, if the database should suffer an unexpected failure prior to the checkpoint process writing the data out to the disk, the changes are lost.  Using this approach to logging can also cause recovery from the last hot checkpoint to be impossible, although recovery to a cold checkpoint is possible.  (More on this below.)
+# The database can be configured for asynchronous logging, in which case, application log records are written to disk, but there is no guarantee that the records make it to disk prior to the completion of commit() logic.  This allows commits to be faster at the trade-off that some committed transactions may be lost if there is a failure, and recovery is needed.  To help control the maximum amount of data which might be lost, asynchronous logging also includes an optional configuration parameter which can specify that every X bytes, Y transactions, or Z milliseconds, a synchronous flush to disk must be done as part of a commit() call, thus ensuring that no more than that amount of logging data will be lost.  This is intended to support applications which want to provide a guaranteed recovery point objective.
+# The database can be configured for synchronous logging, in which case, the commit() logic includes a fsync() call which is intended to ensure that during the commit, the OS will push the bytes written from its buffers to the disk device.  Unfortunately, not all disks will guarantee that the write at this point will survive a power failure, due to the use of disk caching.  Some disks have battery-backed write caches to address this, and there is also the option of disabling the write cache if the durability must be assured at all costs.  The later might not be as much of a problem as anticipated because of the STLdb approach for aggregated log writing (More on this below.)  
+
+[section:diskless_opt Diskless STLdb databases]
+
+By using diskless=true on commit calls, the application can effectively avoid ever writing anything to disk. If this is combined with never calling the checkpoint system, then no disk activity of any kind occurs – the database is purely a memory-only construct.
+
+Because the database is held within a shared region that lasts beyond the lifetime of an individual process, it is possible to stop processes and have them restart and continue using the database, without any loss of data.
+
+However, the moment that recovery is needed, or the moment that the shared memory region is otherwise destroyed or lost (e.g. a reboot of a machine), the application is then starting over with an empty database.  Recovery processing, under this kind of configuration essentially deletes the database and recreates it, empty.
+
+[endsect]
+
+[section:checkpoint_no_log Using checkpointing without logging]
+
+When using STLdb for high throughput memory-resident databases, you might be inclined to avoid any disk logging in favor of occasional checkpointing, with the goal being that upon failure, you can fall back to the last successfully written checkpoint.
+
+This can work, but with restrictions.  The STLdb checkpointing approach is a ‘hot checkpoint’ – one that occurs while the database is in use, and while changes are being made.  Because of this, the checkpoints which are written out to disk do not represent a point in time.  What can be said in regard to every checkpoint is that it contains all transactions up to one point in time T1 (the time when the checkpoint started), and none of the transactions after another point in time T2 (the time it completed), but may contain none, some, or all of the changes for any transactions which were committed during the interval from T1 to T2.  The fact that such a “hot checkpoint” has this state on disk is not a problem during normal recovery, because the log files help roll the checkpoint forward until it does represent a single point in time.
+
+Because of this quality, you can’t just disable logging and use a checkpoint instead as a way to recover back to a previous point in time.   For this approach to work, the database would have to be unchanging while the checkpoint was happening.  i.e. An exclusive lock would have to be held on the map while the checkpoint was occurring to prevent any change from happening while it was in progress.
+
+Another viable option is to commit with logging (asynchronous or synchronous) while the checkpoint is running, and then deactivate logging once again after the checkpoint is done.  This might be a viable option for an application which has different levels of load (e.g. lightly loaded at 3am) and can thus afford the reduction in throughput and latency that comes with activating logging.  When the application then falls back, it will load the last written checkpoint, and apply all subsequently written log records in order to catch up to a moment in time (corresponding to when the checkpoint completed and logging was deactivated.)  This can provide an application with the ability to run in a diskless fashion while under load, and occasionally checkpoint the database when the load is low.  In the event of recovery, the application looses only those transactions which have occurred since the last checkpoint.
+
+[endsect] 
+
+[section:async_log Asynchronous Logging]
+
+Asynchronous logging is a configurable option in which the application threads will perform a write() system call (or equivalent on non-posix systems) during commit() processing, but will wait for any assurance that the data has made it to the disk before completing the commit() call.  The write() system call typically allows the OS to buffer the pending data within kernel buffers and does not require that the application wait on the disk I/O.  However, if the OS buffers are full (backlogged with pending writes to the disk), then the write() system call may block, at least until the backlog clears.
+
+With asynchronous logging, there is still some assurance/protection against data loss due to application crashes.  Every commit() call only returns after its log records have been passed to write().  That ensures that (at a minimum) that log data is now in OS buffers.  Thus, an application which crashes shortly after calling commit() will still be assured that it’s records will eventually go to disk.  The only data loss with this mode of I/O occurs when the OS crashes or the machine fails before transferring the data to the physical disk.
+
+[endsect]
+
+[section:sync_log Synchronous Logging]
+
+With synchronous logging, each commit() call will not return until the application has written its log buffer contents via a write() call, and then ensured the durability of that write by issuing an fsync() system call (or equivalent).  Synchronous logging throughput can benefit significantly from the use of write aggregation.
+
+[endsect]
+
+[section:write_aggr Write Aggregation]
+
+Write aggregation is a designed feature of the logging system, aimed at maximizing disk throughput, and minimizing average thread latency associated with doing synchronous disk writes.
+
+The idea/rationale is that a sequence of larger write()/sync() pairs can achieve greater throughput than an identical sequence of smaller write()/sync() pairs.  This is typically true in most OSes/devices.  Because of this, the database throughput overall is sped up if all of the threads which perform commit within a small window of time aggregate their I/O together into a single large write() and sync(), rather than performing a sequential set of smaller write()/sync() pairs.
+
+Write aggregation is achieved by having threads create their log buffers in shared memory, and then enqueue those buffers just before releasing container locks.  They then enter a critical section in which they pull their buffer back out of the queue and perform the required disk writes.  Rather than pull just their own buffer, however, they pull the entrie available sequence of buffers, and use a gathering write to send all of that waiting data to the disk.  They can then perform a sync() to wait for the write to be flushed, and carry on.  When there are a high number of threads attempting to commit() transactions simultaneously, the effect is to automatically aggregate their I/O operations into a smaller number of write() system calls that deal with a larger volume of data.  Threads which enter the critical section can discover that the thread that entered the section previously has already written out their data, allowing them to complete their commit() call without any further I/O.
+
+Diagrams 1 and 2 show the effect of Log I/O aggregation graphically.
+
+Diagram 1
+
+Diagram 2
+
+In the first diagram, the critical section is the write() & fsync() pair.   The threads each enter that section one at a time.  In the second diagram, the same is true, except that when a thread enters the critical section, it writes all of the log buffer data available.  i.e. t1, upon entering the critical section (the right to write to the file), finds two commit buffers ready to write, it’s own, and the one belonging to t2.  It writes both, achieving the benefit of aggregation.  When t2 gets into the critical section, it sees that there is no longer any need for it to write anything, so it completes immediately.  The average wait time in these two diagrams is smaller for the scenario where I/O aggregation is used.
+
+A point to reiterate: I/O aggregation occurs not only among threads within one process, but also among threads in different processes, because all of the data (commit buffers) are held in shared, rather than heap, memory.
+
+I/O aggregation is not configurable.  It is automatic.  This is a side effect of the impact that no having it would have on the code.  I may provide a means to not use it in the future, but can’t figure out why that would be desirable.
+
+Also note that on some OSes, while write()s are inherently serialized (because each one writes to a position which must be determined), the OS may allow parallel fsync() system calls to be issued, and may allow fsync() calls while writes() are also being done.  STLdb attempts to exploit this characteristic when it is possible.  It is left to the OS to enforce any synchronization needed between these primitives or allow parallization.
+
+[endsect]
+
+[endsect]
+
+[xinclude autodoc.xml]
+

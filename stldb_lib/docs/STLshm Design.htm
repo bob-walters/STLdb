@@ -1,0 +1,3630 @@
+<html xmlns:v="urn:schemas-microsoft-com:vml"
+xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns:m="http://schemas.microsoft.com/office/2004/12/omml"
+xmlns:css="http://macVmlSchemaUri" xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta name=Title content="High Level Design Overall">
+<meta name=Keywords content="">
+<meta http-equiv=Content-Type content="text/html; charset=macintosh">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 2008">
+<meta name=Originator content="Microsoft Word 2008">
+<link rel=File-List href="STLshm%20Design_files/filelist.xml">
+<title>High Level Design Overall</title>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Template>Normal</o:Template>
+  <o:LastAuthor>Bob Walters</o:LastAuthor>
+  <o:Revision>22</o:Revision>
+  <o:TotalTime>410</o:TotalTime>
+  <o:Created>2008-02-27T02:42:00Z</o:Created>
+  <o:LastSaved>2008-03-24T03:39:00Z</o:LastSaved>
+  <o:Pages>7</o:Pages>
+  <o:Words>6987</o:Words>
+  <o:Characters>39826</o:Characters>
+  <o:Company>Convergys</o:Company>
+  <o:Lines>331</o:Lines>
+  <o:Paragraphs>79</o:Paragraphs>
+  <o:CharactersWithSpaces>48909</o:CharactersWithSpaces>
+  <o:Version>12.1</o:Version>
+ </o:DocumentProperties>
+ <o:OfficeDocumentSettings>
+  <o:AllowPNG/>
+ </o:OfficeDocumentSettings>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <w:WordDocument>
+  <w:SpellingState>Clean</w:SpellingState>
+  <w:GrammarState>Clean</w:GrammarState>
+  <w:TrackMoves>false</w:TrackMoves>
+  <w:TrackFormatting/>
+  <w:DisplayHorizontalDrawingGridEvery>0</w:DisplayHorizontalDrawingGridEvery>
+  <w:DisplayVerticalDrawingGridEvery>0</w:DisplayVerticalDrawingGridEvery>
+  <w:UseMarginsForDrawingGridOrigin/>
+  <w:ValidateAgainstSchemas/>
+  <w:SaveIfXMLInvalid>false</w:SaveIfXMLInvalid>
+  <w:IgnoreMixedContent>false</w:IgnoreMixedContent>
+  <w:AlwaysShowPlaceholderText>false</w:AlwaysShowPlaceholderText>
+  <w:Compatibility>
+   <w:SplitPgBreakAndParaMark/>
+   <w:DontVertAlignCellWithSp/>
+   <w:DontBreakConstrainedForcedTables/>
+   <w:DontVertAlignInTxbx/>
+   <w:Word11KerningPairs/>
+   <w:CachedColBalance/>
+   <w:UseFELayout/>
+  </w:Compatibility>
+ </w:WordDocument>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <w:LatentStyles DefLockedState="false" LatentStyleCount="276">
+ </w:LatentStyles>
+</xml><![endif]-->
+<style>
+<!--h1
+	{mso-bidi-font-weight:bold;}
+span.HEADING1CHAR
+	{mso-bidi-font-size:16pt;
+	mso-style-locked:yes;}
+h2
+	{mso-bidi-font-weight:bold;}
+em
+	{mso-bidi-font-style:italic;}
+span.HEADING1CHAR
+	{mso-style-locked:yes;}
+span.HEADING2CHAR
+	{mso-bidi-font-size:13pt;
+	mso-style-locked:yes;}
+
+ /* Font Definitions */
+@font-face
+	{font-family:Arial;
+	panose-1:2 11 6 4 2 2 2 2 2 4;
+	mso-font-charset:0;
+	mso-generic-font-family:auto;
+	mso-font-pitch:variable;
+	mso-font-signature:3 0 0 0 1 0;}
+@font-face
+	{font-family:"Courier New";
+	panose-1:2 7 3 9 2 2 5 2 4 4;
+	mso-font-charset:0;
+	mso-generic-font-family:auto;
+	mso-font-pitch:variable;
+	mso-font-signature:3 0 0 0 1 0;}
+@font-face
+	{font-family:Times;
+	panose-1:2 0 5 0 0 0 0 0 0 0;
+	mso-font-charset:0;
+	mso-generic-font-family:auto;
+	mso-font-pitch:variable;
+	mso-font-signature:3 0 0 0 1 0;}
+@font-face
+	{font-family:Verdana;
+	panose-1:2 11 6 4 3 5 4 4 2 4;
+	mso-font-charset:0;
+	mso-generic-font-family:auto;
+	mso-font-pitch:variable;
+	mso-font-signature:3 0 0 0 1 0;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;
+	mso-font-charset:0;
+	mso-generic-font-family:auto;
+	mso-font-pitch:variable;
+	mso-font-signature:3 0 0 0 1 0;}
+@font-face
+	{font-family:Cambria;
+	panose-1:2 4 5 3 5 4 6 3 2 4;
+	mso-font-charset:0;
+	mso-generic-font-family:auto;
+	mso-font-pitch:variable;
+	mso-font-signature:3 0 0 0 1 0;}
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-ascii-font-family:Arial;
+	mso-fareast-font-family:"Times New Roman";
+	mso-fareast-theme-font:minor-fareast;
+	mso-hansi-font-family:Arial;
+	mso-bidi-font-family:"Times New Roman";
+	mso-bidi-theme-font:minor-bidi;}
+h1
+	{mso-style-link:"Heading 1 Char";
+	mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan lines-together;
+	page-break-after:avoid;
+	mso-outline-level:1;
+	font-size:16.0pt;
+	font-family:"Times New Roman";
+	mso-ascii-font-family:Calibri;
+	mso-ascii-theme-font:major-latin;
+	mso-fareast-font-family:"Times New Roman";
+	mso-fareast-theme-font:major-fareast;
+	mso-hansi-font-family:Calibri;
+	mso-hansi-theme-font:major-latin;
+	mso-bidi-font-family:"Times New Roman";
+	mso-bidi-theme-font:major-bidi;
+	color:#345A8A;
+	mso-font-kerning:0pt;}
+h2
+	{mso-style-link:"Heading 2 Char";
+	mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan lines-together;
+	page-break-after:avoid;
+	mso-outline-level:2;
+	font-size:13.0pt;
+	font-family:"Times New Roman";
+	mso-ascii-font-family:Calibri;
+	mso-ascii-theme-font:major-latin;
+	mso-fareast-font-family:"Times New Roman";
+	mso-fareast-theme-font:major-fareast;
+	mso-hansi-font-family:Calibri;
+	mso-hansi-theme-font:major-latin;
+	mso-bidi-font-family:"Times New Roman";
+	mso-bidi-theme-font:major-bidi;
+	color:#4F81BD;}
+p.MsoToc1, li.MsoToc1, div.MsoToc1
+	{mso-style-update:auto;
+	mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	tab-stops:right dotted 431.5pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-ascii-font-family:Calibri;
+	mso-ascii-theme-font:major-latin;
+	mso-fareast-font-family:"Times New Roman";
+	mso-fareast-theme-font:minor-fareast;
+	mso-hansi-font-family:Calibri;
+	mso-hansi-theme-font:major-latin;
+	mso-bidi-font-family:"Times New Roman";
+	mso-bidi-theme-font:minor-bidi;}
+p.MsoToc2, li.MsoToc2, div.MsoToc2
+	{mso-style-update:auto;
+	mso-style-next:Normal;
+	margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:12.0pt;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-ascii-font-family:Arial;
+	mso-fareast-font-family:"Times New Roman";
+	mso-fareast-theme-font:minor-fareast;
+	mso-hansi-font-family:Arial;
+	mso-bidi-font-family:"Times New Roman";
+	mso-bidi-theme-font:minor-bidi;}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	mso-add-space:auto;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-ascii-font-family:Arial;
+	mso-fareast-font-family:"Times New Roman";
+	mso-fareast-theme-font:minor-fareast;
+	mso-hansi-font-family:Arial;
+	mso-bidi-font-family:"Times New Roman";
+	mso-bidi-theme-font:minor-bidi;}
+p.MsoListParagraphCxSpFirst, li.MsoListParagraphCxSpFirst, div.MsoListParagraphCxSpFirst
+	{mso-style-type:export-only;
+	margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	mso-add-space:auto;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-ascii-font-family:Arial;
+	mso-fareast-font-family:"Times New Roman";
+	mso-fareast-theme-font:minor-fareast;
+	mso-hansi-font-family:Arial;
+	mso-bidi-font-family:"Times New Roman";
+	mso-bidi-theme-font:minor-bidi;}
+p.MsoListParagraphCxSpMiddle, li.MsoListParagraphCxSpMiddle, div.MsoListParagraphCxSpMiddle
+	{mso-style-type:export-only;
+	margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	mso-add-space:auto;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-ascii-font-family:Arial;
+	mso-fareast-font-family:"Times New Roman";
+	mso-fareast-theme-font:minor-fareast;
+	mso-hansi-font-family:Arial;
+	mso-bidi-font-family:"Times New Roman";
+	mso-bidi-theme-font:minor-bidi;}
+p.MsoListParagraphCxSpLast, li.MsoListParagraphCxSpLast, div.MsoListParagraphCxSpLast
+	{mso-style-type:export-only;
+	margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	mso-add-space:auto;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-ascii-font-family:Arial;
+	mso-fareast-font-family:"Times New Roman";
+	mso-fareast-theme-font:minor-fareast;
+	mso-hansi-font-family:Arial;
+	mso-bidi-font-family:"Times New Roman";
+	mso-bidi-theme-font:minor-bidi;}
+span.Heading1Char
+	{mso-style-name:"Heading 1 Char";
+	mso-style-locked:yes;
+	mso-style-link:"Heading 1";
+	mso-ansi-font-size:16.0pt;
+	font-family:Calibri;
+	mso-ascii-font-family:Calibri;
+	mso-ascii-theme-font:major-latin;
+	mso-fareast-font-family:"Times New Roman";
+	mso-fareast-theme-font:major-fareast;
+	mso-hansi-font-family:Calibri;
+	mso-hansi-theme-font:major-latin;
+	mso-bidi-font-family:"Times New Roman";
+	mso-bidi-theme-font:major-bidi;
+	color:#345A8A;
+	font-weight:bold;}
+span.Heading2Char
+	{mso-style-name:"Heading 2 Char";
+	mso-style-locked:yes;
+	mso-style-link:"Heading 2";
+	mso-ansi-font-size:13.0pt;
+	font-family:Calibri;
+	mso-ascii-font-family:Calibri;
+	mso-ascii-theme-font:major-latin;
+	mso-fareast-font-family:"Times New Roman";
+	mso-fareast-theme-font:major-fareast;
+	mso-hansi-font-family:Calibri;
+	mso-hansi-theme-font:major-latin;
+	mso-bidi-font-family:"Times New Roman";
+	mso-bidi-theme-font:major-bidi;
+	color:#4F81BD;
+	font-weight:bold;}
+span.SpellE
+	{mso-style-name:"";
+	mso-spl-e:yes;}
+span.GramE
+	{mso-style-name:"";
+	mso-gram-e:yes;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+ /* List Definitions */
+@list l0
+	{mso-list-id:145440575;
+	mso-list-type:hybrid;
+	mso-list-template-ids:1154883034 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l0:level1
+	{mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l0:level2
+	{mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l0:level3
+	{mso-level-tab-stop:1.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l0:level4
+	{mso-level-tab-stop:2.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l0:level5
+	{mso-level-tab-stop:2.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l0:level6
+	{mso-level-tab-stop:3.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l0:level7
+	{mso-level-tab-stop:3.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l0:level8
+	{mso-level-tab-stop:4.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l0:level9
+	{mso-level-tab-stop:4.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1
+	{mso-list-id:151216688;
+	mso-list-type:hybrid;
+	mso-list-template-ids:160834276 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l1:level1
+	{mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level2
+	{mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level3
+	{mso-level-tab-stop:1.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level4
+	{mso-level-tab-stop:2.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level5
+	{mso-level-tab-stop:2.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level6
+	{mso-level-tab-stop:3.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level7
+	{mso-level-tab-stop:3.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level8
+	{mso-level-tab-stop:4.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level9
+	{mso-level-tab-stop:4.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l2
+	{mso-list-id:152451558;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-276396892 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l2:level1
+	{mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l3
+	{mso-list-id:245114661;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-219657590 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l3:level1
+	{mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l4
+	{mso-list-id:287128961;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-1823414530 67698689 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}
+@list l4:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	font-family:Symbol;}
+@list l4:level2
+	{mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l4:level3
+	{mso-level-tab-stop:1.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l4:level4
+	{mso-level-tab-stop:2.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l4:level5
+	{mso-level-tab-stop:2.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l4:level6
+	{mso-level-tab-stop:3.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l4:level7
+	{mso-level-tab-stop:3.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l4:level8
+	{mso-level-tab-stop:4.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l4:level9
+	{mso-level-tab-stop:4.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l5
+	{mso-list-id:376901023;
+	mso-list-type:hybrid;
+	mso-list-template-ids:867352848 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l5:level1
+	{mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l5:level2
+	{mso-level-number-format:alpha-lower;
+	mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l5:level3
+	{mso-level-tab-stop:1.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l5:level4
+	{mso-level-tab-stop:2.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l5:level5
+	{mso-level-tab-stop:2.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l5:level6
+	{mso-level-tab-stop:3.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l5:level7
+	{mso-level-tab-stop:3.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l5:level8
+	{mso-level-tab-stop:4.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l5:level9
+	{mso-level-tab-stop:4.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l6
+	{mso-list-id:423187731;
+	mso-list-type:hybrid;
+	mso-list-template-ids:721028822 -2090440504 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l6:level1
+	{mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	margin-left:1.0in;
+	text-indent:-.5in;}
+@list l6:level2
+	{mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l6:level3
+	{mso-level-tab-stop:1.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l6:level4
+	{mso-level-tab-stop:2.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l6:level5
+	{mso-level-tab-stop:2.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l6:level6
+	{mso-level-tab-stop:3.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l6:level7
+	{mso-level-tab-stop:3.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l6:level8
+	{mso-level-tab-stop:4.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l6:level9
+	{mso-level-tab-stop:4.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l7
+	{mso-list-id:534391042;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-194763966 192205148 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l7:level1
+	{mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	margin-left:29.0pt;
+	text-indent:-.25in;}
+@list l7:level2
+	{mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l7:level3
+	{mso-level-tab-stop:1.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l7:level4
+	{mso-level-tab-stop:2.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l7:level5
+	{mso-level-tab-stop:2.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l7:level6
+	{mso-level-tab-stop:3.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l7:level7
+	{mso-level-tab-stop:3.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l7:level8
+	{mso-level-tab-stop:4.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l7:level9
+	{mso-level-tab-stop:4.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l8
+	{mso-list-id:607004901;
+	mso-list-type:hybrid;
+	mso-list-template-ids:1061596080 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l8:level1
+	{mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l9
+	{mso-list-id:905460392;
+	mso-list-type:hybrid;
+	mso-list-template-ids:495858124 67698689 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}
+@list l9:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	font-family:Symbol;}
+@list l9:level2
+	{mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l9:level3
+	{mso-level-tab-stop:1.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l9:level4
+	{mso-level-tab-stop:2.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l9:level5
+	{mso-level-tab-stop:2.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l9:level6
+	{mso-level-tab-stop:3.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l9:level7
+	{mso-level-tab-stop:3.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l9:level8
+	{mso-level-tab-stop:4.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l9:level9
+	{mso-level-tab-stop:4.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l10
+	{mso-list-id:986325794;
+	mso-list-type:hybrid;
+	mso-list-template-ids:123755742 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l10:level1
+	{mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l11
+	{mso-list-id:1086536404;
+	mso-list-type:hybrid;
+	mso-list-template-ids:1000405308 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l11:level1
+	{mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l12
+	{mso-list-id:1121725835;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-1112894654 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l12:level1
+	{mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l12:level2
+	{mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l12:level3
+	{mso-level-tab-stop:1.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l12:level4
+	{mso-level-tab-stop:2.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l12:level5
+	{mso-level-tab-stop:2.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l12:level6
+	{mso-level-tab-stop:3.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l12:level7
+	{mso-level-tab-stop:3.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l12:level8
+	{mso-level-tab-stop:4.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l12:level9
+	{mso-level-tab-stop:4.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l13
+	{mso-list-id:1126852340;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-884409196 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l13:level1
+	{mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l14
+	{mso-list-id:1129207614;
+	mso-list-type:hybrid;
+	mso-list-template-ids:1235138630 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l14:level1
+	{mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l15
+	{mso-list-id:1130396435;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-816559978 67698689 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}
+@list l15:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	font-family:Symbol;}
+@list l15:level2
+	{mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l15:level3
+	{mso-level-tab-stop:1.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l15:level4
+	{mso-level-tab-stop:2.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l15:level5
+	{mso-level-tab-stop:2.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l15:level6
+	{mso-level-tab-stop:3.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l15:level7
+	{mso-level-tab-stop:3.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l15:level8
+	{mso-level-tab-stop:4.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l15:level9
+	{mso-level-tab-stop:4.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l16
+	{mso-list-id:1177420761;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-1612171578 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l16:level1
+	{mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l17
+	{mso-list-id:1651906357;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-152374582 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l17:level1
+	{mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l17:level2
+	{mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l17:level3
+	{mso-level-tab-stop:1.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l17:level4
+	{mso-level-tab-stop:2.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l17:level5
+	{mso-level-tab-stop:2.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l17:level6
+	{mso-level-tab-stop:3.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l17:level7
+	{mso-level-tab-stop:3.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l17:level8
+	{mso-level-tab-stop:4.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l17:level9
+	{mso-level-tab-stop:4.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l18
+	{mso-list-id:1749112425;
+	mso-list-type:hybrid;
+	mso-list-template-ids:2047270112 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l18:level1
+	{mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l18:level2
+	{mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l18:level3
+	{mso-level-tab-stop:1.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l18:level4
+	{mso-level-tab-stop:2.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l18:level5
+	{mso-level-tab-stop:2.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l18:level6
+	{mso-level-tab-stop:3.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l18:level7
+	{mso-level-tab-stop:3.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l18:level8
+	{mso-level-tab-stop:4.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l18:level9
+	{mso-level-tab-stop:4.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l19
+	{mso-list-id:1809587561;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-513526110 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l19:level1
+	{mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l20
+	{mso-list-id:1846431860;
+	mso-list-type:hybrid;
+	mso-list-template-ids:1980429474 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l20:level1
+	{mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l21
+	{mso-list-id:2043552236;
+	mso-list-type:hybrid;
+	mso-list-template-ids:1055052446 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l21:level1
+	{mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l22
+	{mso-list-id:2062367391;
+	mso-list-type:hybrid;
+	mso-list-template-ids:1610248874 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l22:level1
+	{mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+<!--[if gte mso 10]>
+<style>
+ /* Style Definitions */
+table.MsoNormalTable
+	{mso-style-name:"Table Normal";
+	mso-tstyle-rowband-size:0;
+	mso-tstyle-colband-size:0;
+	mso-style-noshow:yes;
+	mso-style-parent:"";
+	mso-padding-alt:0in 5.4pt 0in 5.4pt;
+	mso-para-margin-top:0in;
+	mso-para-margin-right:0in;
+	mso-para-margin-bottom:10.0pt;
+	mso-para-margin-left:0in;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-ascii-font-family:Cambria;
+	mso-ascii-theme-font:minor-latin;
+	mso-hansi-font-family:Cambria;
+	mso-hansi-theme-font:minor-latin;}
+</style>
+<![endif]--><!--[if gte mso 9]><xml>
+ <o:shapedefaults v:ext="edit" spidmax="1027"/>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <o:shapelayout v:ext="edit">
+  <o:idmap v:ext="edit" data="1"/>
+ </o:shapelayout></xml><![endif]-->
+</head>
+
+<body bgcolor=white lang=EN-US link=blue vlink=purple style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<h1><a name="_Toc66800618"></a><span class=SpellE><span style='mso-bookmark:
+_Toc66800618'>STLshm</span></span><span style='mso-bookmark:_Toc66800618'></span></h1>
+
+<p class=MsoNormal><span style='mso-bookmark:_Toc66800618'><o:p>&nbsp;</o:p></span></p>
+
+<h1><span style='mso-bookmark:_Toc66800618'>Table of Contents</span></h1>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoToc1><!--[if supportFields]><span style='mso-element:field-begin'></span><span
+style="mso-spacerun: yes">&nbsp;</span>TOC<span style="mso-spacerun:
+yes">&nbsp; </span>\* MERGEFORMAT <span style='mso-element:field-separator'></span><![endif]--><span
+style='mso-no-proof:yes'>Table of Contents<span style='mso-tab-count:1 dotted'>............................................................................................................. </span></span><!--[if supportFields]><span
+style='mso-no-proof:yes'><span style='mso-element:field-begin'></span> PAGEREF
+_Toc66800618 \h <span style='mso-element:field-separator'></span></span><![endif]--><span
+style='mso-no-proof:yes'>1<!--[if gte mso 9]><xml>
+ <w:data>08D0C9EA79F9BACE118C8200AA004BA90B02000000080000000D0000005F0054006F006300360036003800300030003600310038000000</w:data>
+</xml><![endif]--></span><!--[if supportFields]><span style='mso-no-proof:yes'><span
+style='mso-element:field-end'></span></span><![endif]--><span style='font-family:
+Cambria;mso-ascii-theme-font:minor-latin;mso-hansi-theme-font:minor-latin;
+mso-no-proof:yes'><o:p></o:p></span></p>
+
+<p class=MsoToc1><span style='mso-no-proof:yes'>Introduction / Project Goals<span
+style='mso-tab-count:1 dotted'>........................................................................................... </span></span><!--[if supportFields]><span
+style='mso-no-proof:yes'><span style='mso-element:field-begin'></span> PAGEREF
+_Toc66800619 \h <span style='mso-element:field-separator'></span></span><![endif]--><span
+style='mso-no-proof:yes'>1<!--[if gte mso 9]><xml>
+ <w:data>08D0C9EA79F9BACE118C8200AA004BA90B02000000080000000D0000005F0054006F006300360036003800300030003600310039000000</w:data>
+</xml><![endif]--></span><!--[if supportFields]><span style='mso-no-proof:yes'><span
+style='mso-element:field-end'></span></span><![endif]--><span style='font-family:
+Cambria;mso-ascii-theme-font:minor-latin;mso-hansi-theme-font:minor-latin;
+mso-no-proof:yes'><o:p></o:p></span></p>
+
+<p class=MsoToc2 style='tab-stops:right dotted 431.5pt'><span style='mso-no-proof:
+yes'>Requirements of the STL implementation<span style='mso-tab-count:1 dotted'>............................................................. </span></span><!--[if supportFields]><span
+style='mso-no-proof:yes'><span style='mso-element:field-begin'></span> PAGEREF
+_Toc66800620 \h <span style='mso-element:field-separator'></span></span><![endif]--><span
+style='mso-no-proof:yes'>1<!--[if gte mso 9]><xml>
+ <w:data>08D0C9EA79F9BACE118C8200AA004BA90B02000000080000000D0000005F0054006F006300360036003800300030003600320030000000</w:data>
+</xml><![endif]--></span><!--[if supportFields]><span style='mso-no-proof:yes'><span
+style='mso-element:field-end'></span></span><![endif]--><span style='font-family:
+Cambria;mso-ascii-theme-font:minor-latin;mso-hansi-theme-font:minor-latin;
+mso-no-proof:yes'><o:p></o:p></span></p>
+
+<p class=MsoToc2 style='tab-stops:right dotted 431.5pt'><span style='mso-no-proof:
+yes'>Future Direction:<span style='mso-tab-count:1 dotted'>........................................................................................................... </span></span><!--[if supportFields]><span
+style='mso-no-proof:yes'><span style='mso-element:field-begin'></span> PAGEREF
+_Toc66800621 \h <span style='mso-element:field-separator'></span></span><![endif]--><span
+style='mso-no-proof:yes'>1<!--[if gte mso 9]><xml>
+ <w:data>08D0C9EA79F9BACE118C8200AA004BA90B02000000080000000D0000005F0054006F006300360036003800300030003600320031000000</w:data>
+</xml><![endif]--></span><!--[if supportFields]><span style='mso-no-proof:yes'><span
+style='mso-element:field-end'></span></span><![endif]--><span style='font-family:
+Cambria;mso-ascii-theme-font:minor-latin;mso-hansi-theme-font:minor-latin;
+mso-no-proof:yes'><o:p></o:p></span></p>
+
+<p class=MsoToc1><span style='mso-no-proof:yes'>Installing and Building STLshm<span
+style='mso-tab-count:1 dotted'>..................................................................................... </span></span><!--[if supportFields]><span
+style='mso-no-proof:yes'><span style='mso-element:field-begin'></span> PAGEREF
+_Toc66800622 \h <span style='mso-element:field-separator'></span></span><![endif]--><span
+style='mso-no-proof:yes'>1<!--[if gte mso 9]><xml>
+ <w:data>08D0C9EA79F9BACE118C8200AA004BA90B02000000080000000D0000005F0054006F006300360036003800300030003600320032000000</w:data>
+</xml><![endif]--></span><!--[if supportFields]><span style='mso-no-proof:yes'><span
+style='mso-element:field-end'></span></span><![endif]--><span style='font-family:
+Cambria;mso-ascii-theme-font:minor-latin;mso-hansi-theme-font:minor-latin;
+mso-no-proof:yes'><o:p></o:p></span></p>
+
+<p class=MsoToc2 style='tab-stops:right dotted 431.5pt'><span style='mso-no-proof:
+yes'>Posix (Linux, MacOS, Solaris, Unix in general)<span style='mso-tab-count:
+1 dotted'>...................................................... </span></span><!--[if supportFields]><span
+style='mso-no-proof:yes'><span style='mso-element:field-begin'></span> PAGEREF
+_Toc66800623 \h <span style='mso-element:field-separator'></span></span><![endif]--><span
+style='mso-no-proof:yes'>1<!--[if gte mso 9]><xml>
+ <w:data>08D0C9EA79F9BACE118C8200AA004BA90B02000000080000000D0000005F0054006F006300360036003800300030003600320033000000</w:data>
+</xml><![endif]--></span><!--[if supportFields]><span style='mso-no-proof:yes'><span
+style='mso-element:field-end'></span></span><![endif]--><span style='font-family:
+Cambria;mso-ascii-theme-font:minor-latin;mso-hansi-theme-font:minor-latin;
+mso-no-proof:yes'><o:p></o:p></span></p>
+
+<p class=MsoToc2 style='tab-stops:right dotted 431.5pt'><span style='mso-no-proof:
+yes'>Windows<span style='mso-tab-count:1 dotted'>........................................................................................................................ </span></span><!--[if supportFields]><span
+style='mso-no-proof:yes'><span style='mso-element:field-begin'></span> PAGEREF
+_Toc66800624 \h <span style='mso-element:field-separator'></span></span><![endif]--><span
+style='mso-no-proof:yes'>2<!--[if gte mso 9]><xml>
+ <w:data>08D0C9EA79F9BACE118C8200AA004BA90B02000000080000000D0000005F0054006F006300360036003800300030003600320034000000</w:data>
+</xml><![endif]--></span><!--[if supportFields]><span style='mso-no-proof:yes'><span
+style='mso-element:field-end'></span></span><![endif]--><span style='font-family:
+Cambria;mso-ascii-theme-font:minor-latin;mso-hansi-theme-font:minor-latin;
+mso-no-proof:yes'><o:p></o:p></span></p>
+
+<p class=MsoToc1><span style='mso-no-proof:yes'>High Level Design of STLshm<span
+style='mso-tab-count:1 dotted'>.......................................................................................... </span></span><!--[if supportFields]><span
+style='mso-no-proof:yes'><span style='mso-element:field-begin'></span> PAGEREF
+_Toc66800625 \h <span style='mso-element:field-separator'></span></span><![endif]--><span
+style='mso-no-proof:yes'>2<!--[if gte mso 9]><xml>
+ <w:data>08D0C9EA79F9BACE118C8200AA004BA90B02000000080000000D0000005F0054006F006300360036003800300030003600320035000000</w:data>
+</xml><![endif]--></span><!--[if supportFields]><span style='mso-no-proof:yes'><span
+style='mso-element:field-end'></span></span><![endif]--><span style='font-family:
+Cambria;mso-ascii-theme-font:minor-latin;mso-hansi-theme-font:minor-latin;
+mso-no-proof:yes'><o:p></o:p></span></p>
+
+<h1><!--[if supportFields]><span style='mso-element:field-end'></span><![endif]--><o:p>&nbsp;</o:p></h1>
+
+<h1><a name="_Toc66800619">Introduction / Project Goals</a></h1>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The <span class=SpellE>STLshm</span> library makes it
+possible to create and use STL containers in shared memory.<span
+style="mso-spacerun: yes">&nbsp; </span>It works with the <span class=SpellE>MemoryPool</span>
+implementations in the ACE library to provide a variety of shared memory
+implementations (<span class=SpellE>mmaps</span>, SVR4 <span class=SpellE>shm</span>,
+and anonymous <span class=SpellE>pagefile</span> regions on Windows). </p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The allocator template parameter of STL containers is often
+quoted as enabling this.<span style="mso-spacerun: yes">&nbsp; </span>There are
+a number of implementations available, but many of them have limits I found
+unacceptable.<span style="mso-spacerun: yes">&nbsp; </span>This library aims to
+be a fairly full feature implementation of this concept.<span
+style="mso-spacerun: yes">&nbsp; </span>In particular it possesses the
+following capabilities:</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='text-indent:-.25in;mso-list:l5 level1 lfo1'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>Minimizes the programming impact of using a
+container in shared memory.<span style="mso-spacerun: yes">&nbsp; </span>The
+coding style matches what is done when a multi-threaded program is using an STL
+container, with the only other difference being in the way the initial pointer
+to the STL container is <span class=GramE>acquired.</span><span
+style="mso-spacerun: yes">&nbsp; </span>(In a multi-threaded program, it would
+always be created sometime early in execution, but in a shared memory case, it
+could already exist before the program was started.)</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='text-indent:-.25in;mso-list:l5 level1 lfo1'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>The shared memory region can grow while in use
+by multiple processes and/or threads.<span style="mso-spacerun: yes">&nbsp;
+</span>We use the same paradigm that is typical of heap management.<span
+style="mso-spacerun: yes">&nbsp; </span>I.e. A process initially creates a
+region of a given size, and gives that memory to the <span class=SpellE>freelist</span>
+manager (<span class=SpellE>malloc</span> / new).<span style="mso-spacerun:
+yes">&nbsp; </span>When the <span class=SpellE>freelist</span> runs out of
+memory, additional shared memory is requested for the region from the operating
+system, and the new chunk is added to the free-list, and so on.<span
+style="mso-spacerun: yes">&nbsp; </span>Any process using the region can
+trigger its growth.<span style="mso-spacerun: yes">&nbsp; </span>Thus the
+shared region does not have to be pre-allocated to its maximum size. </p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='text-indent:-.25in;mso-list:l5 level1 lfo1'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>There is full built-in support for synchronizing
+the initial creation/attach of a shared region among multiple processes.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='text-indent:-.25in;mso-list:l5 level1 lfo1'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>4.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>Shared memory presents the interesting new
+problem that the data structure can already exist when the process attaches to
+the region. So we provide a ‘bootstrapping’ mechanism which is essentially an
+atomic “<span class=GramE>find(</span>) or create()” operation that processes
+can use when first creating/attaching to known objects in shared memory.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='text-indent:-.25in;mso-list:l5 level1 lfo1'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>5.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=GramE>A number of shared memory
+region implementations are provided by reusing the “Memory Pool” concept from
+the ACE library</span>.<span style="mso-spacerun: yes">&nbsp; </span>The
+options include memory maps, shared memory regions, Windows-specific anonymous
+page-file regions, and <span class=SpellE><span class=GramE>sbrk</span></span><span
+class=GramE>(</span>) allocated regions (useful for testing…)</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='text-indent:-.25in;mso-list:l5 level1 lfo1'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>6.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>A couple of paradigms are supported by the
+shared memory allocator implementation, to suit different applications.</p>
+
+<p class=MsoNormal><span style="mso-spacerun: yes">&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-left:1.0in;mso-add-space:auto;
+text-indent:-.25in;mso-list:l5 level2 lfo1'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>a.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>The first approach provides the allocator with a
+fully functioning default constructor for the allocator that distinguishes when
+an allocator-aware object is being constructed in shared memory vs. heap, and
+automatically constructs the allocator to use the corresponding memory area.<span
+style="mso-spacerun: yes">&nbsp; </span>I found this necessary for some constructs,
+like <span class=SpellE>shm<span class=GramE>::map</span></span>&lt; <span
+class=SpellE>int</span>, <span class=SpellE>shm::string</span>&gt;<span
+style="mso-spacerun: yes">&nbsp; </span>(A map which contains some K or V type
+which itself uses the allocator template parameter.) This means, for example,
+that when objects are copies to and from shared memory, the dynamic memory that
+they themselves allocate automatically comes from the same region that the
+object is constructed in.</p>
+
+<p class=MsoNormal style='margin-left:.5in'><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='margin-left:1.0in;mso-add-space:auto;
+text-indent:-.25in;mso-list:l5 level2 lfo1'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>b.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>The second approach allows each thread/process
+to designate a particular shared memory region that will be used by all <span
+class=SpellE>shm_allocaor</span>&lt;&gt; objects constructed thereafter by that
+thread/process.<span style="mso-spacerun: yes">&nbsp; </span>This allows more
+explicit control and is necessary with objects that make use of memory
+allocation optimizations like copy on write.<span style="mso-spacerun:
+yes">&nbsp; </span>Many <span class=SpellE>std<span class=GramE>::string</span></span>
+classes include that optimization, and do work correctly using only the first
+approach.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='text-indent:-.25in;mso-list:l5 level1 lfo1'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>7.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>Extensibility via the encapsulation of separate
+concepts, so that individual aspects of the design can be enhanced or
+replaced.<span style="mso-spacerun: yes">&nbsp; </span>New free-list/<span
+class=GramE>allocation<span style="mso-spacerun: yes">&nbsp; </span>algorithms</span>,
+shared memory region mechanisms, locking mechanisms, etc. can be added.<span
+style="mso-spacerun: yes">&nbsp; </span>The library does not assume <span
+class=GramE>a one-size fits</span> all, as there really doesn’t seem to be any
+one ‘ideal’ implementation of this capability.<span style="mso-spacerun:
+yes">&nbsp; </span>Every design has its trade-offs.</p>
+
+<h1><o:p>&nbsp;</o:p></h1>
+
+<h2><a name="_Toc66800620">Requirements of the STL implementation</a></h2>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The STL library used with <span class=SpellE>STLshm</span>
+must adhere to a specific design characteristic; it must use the pointer type
+defined by the allocator template parameter in its implementation.<span
+style="mso-spacerun: yes">&nbsp; </span>If it assumes internal pointer types of
+T*, the use of those containers in shared memory will only work if all
+processes end up mapping the shared memory in at a common address.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>Not all STL containers support this.<span
+style="mso-spacerun: yes">&nbsp; </span>In the <span class=SpellE>Boost.interprocess</span>
+library, that led to a discussion on changing the <span class=SpellE>gcc</span>
+STL to support <span class=SpellE>allocator<span class=GramE>::pointer</span></span>,
+which you can see here:<span style="mso-spacerun: yes">&nbsp; </span><a
+href="http://thread.gmane.org/gmane.comp.gcc.libstdc++.devel/12919"><span
+style='color:windowtext;text-decoration:none;text-underline:none'>http://thread.gmane.org/gmane.comp.gcc.libstdc++.devel/12919</span></a>
+</p>
+
+<h1><o:p>&nbsp;</o:p></h1>
+
+<p class=MsoNormal>At this time, STL implementation which I know of that seem
+to work include:</p>
+
+<p class=MsoListParagraph style='text-indent:-.25in;mso-list:l9 level1 lfo2'><![if !supportLists]><span
+style='font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family:
+Symbol'><span style='mso-list:Ignore'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>The GNU STL library that comes with <span
+class=SpellE>gcc</span> 3.3+</p>
+
+<p class=MsoNormal style='margin-top:.1pt;margin-right:0in;margin-bottom:.1pt;
+margin-left:.5in;mso-para-margin-top:.01gd;mso-para-margin-right:0in;
+mso-para-margin-bottom:.01gd;mso-para-margin-left:.5in;text-indent:-.25in;
+mso-list:l9 level1 lfo2'><![if !supportLists]><span style='font-size:10.0pt;
+font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family:Symbol'><span
+style='mso-list:Ignore'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span style='font-size:10.0pt;font-family:Times;
+mso-bidi-font-family:"Times New Roman"'>The <span class=SpellE>RogueWave</span>
+STL library.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-top:.1pt;margin-right:0in;margin-bottom:.1pt;
+margin-left:.5in;mso-para-margin-top:.01gd;mso-para-margin-right:0in;
+mso-para-margin-bottom:.01gd;mso-para-margin-left:.5in;text-indent:-.25in;
+mso-list:l9 level1 lfo2'><![if !supportLists]><span style='font-size:10.0pt;
+font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family:Symbol'><span
+style='mso-list:Ignore'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span style='font-size:10.0pt;font-family:Times;
+mso-bidi-font-family:"Times New Roman"'>The Apache <span class=SpellE>stdcxx</span>
+STL library (which is actually the <span class=SpellE>RogueWave</span> <span
+class=SpellE>verson</span>.)<o:p></o:p></span></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<h2><a name="_Toc66800621">Future Direction:</a></h2>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>If successful, this project will destroy itself, and you
+will be able to do everything it provides by just using the ACE or the <span
+class=SpellE>Boost.interprocess</span> libraries.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>Originally, I had intended on building this project into a
+stand-alone library for using STL containers from shared memory.<span
+style="mso-spacerun: yes">&nbsp; </span>I began this by making use of a small
+portion of the ACE library.<span style="mso-spacerun: yes">&nbsp; </span>My
+intention was either to assist the ACE <span class=GramE>project</span> in
+their modularization efforts so that the dependency would be on only a portion
+of that library, or to copy and <span class=SpellE>refactor</span> some
+elements of the ACE library into <span class=SpellE>STLshm</span> to create a
+stand-alone <span class=SpellE>STLshm</span> library.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>In February 2008, I stumbled upon <span class=SpellE>Boost.interprocess</span>
+library, which at the time of this writing is not part of the standard Boost
+download, and not available in the Vault, but is available if you pull it
+directly out of CVS on <span class=SpellE>sourceforge</span>.<span
+style="mso-spacerun: yes">&nbsp;&nbsp; </span><span class=SpellE>Boost.interprocess</span>
+has a really nice API to it, complete with the scope-based locking approach
+that <span class=SpellE>Boost.threads</span> uses.<span style="mso-spacerun:
+yes">&nbsp; </span>It lacks some of the capabilities that <span class=SpellE>STLshm</span>
+is providing:<span style="mso-spacerun: yes">&nbsp; </span>The regions can’t
+grow and the allocators must be constructed with a clearly identified region
+(no default constructors).<span style="mso-spacerun: yes">&nbsp; </span>But if
+I can lend my efforts to enabling those things in <span class=SpellE>Boost.interprocess</span>,
+it would be a good stand-alone library that addresses this need.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>So my intention now is to donate my work to the ACE library
+for use in ACE hereafter, and also contribute some work to <span class=SpellE>Boost.interprocess</span>
+to permit regions to grow under that library, and provide my Allocator
+variations to enable cases where you need the default constructor to work. </p>
+
+<p class=MsoNormal><span style='font-size:14.0pt;font-family:Helvetica;
+mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:14.0pt;font-family:Helvetica;
+mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<h1><a name="_Toc66800622">Installing and Building </a><span class=SpellE><span
+style='mso-bookmark:_Toc66800622'>STLshm</span></span><span style='mso-bookmark:
+_Toc66800622'></span></h1>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>I’m reusing elements of the ACE library (TODO: URL<span
+class=GramE>) which</span> provides several fully functional out-of-the-box
+Memory Pool implementations, along with a set of inter-process capable
+synchronization classes (locks and condition variables) which work on <span
+class=SpellE>Posix</span> systems as well as on Windows.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='text-indent:-.25in;mso-list:l0 level1 lfo3'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>Install the ACE library per its
+instructions.<span style="mso-spacerun: yes">&nbsp; </span>You only need to get
+the <span class=SpellE>libace</span> library to build to then be able to make
+use of <span class=SpellE>STLshm</span>.</p>
+
+<p class=MsoNormal style='margin-top:.1pt;margin-right:0in;margin-bottom:.1pt;
+margin-left:.5in;mso-para-margin-top:.01gd;mso-para-margin-right:0in;
+mso-para-margin-bottom:.01gd;mso-para-margin-left:.5in;text-indent:-.25in;
+mso-list:l0 level1 lfo3'><![if !supportLists]><span style='font-size:10.0pt;
+font-family:Times;mso-fareast-font-family:Times;mso-bidi-font-family:Times'><span
+style='mso-list:Ignore'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span style='font-size:10.0pt;font-family:Times;
+mso-bidi-font-family:"Times New Roman"'>Then install and build <span
+class=SpellE>STLshm</span> according to per-platform approach described later:<o:p></o:p></span></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<h2><a name="_Toc66800623"></a><span class=SpellE><span style='mso-bookmark:
+_Toc66800623'>Posix</span></span><span style='mso-bookmark:_Toc66800623'>
+(Linux, <span class=SpellE>MacOS</span>, Solaris, Unix in general)</span></h2>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='text-indent:-.25in;mso-list:l1 level1 lfo4'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>Download and <span class=SpellE>untar</span> the
+source into a directory.</p>
+
+<p class=MsoNormal style='margin-top:.1pt;margin-right:0in;margin-bottom:.1pt;
+margin-left:.5in;mso-para-margin-top:.01gd;mso-para-margin-right:0in;
+mso-para-margin-bottom:.01gd;mso-para-margin-left:.5in;text-indent:-.25in;
+mso-list:l1 level1 lfo4'><![if !supportLists]><span style='font-size:10.0pt;
+font-family:Times;mso-fareast-font-family:Times;mso-bidi-font-family:Times'><span
+style='mso-list:Ignore'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span style='font-size:10.0pt;font-family:Times;
+mso-bidi-font-family:"Times New Roman"'>Set the environment variable $ACE_ROOT
+to point to the directory where <span class=GramE>your<span
+style="mso-spacerun: yes">&nbsp; </span>ACE</span> <span class=SpellE>distribtion</span>
+lives.<span style="mso-spacerun: yes">&nbsp; </span><span class=GramE>i</span>.e.
+$ACE_ROOT/ace has all the ace headers in it, and your <span class=SpellE>libACE.so</span>
+is in $ACE_ROOT/lib.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-top:.1pt;margin-right:0in;margin-bottom:.1pt;
+margin-left:.5in;mso-para-margin-top:.01gd;mso-para-margin-right:0in;
+mso-para-margin-bottom:.01gd;mso-para-margin-left:.5in;text-indent:-.25in;
+mso-list:l1 level1 lfo4'><![if !supportLists]><span style='font-size:10.0pt;
+font-family:Times;mso-fareast-font-family:Times;mso-bidi-font-family:Times'><span
+style='mso-list:Ignore'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=GramE><span style='font-size:10.0pt;
+font-family:Times;mso-bidi-font-family:"Times New Roman"'>./</span></span><span
+style='font-size:10.0pt;font-family:Times;mso-bidi-font-family:"Times New Roman"'>configure<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-top:.1pt;margin-right:0in;margin-bottom:.1pt;
+margin-left:.5in;mso-para-margin-top:.01gd;mso-para-margin-right:0in;
+mso-para-margin-bottom:.01gd;mso-para-margin-left:.5in;text-indent:-.25in;
+mso-list:l1 level1 lfo4'><![if !supportLists]><span style='font-size:10.0pt;
+font-family:Times;mso-fareast-font-family:Times;mso-bidi-font-family:Times'><span
+style='mso-list:Ignore'>4.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=GramE><span style='font-size:10.0pt;
+font-family:Times;mso-bidi-font-family:"Times New Roman"'>make</span></span><span
+style='font-size:10.0pt;font-family:Times;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-top:.1pt;margin-right:0in;margin-bottom:.1pt;
+margin-left:.5in;mso-para-margin-top:.01gd;mso-para-margin-right:0in;
+mso-para-margin-bottom:.01gd;mso-para-margin-left:.5in;text-indent:-.25in;
+mso-list:l1 level1 lfo4'><![if !supportLists]><span style='font-size:10.0pt;
+font-family:Times;mso-fareast-font-family:Times;mso-bidi-font-family:Times'><span
+style='mso-list:Ignore'>5.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE><span class=GramE><span
+style='font-size:10.0pt;font-family:Times;mso-bidi-font-family:"Times New Roman"'>sudo</span></span></span><span
+style='font-size:10.0pt;font-family:Times;mso-bidi-font-family:"Times New Roman"'>
+make install (to copy the library/headers to /<span class=SpellE>usr</span>/local/
+or other designated target)<o:p></o:p></span></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The main <span class=SpellE>STLshm</span> library is
+compiled into the standard configure target directory.<span
+style="mso-spacerun: yes">&nbsp; </span>A couple of examples (tests) are also
+built to serve as examples and a means to validate the library on your specific
+platform. These test executables are not copied by the “make install” step.</p>
+
+<p class=MsoNormal><span style='font-size:14.0pt;font-family:Helvetica;
+mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<h2><a name="_Toc66800624">Windows</a></h2>
+
+<p class=MsoListParagraph style='text-indent:-.25in;mso-list:l12 level1 lfo5'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>Coming soon.<span style="mso-spacerun:
+yes">&nbsp; </span>(Written on 3/9/08, so you can hold me accountable.<span
+style="mso-spacerun: yes">&nbsp; </span>I need to create a VC++ project file
+for this.)</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><b style='mso-bidi-font-weight:normal'><span
+style='font-size:20.0pt;font-family:Helvetica;mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></b></p>
+
+<h1><a name="_Toc66800625">High Level Design of </a><span class=SpellE><span
+style='mso-bookmark:_Toc66800625'>STLshm</span></span><span style='mso-bookmark:
+_Toc66800625'></span></h1>
+
+<p class=MsoNormal><span style='mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal>I need to add a quick-start <span class=SpellE>howto</span>.<span
+style="mso-spacerun: yes">&nbsp; </span>However, for those of you would like to
+know how/why something works, and not just how to use it, the following should
+tell you enough about the implementation to get you going.<span
+style="mso-spacerun: yes">&nbsp; </span>There are always the example processes
+in the examples directory.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><span class=SpellE>STLshm</span> makes use of several
+low-level layers of the ACE library to provide the implementation of shared
+memory regions, relative pointers, lock types, and a basic <span class=SpellE><span
+class=GramE>malloc</span></span><span class=GramE>(</span>) algorithm for free
+list management.<span style="mso-spacerun: yes">&nbsp; </span>The structure of
+these elements includes a <span class=GramE>well defined</span> interface, and
+makes extensive use of generics to ensure that the different concepts remain
+well encapsulated in the implementation, and thus replaceable.<span
+style="mso-spacerun: yes">&nbsp; </span>For example, it should be possible for
+a user to replace the <span class=SpellE>malloc</span> algorithm without having
+to change how the shared memory region is implemented, or how the shared lock
+implementation is implemented, and so on.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The structure of the <span class=SpellE>STLshm</span> system
+is based on the layers of memory management used in OS designs. &nbsp;These
+layers used in this project are as follows:</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='text-indent:-.25in;mso-list:l17 level1 lfo6'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>The lowest level deals with the management of
+the shared region itself. &nbsp;This includes the ability to create and attach
+to <span class=GramE>shared</span> memory regions (and coordination of the race
+conditions associated with creating it). &nbsp;It also includes the mechanism
+to increase the size of the region. &nbsp;In a typical heap-based solution,
+this corresponds to the functionality of the <span class=SpellE><span
+class=GramE>sbrk</span></span><span class=GramE>(</span>) call which a process
+would use to control its allocated heap space.&#8232; Like heap allocation on a
+lot of systems, the shared region growth is one-way:<span style="mso-spacerun:
+yes">&nbsp; </span>The region can only get bigger.<span style="mso-spacerun:
+yes">&nbsp; </span>However, the convention I’m going for here is just to enable
+the region to grow to whatever size is needed, without everything having to be
+sized in full from the start.</p>
+
+<p class=MsoNormal style='margin-top:.1pt;margin-right:0in;margin-bottom:.1pt;
+margin-left:0in;mso-para-margin-top:.01gd;mso-para-margin-right:0in;mso-para-margin-bottom:
+.01gd;mso-para-margin-left:0in'><span style='font-size:10.0pt;font-family:Times;
+mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='margin-top:.1pt;margin-right:0in;margin-bottom:.1pt;
+margin-left:.5in;mso-para-margin-top:.01gd;mso-para-margin-right:0in;
+mso-para-margin-bottom:.01gd;mso-para-margin-left:.5in;text-indent:-.25in;
+mso-list:l17 level1 lfo6'><![if !supportLists]><span style='font-size:10.0pt;
+font-family:Times;mso-fareast-font-family:Times;mso-bidi-font-family:Times'><span
+style='mso-list:Ignore'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span style='font-size:10.0pt;font-family:Times;
+mso-bidi-font-family:"Times New Roman"'>The free list (memory management logic)
+for the memory within the shared memory region. &nbsp;This layer corresponds to
+the implementation of <span class=SpellE><span class=GramE>malloc</span></span><span
+class=GramE>(</span>) and free() logic in a traditional heap-based memory
+management scheme. &nbsp;The <span class=GramE>solutions which apply for this
+layer</span> can exploit the same concurrency capabilities, and fragmentation
+avoidance strategies which have traditionally been used with heap memory
+management. &nbsp;In fact, the <span class=SpellE>malloc</span> problem is not
+really any different in this case, except in regard to its need to work with
+the shared memory region<span class=GramE>.&#8232;</span><span
+style="mso-spacerun: yes">&nbsp; </span>(i.e. the <span class=SpellE>malloc</span>
+algorithm needs to address the problem of pointer representation and
+concurrency control, but both of these can be made policy classes, permitting <span
+class=SpellE>malloc</span> algorithms to be used readily in both<o:p></o:p></span></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='text-indent:-.25in;mso-list:l17 level1 lfo6'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>The mechanisms that support the use of STL containers
+in shared memory. &nbsp;This includes a relative pointer class, and an
+appropriate STL allocator. &nbsp;It also includes the primitives for
+inter-process concurrency control. &nbsp;Fundamentally, the intention with
+these elements is that the use of an STL container in shared memory should not
+be significantly different than cases of using the STL container in heap with
+multiple threads. &nbsp;<span class=GramE>i</span>.e. The primary issue is the
+concurrency control for the container.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The <span class=SpellE>STLdb</span> project seeks to further
+extend the material here and adds STL-like <span class=GramE>containers which</span>
+support transactions, including write-ahead logging, checkpoints, etc.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<h2>Implementing Shared Memory Regions</h2>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The types supported by the ACE library:</p>
+
+<p class=MsoListParagraph style='text-indent:-.25in;mso-list:l18 level1 lfo7'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>SVR4 shared memory</p>
+
+<p class=MsoNormal style='margin-top:.1pt;margin-right:0in;margin-bottom:.1pt;
+margin-left:.5in;mso-para-margin-top:.01gd;mso-para-margin-right:0in;
+mso-para-margin-bottom:.01gd;mso-para-margin-left:.5in;text-indent:-.25in;
+mso-list:l18 level1 lfo7'><![if !supportLists]><span style='font-size:10.0pt;
+font-family:Times;mso-fareast-font-family:Times;mso-bidi-font-family:Times'><span
+style='mso-list:Ignore'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span style='font-size:10.0pt;font-family:Times;
+mso-bidi-font-family:"Times New Roman"'>Unix memory maps<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-top:.1pt;margin-right:0in;margin-bottom:.1pt;
+margin-left:.5in;mso-para-margin-top:.01gd;mso-para-margin-right:0in;
+mso-para-margin-bottom:.01gd;mso-para-margin-left:.5in;text-indent:-.25in;
+mso-list:l18 level1 lfo7'><![if !supportLists]><span style='font-size:10.0pt;
+font-family:Times;mso-fareast-font-family:Times;mso-bidi-font-family:Times'><span
+style='mso-list:Ignore'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span style='font-size:10.0pt;font-family:Times;
+mso-bidi-font-family:"Times New Roman"'>Anonymous regions in the windows <span
+class=SpellE>pagefile</span><o:p></o:p></span></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>There are a number of design <span class=GramE>issues which</span>
+have to be addressed in the implementation of the shared memory region.</p>
+
+<h2>Design Issue 1 - same virtual address or different virtual addresses.<span
+style='font-size:14.0pt'><o:p></o:p></span></h2>
+
+<p class=MsoNormal>Many POSIX -compliant shared memory mechanisms allow an
+application to designate the desired virtual memory address where the region
+should be mapped. &nbsp;I first saw this convention exploited by the ACE
+library.<span style="mso-spacerun: yes">&nbsp; </span>Although considered
+non-standard, it is actually fairly widely supported over a number of UNIX <span
+class=SpellE>oses</span>.<span style="mso-spacerun: yes">&nbsp; </span>Typically,
+as long as the application assigns a virtual address which can fit the shared
+region, and which is properly aligned on a page boundary, then the address
+provided is accepted.&nbsp; As <span class=SpellE>OSes</span> move toward
+64-bit compliance, applications would generally have plenty of virtual address
+space, and thus the ability to pick regions of their virtual address space to
+reserve for use in attaching to some shared memory implementation. &nbsp;The
+advantage of using a common virtual address for the mapping means that pointer
+values could be put directly into the shared region and be correct for all
+processes using the region. &nbsp;This in turn helps to minimize the impact to
+application data types used within shared memory.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>There are cases, however, where an application might have
+difficulty using an agreed upon address. &nbsp;This can be a side effect of the
+application <span class=GramE>itself</span> being highly configurable, or
+needing to change the mappings which it is using over time. &nbsp;So the
+solution must address the issues associated with allowing applications to map
+in shared regions in such a manner that the OS chooses the address, and thus
+applications may be using a common shared region, at different virtual
+addresses.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The key implication of allowing processes to map in the
+region at different addresses is the representation of a pointer in the shared
+region. &nbsp;An absolute value cannot be used, because it will be correct for
+one process, but wrong for the other. &nbsp;Thus, the solution includes a <span
+class=SpellE>RelativePointer</span>&lt;T&gt; type, which is used as a
+pointer-to-T in shared memory. &nbsp;This can be set as the pointer type member
+of STL allocator classes, thereby conveying to STL containers in shared memory
+that they should use that pointer type. </p>
+
+<h2>Design Issue 2 - handling growth of the shared region</h2>
+
+<p class=MsoNormal>With heap memory, if a thread in the process decided to
+increase the heap size using the <span class=SpellE><span class=GramE>sbrk</span></span><span
+class=GramE>(</span>) function to add more memory to the free list, it is
+immediately recognized and available to all other threads, as they all share a
+common heap.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>However, with shared memory processes, if one process
+increases the size of the shared memory region, other processes using the
+region do not automatically notice and increase the size. &nbsp;If unchecked, a
+process could end up following a pointer to a newly allocated part of the
+region, thereby experiencing a SEGV. &nbsp; From a design point of view,
+checking for such assumptions at key points in the access approach might seem
+like the way to go, but in fact, it would be necessary to check the destination
+address of every pointer traversal, if the design maximized concurrency.
+&nbsp;This in turn would make all <span class=GramE>pointer</span> address
+resolution very expensive, and slow down every impacted algorithm.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>There are at least two ways to deal with this problem, from
+a design point of view.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><b style='mso-bidi-font-weight:normal'>Approach 1:
+Segmentation<o:p></o:p></b></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:14.0pt;font-family:Helvetica;
+mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal>Our shared pointer implementation can employ a memory
+segmentation approach.<span style="mso-spacerun: yes">&nbsp; </span><span
+class=GramE>i</span>.e. A shared memory pool is divided into ‘segments’, all of
+which are the same size.<span style="mso-spacerun: yes">&nbsp;
+</span>Initially, the region is allocated to consist of a starting number of
+segments.<span style="mso-spacerun: yes">&nbsp; </span>Then as memory demand
+continues to grow, new segments are allocated and added to the shared memory
+pool.<span style="mso-spacerun: yes">&nbsp; </span>For a given shared memory
+pool, there is an array holding segment addresses.<span style="mso-spacerun:
+yes">&nbsp; </span>The relative pointer holds a <span class=SpellE>segment_id</span>
+(index into that array), plus an offset.<span style="mso-spacerun: yes">&nbsp;
+</span>So the actual address is computed “fairly quickly” via <span
+class=SpellE><span class=GramE>segmap</span></span><span class=GramE>[</span>this-&gt;<span
+class=SpellE>segment_id</span>] + this-&gt;offset.<span style="mso-spacerun:
+yes">&nbsp; </span>If <span class=SpellE><span class=GramE>segmap</span></span><span
+class=GramE>[</span>this-&gt;<span class=SpellE>segment_id</span>] evaluates to
+zero, then some other process recently added a segment to the shared region,
+and the current process needs to map it in.<span style="mso-spacerun:
+yes">&nbsp; </span>So the code that yields the T* looks something like:</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal style='margin-left:.5in'>T* <span class=SpellE>ptr</span> = <span
+class=SpellE>reinterpret_cast</span>&lt;T*&gt;<span class=GramE>( <span
+class=SpellE>segmep</span></span>[_<span class=SpellE>segment_id</span>] +
+_offset);</p>
+
+<p class=MsoNormal style='margin-left:.5in'>If <span class=GramE>( <span
+class=SpellE>ptr</span></span> &lt; <span class=SpellE>segsize</span> ) {</p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>//
+<span class=GramE>need</span> to map in the newly discovered segment.</p>
+
+<p class=MsoNormal style='margin-left:.5in'>}</p>
+
+<p class=MsoNormal style='margin-left:.5in'><span class=GramE>return</span> <span
+class=SpellE>ptr</span>;</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>While this approach has slightly more overhead than approach
+2, it does have some advantages:</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='text-indent:-.25in;mso-list:l15 level1 lfo8'><![if !supportLists]><span
+style='font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family:
+Symbol'><span style='mso-list:Ignore'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>The shared memory doesn’t have to occupy a
+contiguous, growing region of the processes virtual address space.<span
+style="mso-spacerun: yes">&nbsp; </span>Each new extension can be independently
+mapped into the process at an address of the <span class=SpellE>OSes</span>
+choosing. This is in contrast to the second approach (below) in which each new
+extension must be mapped in at the end of the existing region.</p>
+
+<p class=MsoNormal style='margin-top:.1pt;margin-right:0in;margin-bottom:.1pt;
+margin-left:.5in;mso-para-margin-top:.01gd;mso-para-margin-right:0in;
+mso-para-margin-bottom:.01gd;mso-para-margin-left:.5in;text-indent:-.25in;
+mso-list:l15 level1 lfo8'><![if !supportLists]><span style='font-size:10.0pt;
+font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family:Symbol'><span
+style='mso-list:Ignore'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span style='font-size:10.0pt;font-family:Times;
+mso-bidi-font-family:"Times New Roman"'>Not relying on SEGV handling to
+determine when you have traversed a pointer into a portion of the shared region
+that you haven’t mapped yet.<span style="mso-spacerun: yes">&nbsp; </span>This
+makes this approach slightly more OS independent.<o:p></o:p></span></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><b style='mso-bidi-font-weight:normal'>Approach 2: Detection
+through SEGV + Remapping at the same address<o:p></o:p></b></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The ACE library presented a clever way out of this problem.
+&nbsp;Rather than attempt to determine if pointers ever point beyond the
+currently mapped region, it allows the CPU to do that for you. &nbsp;Rather
+than seek to prevent a SEGV, it uses the SEGV to detect when a remapping may be
+necessary. &nbsp;A SEGV signal handler intercepts the <span class=SpellE>segv</span>
+and determines if it is <span class=GramE>at an addresses</span> beyond a
+currently mapped region. &nbsp;It then checks the regions total size and
+determines if the SEGV could be corrected by remapping the region. &nbsp;If so,
+then it does so and returns. &nbsp;The effect of returning from a SEGV handler
+causes the CPU to retry the memory access, and in this case it will be
+successful and continue. &nbsp; This approach minimizes the overhead associated
+with detecting a resize (increase in size of) the region, allowing pointer
+traversal to operate at optimum speed.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><span class=GramE>The is</span> one requirement which this
+approach imposes on the way in which a shared region is grown.<span
+style="mso-spacerun: yes">&nbsp; </span>It's an important point:<span
+style="mso-spacerun: yes">&nbsp; </span>The act of re-mapping a region whose
+size recently increased must not change the base address of the start of the
+region.<span style="mso-spacerun: yes">&nbsp; </span>If it did, the SEGV would
+be resolved, but the relative pointer itself would need to have its value
+recomputed, and this isn't really possible by the time that it is detected.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>For most shared memory implementations, this is a reasonable
+and possible limit.<span style="mso-spacerun: yes">&nbsp; </span>There is an
+alternative design in case its needed:<span style="mso-spacerun: yes">&nbsp;
+</span>One in which the hared region is represented by a number of segments,
+each of which is only mapped once, and never resized.<span style="mso-spacerun:
+yes">&nbsp; </span>In this approach, every pointer has to be designed around a <span
+class=SpellE>segment+offset</span> approach, and the resolution of the pointer
+does check that the specified 'segment' is already mapped into the current <span
+class=SpellE>process'es</span> memory.<span style="mso-spacerun: yes">&nbsp;
+</span>Resolving the pointer address then becomes a matter of something like: </p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>T*
+<span class=SpellE>ptr</span> = (T*)(<span class=SpellE><span class=GramE>segmentAddresses</span></span><span
+class=GramE>[</span>segment] + offset);</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>I haven't implemented this approach, but I do want the
+structure of my library to permit such an implementation to be created in the
+future.<span style="mso-spacerun: yes">&nbsp; </span><span class=GramE>i</span>.e.
+Allow a shared memory segment class which mandates this pointer type, etc.</p>
+
+<p class=MsoNormal><span style='mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<h2>The Shared Memory Region Interface</h2>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The different types of shared memory classes are based on a
+common interface. &nbsp;The intention behind this is to enable some C++
+equivalent of dependency injection to be used to allow the application to be
+configured at run-time to use the optimum implementation.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>Because different low-level parameters are required to
+permit the creation of the different regions, it follows that each type will
+have its own configuration data and identifying key type. &nbsp;For example,
+shared memory uses an integer region ID, while a memory map would identify the
+region using a filename. &nbsp;These differences make it somewhat difficult to
+create a truly polymorphic interface common to all classes. &nbsp;The design of
+the interface for these classes reflects the desire to support this
+polymorphism.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span class=GramE><span style='font-size:13.0pt;
+font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>class</span></span><span
+style='font-size:13.0pt;font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>
+<span class=SpellE>SharedRegionInterface</span></span><span style='font-size:
+13.0pt;font-family:Verdana;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>{</span><span style='font-size:13.0pt;
+font-family:Verdana;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>&nbsp;&nbsp; &nbsp;<span class=SpellE><span
+class=GramE>SharedRegionInterface</span></span><span class=GramE>(</span>);</span><span
+style='font-size:13.0pt;font-family:Verdana;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>&nbsp;&nbsp; &nbsp;~<span class=SpellE><span
+class=GramE>SharedRegionInterface</span></span><span class=GramE>(</span>);</span><span
+style='font-size:13.0pt;font-family:Verdana;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>&nbsp;&nbsp; &nbsp;<span class=SpellE><span
+class=GramE>enum</span></span> <span class=SpellE>attach_options</span> {</span><span
+style='font-size:13.0pt;font-family:Verdana;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;<span
+class=SpellE><span class=GramE>create</span>_or_attach</span>,</span><span
+style='font-size:13.0pt;font-family:Verdana;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;<span
+class=SpellE><span class=GramE>create</span>_only</span>,</span><span
+style='font-size:13.0pt;font-family:Verdana;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;<span
+class=SpellE><span class=GramE>attach</span>_only</span> };</span><span
+style='font-size:13.0pt;font-family:Verdana;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>&nbsp;&nbsp; &nbsp;<span class=GramE>attach</span>(
+const char *<span class=SpellE>region_id</span>,</span><span style='font-size:
+13.0pt;font-family:Verdana;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;<span class=GramE>const</span> <span class=SpellE>size_t</span>
+<span class=SpellE>initial_size</span>,</span><span style='font-size:13.0pt;
+font-family:Verdana;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
+&nbsp; &nbsp;<span class=GramE>const</span> <span class=SpellE>size_t</span> <span
+class=SpellE>default_growth_size</span>,</span><span style='font-size:13.0pt;
+font-family:Verdana;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
+&nbsp; &nbsp;<span class=SpellE><span class=GramE>std</span>::map</span>&lt;<span
+class=SpellE>string,string</span>&gt; *<span class=SpellE>addtl_properties</span>
+= null,</span><span style='font-size:13.0pt;font-family:Verdana;mso-bidi-font-family:
+"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
+&nbsp; &nbsp;<span class=SpellE><span class=GramE>attach</span>_options</span>
+opt = <span class=SpellE>create_or_attach</span> );</span><span
+style='font-size:13.0pt;font-family:Verdana;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>&nbsp;&nbsp; &nbsp;<span class=GramE>void</span>
+*<span class=SpellE>baseAddress</span>() const;</span><span style='font-size:
+13.0pt;font-family:Verdana;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>&nbsp;&nbsp; &nbsp;<span class=SpellE><span
+class=GramE>size</span>_t</span> size() const;</span><span style='font-size:
+13.0pt;font-family:Verdana;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>&nbsp;&nbsp; &nbsp;<span class=GramE>void</span>
+resize( const <span class=SpellE>size_t</span> <span class=SpellE>growth_size</span>
+= 0 );</span><span style='font-size:13.0pt;font-family:Verdana;mso-bidi-font-family:
+"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>&nbsp;&nbsp; &nbsp;<span class=GramE>void</span>
+detach();</span><span style='font-size:13.0pt;font-family:Verdana;mso-bidi-font-family:
+"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:13.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>};</span><span style='font-size:13.0pt;
+font-family:Verdana;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The <span class=SpellE>addtl_properties</span> parameter of
+the attach method allows parameters that might be required by specific
+implementation to be passed in to the attach method. &nbsp; For example, a
+memory mapped implementation could take the flags which specify the file
+protection attributes to be passed to a <span class=GramE>create(</span>) call
+for the new file.<span style="mso-spacerun: yes">&nbsp; </span>The attach
+method is required to be appropriately synchronized so that if multiple
+processes simultaneously invoke it, the result is that when several applications
+invoke it with opt=<span class=SpellE>create_or_attach</span>, one takes the
+role of creator, and the others take the role of attaching to the existing
+region. &nbsp;For cases where a specific process is supposed to create the
+region, and others are supposed to attach to it, the other <span class=SpellE>attach_options</span>
+<span class=SpellE>enum</span> values can be passed to the attach method.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>One of the 'fun' problems with implementing the <span
+class=GramE>attach(</span>) method is the synchronization.<span
+style="mso-spacerun: yes">&nbsp; </span>The method can't use a shared process <span
+class=SpellE>mutex</span> for synchronization since that would simply push the
+problem further up the stack:<span style="mso-spacerun: yes">&nbsp; </span>i.e.
+How is the creation of the shared process <span class=SpellE>mutex</span>
+itself synchronized?<span style="mso-spacerun: yes">&nbsp; </span>Ultimately,
+the synchronization will be primarily around the activity of creating the
+region, not attaching to it.<span style="mso-spacerun: yes">&nbsp;&nbsp;
+</span>Creating the shared region includes the task of creating and
+initializing an appropriate <span class=SpellE>mutex</span> for co-<span
+class=SpellE>ordinating</span> further modifications to the shared region.<span
+style="mso-spacerun: yes">&nbsp; </span>This initial safe construction of the
+region works as follows:</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='text-indent:-.5in;mso-list:l6 level1 lfo9'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>The processes attempt to create the region using
+a primitive of the <span class=GramE>OS which</span> is itself concurrency
+controlled.<span style="mso-spacerun: yes">&nbsp; </span>For example, the <span
+class=GramE>open(</span>) command with the CREAT flag specified.<span
+style="mso-spacerun: yes">&nbsp; </span><span class=GramE>The OS primitive
+succeeds for one of the processes</span>, <span class=GramE>it proceeds to step
+2</span>.<span style="mso-spacerun: yes">&nbsp; </span>The <span class=GramE>processes
+which don't succeed</span> instead attach to the region.<span
+style="mso-spacerun: yes">&nbsp; </span>After attaching, they check the
+validity byte of the region (first byte in the region) and spinlock on it until
+it holds its expected value.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='text-indent:-.5in;mso-list:l6 level1 lfo9'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>The <span class=GramE>process which created the
+region</span> then initializes the <span class=SpellE>mutex</span> in the
+region which will permit standard concurrency control over the region.<span
+style="mso-spacerun: yes">&nbsp; </span>After initializing the <span
+class=SpellE>mutex</span> it then acquires it, and then sets the validity byte
+to the value indicating that the <span class=SpellE>mutex</span> has been
+created. </p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='text-indent:-.5in;mso-list:l6 level1 lfo9'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>The other processes will eventually notice that
+the validity <span class=GramE>bytes has</span> been set.<span
+style="mso-spacerun: yes">&nbsp; </span>They then can acquire locks on the
+inter-process <span class=SpellE>mutex</span> and proceed normally.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>Note that based on this algorithm, there is a risk, that if
+the process attempting to create the region is killed during these steps, then
+the other processes will be in an infinite loop spinning on the validity
+byte.<span style="mso-spacerun: yes">&nbsp; </span>The quality of the code
+produced must ensure that this can only happen in the case of an untimely 'kill
+-9' on the process.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>Note also that on SMP systems, a spin lock on the validity
+byte would not necessarily see the modified value.<span style="mso-spacerun:
+yes">&nbsp; </span>One of the tasks of the <span class=SpellE>mutex</span> in
+SMP systems is to enforce a memory barrier<span class=GramE>,<span
+style="mso-spacerun: yes">&nbsp; </span>ensuring</span> the synchronization of
+the CPU caches.<span style="mso-spacerun: yes">&nbsp; </span>One of the reasons
+for having the inter-process <span class=SpellE>mutex</span> and the validity
+byte in close proximity is so that the would be on the same cache line of the
+memory space, and thus the use of the <span class=SpellE>mutex</span> in step 2
+above would also help to ensure that other processes will see the validity byte
+value change.</p>
+
+<p class=MsoNormal style='mso-pagination:none;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:14.0pt;font-family:Helvetica;
+mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<h2>Design of <span class=SpellE>RelativePtr</span>&lt;T&gt;</h2>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The previous sections established the need for a &quot;Relative
+Pointer&quot; - a pointer type which works when it is in shared memory, and can
+point to another object in the same shared memory region regardless of their
+mapped addresses by using a <span class=SpellE>pdiff_t</span> value (a relative
+offset) to indicate the other address.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>Thus <span class=SpellE>RelativePtr</span>&lt;T&gt; uses an
+offset from its own address (this) as a way to indicate the destination that it
+points to.<span style="mso-spacerun: yes">&nbsp; </span>This allows a short and
+fast bit of pointer arithmetic to be used to determine the actual T* value.<span
+style="mso-spacerun: yes">&nbsp; </span>It also means that the offset has to be
+recomputed anytime that the pointer is copied.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>I had several goals in the design of this pointer type:</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='margin-left:29.0pt;mso-add-space:auto;
+text-indent:-.25in;mso-list:l7 level1 lfo10'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><b style='mso-bidi-font-weight:normal'>Speed</b>.<span
+style="mso-spacerun: yes">&nbsp; </span><span class=GramE>i</span>.e.
+Absolutely minimal overhead.<span style="mso-spacerun: yes">&nbsp; </span>I
+figure that computing the actual address via a single line expression <span
+class=GramE>( this</span> + offset ) is about as fast as this implementation
+can get.<span style="mso-spacerun: yes">&nbsp; </span>Combined with the fact
+that it doesn't have to do bounds checking because of the use of a SEGV signal
+handler means that the use of this pointer should not represent any significant
+overhead.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='margin-left:29.0pt;mso-add-space:auto;
+text-indent:-.25in;mso-list:l7 level1 lfo10'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><b style='mso-bidi-font-weight:normal'>Size</b>.<span
+style="mso-spacerun: yes">&nbsp;&nbsp; </span>Ideally, the <span class=SpellE>RelativePtr</span>&lt;T&gt;
+should occupy the same amount of space as a regular pointer.<span
+style="mso-spacerun: yes">&nbsp; </span>Typically, <span class=SpellE>ptrdiff_t</span>
+(the type for pointer difference) is the same size as a pointer value (for
+mathematical reasons), and thus this requirement can be met by restricting its
+storage to a single value of that type. </p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='margin-left:29.0pt;mso-add-space:auto;
+text-indent:-.25in;mso-list:l7 level1 lfo10'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><b style='mso-bidi-font-weight:normal'>Works
+anywhere</b>.<span style="mso-spacerun: yes">&nbsp; </span>In the course of
+working with <span class=SpellE>RelativePtr</span>&lt;T&gt; values, they may
+get copied into stack variables, <span class=SpellE>temporarilly</span>.<span
+style="mso-spacerun: yes">&nbsp; </span>For example, a <span class=SpellE>std<span
+class=GramE>::string</span></span> that uses the <span class=SpellE>STLshm</span>
+allocator and thus <span class=SpellE>RelativePtr</span>&lt;T&gt; might get
+copied into local memory as a temporary copy while the application works with
+the data in an STL container.<span style="mso-spacerun: yes">&nbsp; </span>The <span
+class=SpellE>RelativePtr</span>&lt;T&gt; must be usable when this happens.<span
+style="mso-spacerun: yes">&nbsp; </span>The only restriction with regard to the
+use of <span class=SpellE>RelativePtr</span>&lt;T&gt; types is that they
+shouldn't be used to point from one shared region to another, unless the
+application can guarantee that the regions will always be separated by a
+constant distance.</p>
+
+<p class=MsoNormal style='margin-left:.5in;text-indent:-.5in;mso-pagination:
+none;tab-stops:11.0pt .5in;mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:14.0pt;font-family:Helvetica;mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal><span class=SpellE>RelativePtr</span>&lt;T&gt; has a minimal
+overhead/footprint.<span style="mso-spacerun: yes">&nbsp; </span>It has one
+data member - a <span class=SpellE>ptrdiff_t</span> _member.<span
+style="mso-spacerun: yes">&nbsp; </span>At first, you might assume that the
+value of Null is represented by using a <span class=SpellE>ptrdiff_t</span>
+value which causes the expression <span class=GramE>( this</span> + offset ) to
+evaluate to 0.<span style="mso-spacerun: yes">&nbsp;&nbsp; </span>However that
+doesn’t work unless the value of this is the same for all processes.<span
+style="mso-spacerun: yes">&nbsp; </span>(And if that <span class=GramE>was</span>
+true, you wouldn’t need the <span class=SpellE>RelativePtr</span>.)<span
+style="mso-spacerun: yes">&nbsp; </span>One idea that I originally tried to
+work with was having the <span class=SpellE>RelativePtr</span>&lt;T&gt; point
+to itself if the value was Null.<span style="mso-spacerun: yes">&nbsp;
+</span>After all a <span class=SpellE>RelativePtr</span>&lt;T&gt; must point to
+a T, not to T* or a <span class=SpellE>RelativePtr</span>&lt;T&gt;.<span
+style="mso-spacerun: yes">&nbsp; </span>The type semantics suggested that
+nobody would do that.<span style="mso-spacerun: yes">&nbsp;
+</span>Unfortunately, with some circular list implementations, the pointer can
+end up pointing to itself, and this was a source of one fun bug.<span
+style="mso-spacerun: yes">&nbsp;&nbsp; </span>Using a value like -1 could
+likewise turn out to not work if you ever had something like:</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span class=GramE><span
+style='font-family:"Courier New"'>template</span></span><span style='font-family:
+"Courier New"'> &lt;<span class=SpellE>int</span> N&gt; <span class=SpellE>struct</span>
+buffer {<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-family:"Courier New"'><span
+style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span><span class=GramE>char</span>
+buffer[N];<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-family:"Courier New"'><span
+style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span><span class=SpellE>RelativePtr</span>&lt;char&gt;
+<span class=SpellE>nextLoc</span>;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-family:"Courier New"'>}<o:p></o:p></span></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><span class=GramE>i</span>.e. At some point, <span
+class=SpellE>nextLoc</span> might point to buffer[N-1] in which case it would
+be incorrectly interpreted as Null.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>So the best (foolproof) option is to use a bit for it, and
+give up on the convention of trying to make <span class=SpellE><span
+class=GramE>sizeof</span></span><span class=GramE>(</span><span class=SpellE>RelativePtr</span>&lt;T&gt;)
+== <span class=SpellE>sizeof</span>(T*).<span style="mso-spacerun: yes">&nbsp;
+</span>However, the current implementation uses the convention that an offset
+address of 1 equals NULL.<span style="mso-spacerun: yes">&nbsp; </span>The
+reason is that the <span class=SpellE>liklihood</span> of the pointer of type T
+pointing to its own address in a way which is also in violation of the
+alignment boundary of its own type seems extremely unlikely.<span
+style="mso-spacerun: yes">&nbsp; </span>I couldn’t think of a condition where
+it would yield a false NULL value.<span style="mso-spacerun: yes">&nbsp;&nbsp;
+</span>(If you think of any, please e-mail me.)</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The only operations supported by this pointer type are its
+conversion into T* and assignment from T* and from other <span class=SpellE>RelativePtr</span>&lt;T&gt;
+values.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<h2>The <span class=SpellE>Malloc</span> algorithm</h2>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>Now that we have designed a <span class=GramE>class which</span>
+can represent an expandable shared memory region, and a pointer implementation,
+the next piece we will need is a <span class=SpellE>malloc</span> algorithm.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>Ideally, I would like to reuse existing <span class=SpellE>malloc</span>
+algorithms, and I can certainly reuse their design, but not their
+implementation.<span style="mso-spacerun: yes">&nbsp; </span>The key issue with
+implementation reuse is the need to use <span class=SpellE>RelativePtr</span>&lt;&gt;
+for the <span class=SpellE>freelist</span>, and an inter-process <span
+class=SpellE>mutex</span> type for concurrency control.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>With the initial project, a simple <span class=SpellE>malloc</span>
+algorithm will be provided which maintains the <span class=SpellE>freelist</span>
+in the form of a circularly linked list, in which each new search for memory
+begins where the previous one left off.<span style="mso-spacerun: yes">&nbsp;
+</span>The algorithm is first fit (optimized for speed at the expense of
+possible memory fragmentation.)<span style="mso-spacerun: yes">&nbsp; </span>A
+single <span class=SpellE>mutex</span> is used for access to the <span
+class=SpellE>freelist</span>.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>Future optimizations include:</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in;mso-list:l19 level1 lfo12'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>Improve concurrency by adding read/write
+locking, or by coming up with a way to segment the <span class=SpellE>freelist</span>
+into independently locked sets.</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in;mso-list:l19 level1 lfo12'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>Provide a <span class=GramE>best fit</span>
+approach.</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in;mso-list:l19 level1 lfo12'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>Make it compatible with the Loki library’s small
+object allocator.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>(Note: <span class=SpellE>Boost.interprocess</span> already
+has multiple <span class=SpellE>malloc</span> implementations, I think, so I
+need to adopt the use of them.)</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The <span class=SpellE>malloc</span> interface:</p>
+
+<p class=MsoNormal style='mso-pagination:none;tab-stops:28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span style='font-family:Helvetica;
+mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='margin-left:28.0pt;mso-pagination:none;tab-stops:
+28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;mso-layout-grid-align:none;
+text-autospace:none'><span class=GramE><span style='font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>class</span></span><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'> <span
+class=SpellE>some_malloc_implementation</span><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:28.0pt;mso-pagination:none;tab-stops:
+28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'>{<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:28.0pt;mso-pagination:none;tab-stops:
+28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;mso-layout-grid-align:none;
+text-autospace:none'><span class=GramE><span style='font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>private</span></span><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>:<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:28.0pt;mso-pagination:none;tab-stops:
+28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>//
+<span class=GramE>a</span> bunch of state data, including pointers to <span
+class=SpellE>freelist</span>, etc.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:28.0pt;mso-pagination:none;tab-stops:
+28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>//
+<span class=GramE>all</span> pointers in here should be <span class=SpellE>RelativePtr</span>&lt;&gt;
+types.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:28.0pt;mso-pagination:none;tab-stops:
+28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='margin-left:28.0pt;mso-pagination:none;tab-stops:
+28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;mso-layout-grid-align:none;
+text-autospace:none'><span class=GramE><span style='font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>public</span></span><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>:<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:28.0pt;mso-pagination:none;tab-stops:
+28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>//
+<span class=SpellE>Malloc</span> should return NULL if there is no memory
+available, thereby triggering<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:28.0pt;mso-pagination:none;tab-stops:
+28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>//
+<span class=GramE>higher</span> level logic to resize the region.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:28.0pt;mso-pagination:none;tab-stops:
+28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=GramE>void</span>* <span class=SpellE>malloc</span>(<span class=SpellE>size_t</span>
+amount);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:28.0pt;mso-pagination:none;tab-stops:
+28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='margin-left:28.0pt;mso-pagination:none;tab-stops:
+28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>//
+<span class=GramE>free</span> should only be called with allocated memory
+addresses as previously<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:28.0pt;mso-pagination:none;tab-stops:
+28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>//
+<span class=GramE>returned</span> by <span class=SpellE>malloc</span>.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:28.0pt;mso-pagination:none;tab-stops:
+28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=GramE>free</span>(void *<span class=SpellE>addr</span>);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:28.0pt;mso-pagination:none;tab-stops:
+28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='margin-left:28.0pt;mso-pagination:none;tab-stops:
+28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>//
+For higher level logic:<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:28.0pt;mso-pagination:none;tab-stops:
+28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>//
+Add the region of memory starting at <span class=SpellE>addr</span>, which <span
+class=GramE>is 'size' bytes</span> long to the <span class=SpellE>freelist</span>.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:28.0pt;mso-pagination:none;tab-stops:
+28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=SpellE><span class=GramE>increase</span>_freelist</span>( void *<span
+class=SpellE>addr</span>, <span class=SpellE>size_t</span> size );<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:28.0pt;mso-pagination:none;tab-stops:
+28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'>}<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;tab-stops:28.0pt 1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span style='font-size:14.0pt;
+font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<h2>The facade that ties it all together</h2>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>So now we need a final class which ties together the other
+classes which we have talked about thus far, and serves to orchestrate the
+process of attaching to a region, finding the object in shared memory which
+provides the free-list implementation, and so on.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span class=GramE><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>template</span></span><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>
+&lt;class Lock, class <span class=SpellE>ShmImpl</span>, class <span
+class=SpellE>Malloc</span>&gt;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span class=SpellE><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>SharedRegion</span></span><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span style='font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>{<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span style='font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'><span style="mso-spacerun:
+yes">&nbsp;&nbsp;&nbsp; </span>// Attach to the shared region<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span style='font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'><span style="mso-spacerun:
+yes">&nbsp;&nbsp;&nbsp; </span><span class=SpellE>SharedRegion</span><span
+class=GramE>( const</span> char *<span class=SpellE>region_id</span>,</span><span
+style='font-family:Verdana;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'>&nbsp;<span style="mso-spacerun:
+yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;<span class=GramE>const</span> <span class=SpellE>size_t</span>
+<span class=SpellE>initial_size</span>,</span><span style='font-family:Verdana;
+mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'>&nbsp;&nbsp; &nbsp; &nbsp;<span style="mso-spacerun:
+yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>&nbsp; &nbsp; &nbsp;<span
+class=GramE>const</span> <span class=SpellE>size_t</span> <span class=SpellE>default_growth_size</span>,</span><span
+style='font-family:Verdana;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span
+style="mso-spacerun: yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=SpellE><span class=GramE>std</span>::map</span>&lt;<span class=SpellE>string,string</span>&gt;
+*<span class=SpellE>addtl_properties</span> = null,</span><span
+style='font-family:Verdana;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'>&nbsp;&nbsp; &nbsp;<span style="mso-spacerun:
+yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>&nbsp; &nbsp; &nbsp; &nbsp;<span
+class=SpellE><span class=GramE>attach</span>_options</span> opt = <span
+class=SpellE>create_or_attach</span> );</span><span style='font-family:Verdana;
+mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span>//
+<span class=GramE>detach</span> from the region<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'>&nbsp;&nbsp; &nbsp;<span class=GramE>void</span> detach();<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span>//
+<span class=GramE>request</span> some memory<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=GramE>template</span>&lt;class T=void&gt;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span>T*
+<span class=SpellE>malloc</span><span class=GramE>( <span class=SpellE>size</span></span><span
+class=SpellE>_t</span> amount );<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span>//
+<span class=GramE>free</span> up that memory<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=GramE>void</span> free( void* <span class=SpellE>addr</span> );<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'>/* The following are available if needed */<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=GramE>// What is the base address of the shared memory region.</span><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'>&nbsp;&nbsp; &nbsp;<span class=GramE>void</span> *<span
+class=SpellE>baseAddress</span>() const;</span><span style='font-family:Verdana;
+mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span>//
+How big is the shared memory region, currently.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'>&nbsp;&nbsp; &nbsp;<span class=SpellE><span class=GramE>size</span>_t</span>
+size() const;</span><span style='font-family:Verdana;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span>//
+Pre-<span class=SpellE>emptively</span> increase the amount of shared memory in
+the<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span>//
+<span class=GramE>shared</span> memory region.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'>&nbsp;&nbsp; &nbsp;<span class=GramE>void</span> resize(
+const <span class=SpellE>size_t</span> <span class=SpellE>growth_size</span> =
+0 );</span><span style='font-family:Verdana;mso-bidi-font-family:"Times New Roman"'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span>//
+Get/Set region growth size (amount by which the shared regions<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span>//
+<span class=GramE>size</span> will increase when <span class=SpellE>malloc</span>
+requests more memory.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=SpellE><span class=GramE>size</span>_t</span> <span class=SpellE>getGrowthSegmentSize</span>()
+const;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=SpellE><span class=GramE>setGrowthSegmentSize</span></span>(<span
+class=SpellE>size_t</span> size);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman"'>};<o:p></o:p></span></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<h2>Designing the STL shared memory Allocator</h2>
+
+<p class=MsoNormal style='mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span style='font-size:14.0pt;
+font-family:Helvetica;mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal>The <span class=SpellE>stl</span> allocator 'concept'
+requires that your allocator type have a default constructor.<span
+style="mso-spacerun: yes">&nbsp; </span>The problem is not so much with
+containers, which can be given a specific object when constructed, but with the
+data objects managed by the container.<span style="mso-spacerun: yes">&nbsp;
+</span><span class=GramE>i</span>.e. Data objects within a container may be
+constructed under normal circumstances without the benefit of passing the
+allocator object to them.<span style="mso-spacerun: yes">&nbsp; </span>For
+example, In the case of a map&lt;<span class=SpellE>int<span class=GramE>,string</span></span>&gt;,
+there will be cases where a string gets created via its default
+constructor.<span style="mso-spacerun: yes">&nbsp; </span><span class=GramE>e</span>.g.<span
+style="mso-spacerun: yes">&nbsp; </span>map[1] = &quot;Hi&quot;; </p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>However, even when the allocator of contained objects is
+constructed in this way (via default constructor), we will still need that
+allocator to realize that it should allocate memory from the shared memory
+region.<span style="mso-spacerun: yes">&nbsp; </span>For our shared memory
+mechanism to work, an allocator object must be able to identify the shared
+memory region that it will work with when it has been constructed using a
+default constructor.<span style="mso-spacerun: yes">&nbsp; </span>Based on the
+C++ language, I think this leaves us only the following two options:</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in;mso-list:l10 level1 lfo13'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=GramE>try</span> to determine the
+region from the value of 'this' - which is possible if the allocator is created
+in such a region.</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in;mso-list:l10 level1 lfo13'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=GramE>rely</span> on static data (or
+thread-specific data) to inform the constructor.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>I wanted the <span class=SpellE>ACE_STL_Allocator</span> to
+support the simultaneous use of multiple Memory Pool regions in a program.<span
+style="mso-spacerun: yes">&nbsp; </span>As such, just giving the class a single
+static value (pointing to the shared memory region’s <span class=SpellE>malloc</span>
+object) that is unchanging didn't seem like the best option.<span
+style="mso-spacerun: yes">&nbsp; </span>It might be reasonable, however, to
+have a version of the <span class=GramE>allocator which</span> uses
+thread-specific memory so that individual threads can designate the shared
+region that any newly constructed allocators should be using.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>I tried (a) first, because (b) implies complications for
+processes with multiple regions mapped in.<span style="mso-spacerun:
+yes">&nbsp; </span>It did work fairly well, but based on its initial design,
+there were several occasions when it still ended up allocating material in
+heap.<span style="mso-spacerun: yes">&nbsp; </span>This occurred when temporary
+stack-based variables of the types used with the map&lt;&gt; template got
+instantiated.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The interesting question is: Can (1) be guaranteed to
+work?<span style="mso-spacerun: yes">&nbsp; </span>Eventually, all data <span
+class=GramE>objects which exist in the shared memory region</span> get
+constructed there, and might get assigned to.<span style="mso-spacerun:
+yes">&nbsp; </span>Thus, as long as the <span class=SpellE>ACE_STL_<span
+class=GramE>Allocator</span></span><span class=GramE>(</span>) can determine
+its shared memory region upon construction by using the base address registry,
+it should be possible to make this guarantee, if:</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in;mso-list:l11 level1 lfo14'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>The default constructor of <span class=SpellE>ACE_STL_Allocator</span>
+determines the region it is within.</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in;mso-list:l11 level1 lfo14'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>The copy constructor does not inherit the region
+from the variable passed as <span class=SpellE>rarg</span>.<span
+style="mso-spacerun: yes">&nbsp; </span>Basically, the copy constructor has to
+act like the default constructor.</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in;mso-list:l11 level1 lfo14'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>The assignment operator likewise avoids <span
+class=SpellE>rarg</span>, just to be safe.</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in;mso-list:l11 level1 lfo14'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>4.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>The type using the allocator doesn't try to do
+something too clever, like a 'copy on write' convention in which objects in
+shared memory would end up having pointers to objects in heap.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<h2>Shared Region manager</h2>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The shared memory region manager class is a complement to
+the <span class=SpellE>SharedRegion</span>&lt;&gt; class - a necessary set of
+static data.<span style="mso-spacerun: yes">&nbsp; </span>It is a
+singleton.<span style="mso-spacerun: yes">&nbsp; </span>It provides a place for
+all <span class=SpellE>SharedRegion</span>&lt;&gt; classes existent in this
+application to register themselves and their current base address.<span
+style="mso-spacerun: yes">&nbsp; </span>Based on that, if a SEGV is triggered
+in what appears to be an area slightly beyond the end of a shared region, this
+class catches it and invokes the <span class=SpellE>SharedRegion's</span> <span
+class=SpellE>check_<span class=GramE>resize</span></span><span class=GramE>(</span>)
+method.<span style="mso-spacerun: yes">&nbsp; </span>If the region has had its
+size increased, then the manager's SEGV handler will return, allowing the
+address to be re-evaluated and rendered addressable.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The application doesn't need to interact with the manager
+directly, but it does have another</p>
+
+<p class=MsoNormal><span class=GramE>value</span> which is convenience:<span
+style="mso-spacerun: yes">&nbsp; </span>it can return the <span class=SpellE>SharedRegion</span>&lt;&gt;
+class based on its name, helping to avoid cases where multiple <span
+class=SpellE>SharedRegions</span>&lt;&gt; get attached to a region.<span
+style="mso-spacerun: yes">&nbsp; </span>It can also perform the <span
+class=GramE>detach(</span>) operation when it's singleton is destroyed,
+ensuring proper region closure (which might be important for some regions.)</p>
+
+<p class=MsoNormal style='mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span style='font-size:14.0pt;
+font-family:Helvetica;mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<h1>The ACE implementation of the above concepts:</h1>
+
+<p class=MsoNormal style='mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span style='font-size:14.0pt;
+font-family:Helvetica;mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal>The project will build on top of ACE constructs for the
+implementation of <span class=SpellE>Malloc</span> over Shared Memory.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><b style='mso-bidi-font-weight:
+normal'>Memory Pool Implementations</b> (all 5 included by <span class=SpellE>Memory_Pool.h</span>)</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in;mso-list:l22 level1 lfo15'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>Local_Memory_<span
+class=GramE>Pool</span></span><span class=GramE>(</span>.h) - heap-based pool</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in;mso-list:l22 level1 lfo15'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>Shared_Memory_<span
+class=GramE>Pool</span></span><span class=GramE>(</span>.h) - <span
+class=SpellE>shm</span>-based pool</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in;mso-list:l22 level1 lfo15'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>MMAP_Memory_<span
+class=GramE>Pool</span></span><span class=GramE>(</span>.h) - <span
+class=SpellE>mmap</span>-based pool</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in;mso-list:l22 level1 lfo15'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>4.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>Sbrk_Memory_<span
+class=GramE>Pool</span></span><span class=GramE>(</span>.h) - <span
+class=SpellE>sbrk</span>()-based pool</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in;mso-list:l22 level1 lfo15'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>5.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>Pagefile_Memory_<span
+class=GramE>Pool</span></span><span class=GramE>(</span>.h) - <span
+class=SpellE>Pagefile</span>-based pool</p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><i style='mso-bidi-font-style:
+normal'>The above are 5 different shared region implementations.<span
+style="mso-spacerun: yes">&nbsp; </span>Their interfaces are not precisely
+identical, for example, they each have their own ‘options’ types.<span
+style="mso-spacerun: yes">&nbsp;&nbsp; </span>However, their interfaces are
+similar enough to permit the use of one of these 5 types as a template
+parameter to the <span class=SpellE>Malloc_T</span> façade (see below).<o:p></o:p></i></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><b style='mso-bidi-font-weight:
+normal'>Relative Pointer Implementations<o:p></o:p></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in;mso-list:l14 level1 lfo16'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>ACE_Based_Pointer_Basic</span>&lt;T&gt;
+- pointer to type T (<span class=SpellE>Based_Pointer_T.h</span>)</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in;mso-list:l14 level1 lfo16'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>ACE_Based_Pointer</span>&lt;T<span
+class=GramE>&gt; :</span> public <span class=SpellE>ACE_Based_Pointer_Basic</span>&lt;T&gt;
+- pointer to T (<span class=SpellE>Based_Pointer_T.h</span>)</p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><span class=GramE><i
+style='mso-bidi-font-style:normal'>The implementation of a ‘Relative Pointer’
+in the ACE library.</i></span><i style='mso-bidi-font-style:normal'><span
+style="mso-spacerun: yes">&nbsp; </span>The use of relative pointers is based
+on the previously described SEGV handling behavior, which is accomplished in
+ACE via a <span class=GramE>class which</span> knows about all mapped in shared
+memory regions which might require the SEGV behavior.<o:p></o:p></i></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><span class=SpellE><b
+style='mso-bidi-font-weight:normal'>Malloc</b></span><b style='mso-bidi-font-weight:
+normal'> Control Block Implementations<o:p></o:p></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in;mso-list:l13 level1 lfo17'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>ACE_Control_Block</span> (<span
+class=SpellE>Malloc.h</span>) - Normal control block is for <span class=GramE>scenarios
+which</span> use normal pointers in the memory pool.</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in;mso-list:l13 level1 lfo17'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>ACE_PI_Control_Block</span> (<span
+class=SpellE>PI_Malloc.h</span>) - Process Independent Control Block, based on
+the <span class=SpellE>ACE_Based_Ptr</span>&lt;T&gt; relative class.</p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'>The implementation of <span
+class=SpellE>malloc</span> depends on a control block, and associated ‘nodes’
+in a free list.<span style="mso-spacerun: yes">&nbsp; </span>There are two
+implementations of the control block offered with ACE, <span class=GramE>one
+which</span> uses absolute pointer values, and one which uses position
+independent (PI) pointer values, via the <span class=SpellE>ACE_Based_Ptr</span>&lt;T&gt;
+template.</p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><b style='mso-bidi-font-weight:
+normal'>The <span class=SpellE>Malloc</span> Algorithm</b> <b style='mso-bidi-font-weight:
+normal'>and associated Façade</b></p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in;mso-list:l20 level1 lfo18'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>ACE_Malloc_T</span>&lt;<span
+class=SpellE>MemPool<span class=GramE>,Lock,ControlBlock</span></span>&gt;<span
+style="mso-spacerun: yes">&nbsp; </span>(<span class=SpellE>Malloc_T.h</span>)</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in;mso-list:l20 level1 lfo18'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>ACE_Malloc</span>&lt;<span
+class=SpellE>Pool<span class=GramE>,Lock</span></span>&gt; : public <span
+class=SpellE>ACE_Malloc_T</span>&lt;<span class=SpellE>Pool,Lock,ACE_Control_Block</span>&gt;<span
+style="mso-spacerun: yes">&nbsp; </span>(<span class=SpellE>Malloc_T.h</span>)</p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><i style='mso-bidi-font-style:
+normal'>ACE has coupled together the façade and the <span class=SpellE>Malloc</span>
+algorithm into a single class (<span class=SpellE>Malloc_T</span>&lt;&gt;<span
+class=GramE>)<span style="mso-spacerun: yes">&nbsp; </span>The</span> <span
+class=SpellE>Malloc_T</span> object constructs the pool, and constructs its own
+Lock.<span style="mso-spacerun: yes">&nbsp; </span>The Lock object can’t be
+allocated in the pool, as it is used to help control the initialization of the
+control block, and is thus used before any <span class=SpellE><span
+class=GramE>malloc</span></span><span class=GramE>(</span>) algorithm is
+available.<o:p></o:p></i></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'>The sequence of construction
+enforced by <span class=SpellE>Malloc_T</span> is:</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in;mso-list:l8 level1 lfo19'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>First the Pool is created.</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in;mso-list:l8 level1 lfo19'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>Then its lock member is created.</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in;mso-list:l8 level1 lfo19'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>Then acquire the lock</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in;mso-list:l8 level1 lfo19'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>4.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>Create or Re-acquire the Control Block address
+via call to <span class=SpellE>pool<span class=GramE>::init</span>_acquire</span>()</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in;mso-list:l8 level1 lfo19'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>5.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>Pool<span class=GramE>::init</span>_acquire</span>
+is what actually opens/maps in the region (in the case of a <span class=SpellE>mmap</span>
+<span class=SpellE>impl</span>.)</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in;mso-list:l8 level1 lfo19'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>6.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>Malloc_T</span> then
+initializes the control block if this is a first time <span class=GramE>construction,</span>
+otherwise, it reuses the control block which already exists.</p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><i style='mso-bidi-font-style:
+normal'>The destruction sequence enforced by <span class=SpellE>Malloc_T</span>
+ensures the shared region is detached without destroying its contents.<span
+style="mso-spacerun: yes">&nbsp; </span><span class=GramE>i</span>.e. No
+destructor is ever called on the control block within the region.<span
+style="mso-spacerun: yes">&nbsp; </span>The only thing that ~<span
+class=SpellE>Malloc_T</span> does do is destroy its associated lock (the <span
+class=SpellE>ACE_Mutex</span> object), which has the effect of reducing the
+locks reference count <span class=SpellE>unti</span> no process is using it
+(i.e. every process has called the destructor on their <span class=SpellE>Malloc_T</span>
+object.)<span style="mso-spacerun: yes">&nbsp; </span>At that point, the actual
+lock in the <span class=SpellE>ACE_Mutex</span> managed <span class=SpellE>mmap</span>
+is <span class=SpellE>destroyd</span> along with the backing file.<o:p></o:p></i></p>
+
+<p class=MsoNormal style='margin-left:11.0pt;mso-pagination:none;tab-stops:
+1.25in 2.25in 3.25in 4.25in 5.25in 6.25in;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:14.0pt;font-family:Helvetica;
+mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><b style='mso-bidi-font-weight:
+normal'>Allocator interface classes</b>:</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in;mso-list:l21 level1 lfo20'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>ACE_Allocator</span> (abstract)
+(<span class=SpellE>Malloc_Base.h</span>)</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in;mso-list:l21 level1 lfo20'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>ACE_Allocator_Adapter</span>&lt;<span
+class=SpellE>Malloc</span><span class=GramE>&gt; :</span> public <span
+class=SpellE>ACE_Allocator</span> (<span class=SpellE>Malloc_T.h</span>)</p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><span class=SpellE><i
+style='mso-bidi-font-style:normal'>ACE_Allocator</i></span><i style='mso-bidi-font-style:
+normal'> is a fully polymorphic interface for allowing a program to be written
+using an Allocator, whose run-time instance might be shared memory based, heap
+based, etc.<span style="mso-spacerun: yes">&nbsp; </span><span class=SpellE>ACE_Allocator_Adapter</span>&lt;<span
+class=SpellE>Malloc</span>&gt; works with a <span class=SpellE>Malloc_T</span>&lt;&gt;
+type to adapt it to the <span class=SpellE>ACE_Allocator</span> interface.<span
+style="mso-spacerun: yes">&nbsp; </span>This combination is used with my own <span
+class=SpellE>SharedRegionManager</span> class to make the option of changing
+the type of shared memory region at run-time a reality.<o:p></o:p></i></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><b style='mso-bidi-font-weight:
+normal'>ACE Lock Types<o:p></o:p></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in;mso-list:l16 level1 lfo24'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>ACE_Mutex</span> - thread or
+process specific (<span class=SpellE>Mutex.h</span>) (either concrete or a
+proxy, depending.)</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in;mso-list:l16 level1 lfo24'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>ACE_Thread_Mutex</span> -
+thread <span class=SpellE>mutex</span> (<span class=SpellE>Thread_Mutex.h</span>)</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in;mso-list:l16 level1 lfo24'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>ACE_Process_Mutex</span> -
+process specific <span class=SpellE>mutex</span> (<span class=SpellE>Process_Mutex.h</span>)</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in;mso-list:l16 level1 lfo24'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>4.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>ACE_RW_Mutex</span> -
+Read/Write <span class=SpellE>pthread</span> <span class=SpellE>mutex</span> (<span
+class=SpellE>RW_Mutex.h</span>)</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in;mso-list:l16 level1 lfo24'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>5.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>ACE_RW_Thread_<span
+class=GramE>Mutex</span></span><span class=GramE> :</span> pubic <span
+class=SpellE>ACE_RW_Mutex</span> (<span class=SpellE>RW_Thread_Mutex.h</span>)</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in;mso-list:l16 level1 lfo24'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>6.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>ACE_RW_Process_Mutex</span> -
+process based read/write <span class=SpellE>pthread</span> <span class=SpellE>mutex</span>
+(<span class=SpellE>RW_Process_Mutex.h</span>)</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in;mso-list:l16 level1 lfo24'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>7.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>ACE_Condition_Thread_Mutex</span>
+- (<span class=SpellE>Condition_Thread_Mutex.h</span>)</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in;mso-list:l16 level1 lfo24'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>8.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>ACE_Process_Condition</span>
+- <span class=SpellE>unimplmented</span> (<span class=SpellE>Condition_Thread_Mutex.h</span>)</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in;mso-list:l16 level1 lfo24'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>9.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>ACE_Condition</span>&lt;<span
+class=SpellE>ACE_Recursive_Thread_Mutex</span>&gt; - (<span class=SpellE>Condition_Recursive_Thread_Mutex.h</span>)</p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><i style='mso-bidi-font-style:
+normal'>Multi-process concurrency control is essential.<span
+style="mso-spacerun: yes">&nbsp; </span>Thus, we make use of the relevant ACE
+lock types.<o:p></o:p></i></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><i style='mso-bidi-font-style:
+normal'><o:p>&nbsp;</o:p></i></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><span class=SpellE><i
+style='mso-bidi-font-style:normal'>ACE_Mutex</i></span><i style='mso-bidi-font-style:
+normal'>: when constructed with a USYNC_THREAD parameter, this object is a
+concrete <span class=SpellE>mutex</span> object.<span style="mso-spacerun:
+yes">&nbsp; </span><span class=GramE>i</span>.e. The <span class=SpellE>mutex</span>
+variable is a member of the <span class=SpellE>ACE_Mutex</span>.<span
+style="mso-spacerun: yes">&nbsp; </span>However, when used with USYNCH_PROCESS,
+it is a <span class=GramE>handle(</span>pointer) to a <span class=SpellE>mutex</span>
+which is itself contained with a small shared (<span class=SpellE>mmap</span>)
+region of memory under the control of the <span class=SpellE>ACE_Mutex</span>
+instance.<span style="mso-spacerun: yes">&nbsp; </span>Also, I extended this
+class so that an <span class=GramE>instance which allocates the <span
+class=SpellE>mutex</span> in a shared memory region</span> is possible.<span
+style="mso-spacerun: yes">&nbsp; </span>My variation of <span class=SpellE>ACE_Mutex</span>
+is usable for the complimentary locks (or member locks) of objects which are
+allocated within the shared memory region, such as our map&lt;&gt; and other
+data structures.<o:p></o:p></i></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><i style='mso-bidi-font-style:
+normal'><o:p>&nbsp;</o:p></i></p>
+
+<p class=MsoNormal style='margin-left:11.0pt'><i style='mso-bidi-font-style:
+normal'>We also will want to take advantage of <span class=SpellE>ACE_RW_Process_Mutex</span>,
+and <span class=SpellE>ACE_Process_Condition</span> (which I think we will have
+to implement)<o:p></o:p></i></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<h2>ACE Bugs / Custom Extensions:</h2>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='text-indent:-.25in;mso-list:l4 level1 lfo11'><![if !supportLists]><span
+style='font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family:
+Symbol'><span style='mso-list:Ignore'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>Rewrote portions of <span class=SpellE>ACE_Mutex</span>
+to allow the process <span class=SpellE>mutex</span> data to be allocated
+within an <span class=SpellE>ACE_Allocator</span> controlled region, (with
+name-based binding), rather than via an independent memory mapped file.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='text-indent:-.25in;mso-list:l4 level1 lfo11'><![if !supportLists]><span
+style='font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family:
+Symbol'><span style='mso-list:Ignore'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>ACE_Malloc_T</span>&lt;&gt;
+has a bug in which the <span class=SpellE>ref_count</span> is never decremented,
+even when the object is destroyed.<span style="mso-spacerun: yes">&nbsp;
+</span>Not really a big problem, since the <span class=SpellE>ACE_Malloc_T</span>
+type never uses that to determine whether or not to destroy something.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoListParagraph style='text-indent:-.25in;mso-list:l4 level1 lfo11'><![if !supportLists]><span
+style='font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family:
+Symbol'><span style='mso-list:Ignore'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>ACE_Malloc_T</span>&lt;&gt;
+could really use a method like ‘<span class=SpellE>findOrCreate</span>&lt;T&gt;<span
+class=GramE>( name</span> )’ which atomically finds an object within the named
+list, and if not found, allocates the memory for it, and constructs it using
+the default constructor.<span style="mso-spacerun: yes">&nbsp; </span>All done
+within one lock context, eliminating the need for applications to repeatedly do
+this.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<h2>Virtual Methods on Shared Objects</h2>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>A problem that will come up, inevitably, is someone wanting
+to store an object in shared <span class=GramE>memory which</span> has virtual
+methods.<span style="mso-spacerun: yes">&nbsp; </span>There is a problem.<span
+style="mso-spacerun: yes">&nbsp; </span>The object inevitably has a pointer
+back to a <span class=SpellE><span class=GramE>vtable</span></span><span
+class=GramE> which</span> is expected to be in the address space of the running
+process.<span style="mso-spacerun: yes">&nbsp; </span>If different processes
+don't have the same <span class=SpellE>vtable</span> value for the class in
+question, they end up considering each other’s created objects to be invalid,
+usually to the tone of a SEGV when a call is made to a virtual function.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>Aside from proposing changes to the way in which compilers
+implement the virtual function table, I know of a few ways to overcome this
+issue:</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in;mso-list:l2 level1 lfo25'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>Use an alternative implementation of a ‘virtual <span
+class=GramE>function’ which</span> works properly by finding the address of the
+function in a way that works for multiple processes.<span style="mso-spacerun:
+yes">&nbsp;&nbsp; </span>One problem with this approach is that it is intrusive
+to the design of the class in question, and also that in removing ‘real’
+virtual functions from the class, it has other undesirable effects like
+disabling <span class=SpellE>dynamic_cast</span>&lt;&gt; for that type
+hierarchy.</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in;mso-list:l2 level1 lfo25'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>Use serialization.<span style="mso-spacerun:
+yes">&nbsp; </span><span class=GramE>i</span>.e. Don’t store the object in the
+shared region, rather store a serialized form of it.<span style="mso-spacerun:
+yes">&nbsp; </span>When fetching the object out of the shared region, use a
+factory pattern (i.e. virtual constructor) to <span class=SpellE>reinstantiate</span>
+the correct derived type.<span style="mso-spacerun: yes">&nbsp; </span>This
+approach has one advantage: it can be implemented in a non-intrusive way for
+existing classes.<span style="mso-spacerun: yes">&nbsp; </span>However, it can
+be slow compared to the other techniques, and assumes that the STL containers
+in shared memory are being used in a ‘database-like’ manner.</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in;mso-list:l2 level1 lfo25'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>Use the handle/body approach to split the
+problem so that virtual methods never exist in shared memory.<span
+style="mso-spacerun: yes">&nbsp; </span>A factory can still be used to
+reconstitute objects out of shared memory, but without the overhead of <span
+class=SpellE>deserialization</span>.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The best solution (as always) may depend somewhat on your
+circumstances.<span style="mso-spacerun: yes">&nbsp; </span>I describe #3
+below, and provide an example of it.<span style="mso-spacerun: yes">&nbsp;
+</span>The technique can be changed to employ Boost serialization instead of a
+handle/body split.<span style="mso-spacerun: yes">&nbsp; </span>In either of
+those solutions, the use of a Factory to allow containers which are <span
+class=SpellE>heterogenous</span> <span class=GramE>( a</span> common case when
+you are concerned about using virtual methods on objects in shared memory. )</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The handle/body approach is not as elegant as I would like,
+but it is effective. <span style="mso-spacerun: yes">&nbsp;&nbsp;</span>A
+standard class is split into a handle and a body. </p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in;mso-list:l3 level1 lfo26'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>The handle is only allowed to have one data
+member &#8211; a pointer to the body.<span style="mso-spacerun: yes">&nbsp;
+</span>It may have any number of virtual methods, since it is never stored in
+shared memory.</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in;mso-list:l3 level1 lfo26'><![if !supportLists]><span
+style='mso-fareast-font-family:Arial;mso-bidi-font-family:Arial'><span
+style='mso-list:Ignore'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>The body class has all the data members, and
+typically no methods.<span style="mso-spacerun: yes">&nbsp; </span><span
+class=GramE>i</span>.e. All methods are encapsulated in the handle class, which
+is the public interface.<span style="mso-spacerun: yes">&nbsp; </span></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The trick is to then keep the object that is in the STL
+container (in shared memory) to just be the 'body' object, a class object that
+has no virtual methods.<span style="mso-spacerun: yes">&nbsp; </span>The handle
+class never exists in shared memory, only the local heap memory of a process,
+and thus it can make full use of virtual methods.<span style="mso-spacerun:
+yes">&nbsp; </span>The handle class can have a <span class=GramE>constructor
+which</span> is passed the pointer to the body.<span style="mso-spacerun:
+yes">&nbsp; </span>Thus when a body object is fetched from shared memory you
+can quickly construct a handle from that body and proceed to use the class.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><span class=GramE>i</span>.e.</p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=SpellE>MyMapType<span class=GramE>::iterator</span></span> it =
+map-&gt;find( key );</p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>If
+<span class=GramE>( it</span> != map-&gt;end() ) {</p>
+
+<p class=MsoNormal><span style='mso-tab-count:2'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>Handle
+h<span class=GramE>( it</span>-&gt;second );</p>
+
+<p class=MsoNormal><span style='mso-tab-count:2'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=SpellE><span class=GramE>h</span>.doSomething</span>();</p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>}</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><b style='mso-bidi-font-weight:normal'>STL Containers of
+Heterogeneous types:<o:p></o:p></b></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>A powerful programming pattern is to use <span class=GramE>containers
+which</span> point to objects in a class hierarchy.<span style="mso-spacerun:
+yes">&nbsp; </span>Algorithms can be written which work with the data in the
+container using run-time polymorphism; i.e. by working with all objects per the
+base class and calling virtual methods.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>Consider the following heap-based convention:</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span class=GramE><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>class</span></span><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>
+Customer { ... }<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span class=GramE><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>class</span></span><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'> <span
+class=SpellE>ResidentialCustomer</span> : public Customer { ... }<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span class=GramE><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>class</span></span><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'> <span
+class=SpellE>BusinessCustomer</span> : public Customer { ... }<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span class=GramE><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>class</span></span><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'> <span
+class=SpellE>WholesaleBusinessCustomer</span> : public Customer { ... }<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span style='font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span class=GramE><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>map</span></span><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>&lt;<span
+class=SpellE>id_type</span>, Customer*, <span class=SpellE>ACE_STL_Allocator</span>&gt;
+<span class=SpellE>myMap</span>;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span style='font-size:14.0pt;
+font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal><span class=SpellE><span class=GramE>myMap</span></span> can
+hold pointers to any Customer type, such that when you query an item in the
+map, you hold only a Customer* and can then make virtual method calls on the
+customer, fully exploiting runtime polymorphism.<span style="mso-spacerun:
+yes">&nbsp;&nbsp; </span><span class=GramE>i</span>.e. The algorithm using the
+map would not have to know the specific subclass that had just been found in
+the map for a given key (<span class=SpellE>id_type</span>).<span
+style="mso-spacerun: yes">&nbsp; </span>The algorithm could determine the
+precise subclass at run-time using <span class=SpellE>dynamic_cast</span>&lt;&gt;
+operations if it really wanted to know what it had gotten.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>To do the equivalent with shared memory, you can continue
+with the handle/body method forming a pair of hierarchies.<span
+style="mso-spacerun: yes">&nbsp; </span>One that is all state, and one that is
+all virtual methods:</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>//
+Each of these has one data member: imp, a pointer to its corresponding <span
+class=SpellE>impl</span>_ method.</p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span class=GramE><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>class</span></span><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>
+Customer { ... }<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span class=GramE><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>class</span></span><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'> <span
+class=SpellE>ResidentialCustomer</span> : public Customer { ... }<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span class=GramE><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>class</span></span><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'> <span
+class=SpellE>BusinessCustomer</span> : public Customer { ... }<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span class=GramE><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>class</span></span><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'> <span
+class=SpellE>WholesaleBusinessCustomer</span> : public Customer { ... }<o:p></o:p></span></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>//
+Each of these has just data members, but no methods.<span style="mso-spacerun:
+yes">&nbsp; </span>NOTHING virtual.<span style="mso-spacerun: yes">&nbsp;
+</span>Not even the destructor.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span><span class=SpellE><span
+class=GramE>struct</span></span> <span class=SpellE>Customer_impl</span> { …
+data … }<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span class=SpellE><span
+class=GramE><span style='font-family:"Courier New"'>struct</span></span></span><span
+style='font-family:"Courier New"'> </span><span class=SpellE><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>ResidentialCustomer_impl</span></span><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'> :
+public <span class=SpellE>Customer_impl</span> { ... }<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span class=SpellE><span
+class=GramE><span style='font-family:"Courier New"'>struct</span></span></span><span
+style='font-family:"Courier New"'> </span><span class=SpellE><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>BusinessCustomer_impl</span></span><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'> :
+public <span class=SpellE>Customer_impl</span> { ... }<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span class=SpellE><span
+class=GramE><span style='font-family:"Courier New"'>struct</span></span></span><span
+style='font-family:"Courier New"'> </span><span class=SpellE><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>WholesaleBusinessCustomer_impl</span></span><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'> :
+public <span class=SpellE>Customer_impl</span> { ... }<o:p></o:p></span></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span><span class=GramE>map</span>&lt;<span
+class=SpellE>id_type</span>, <span class=SpellE>Based_Ptr</span>&lt;<span
+class=SpellE>Customer_impl</span>&gt;, </span><span class=SpellE><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>ACE_STL_Allocator</span></span><span
+style='font-family:"Courier New";mso-bidi-font-family:"Times New Roman"'>&gt; <span
+class=SpellE>myMap</span></span><span style='font-family:"Courier New"'><o:p></o:p></span></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>Now I have a map in shared memory which does not hold <span
+class=GramE>any<span style="mso-spacerun: yes">&nbsp; </span>objects</span>
+which contain virtual methods.<span style="mso-spacerun: yes">&nbsp; </span>I
+can insert any type into the map <span class=GramE>by<span style="mso-spacerun:
+yes">&nbsp; </span>passing</span> it the pointer to the <span class=SpellE>Customer_impl</span>
+subtype that has been allocated in shared memory.<span style="mso-spacerun:
+yes">&nbsp; </span>(Note: I can’t, unfortunately, make the map a map of &lt;<span
+class=SpellE>id_type</span>, <span class=SpellE>Customer_impl</span>, <span
+class=SpellE>ACE_STL_Allocator</span>&gt;, I have to make it a map of pointers
+and do the creation of the appropriate <span class=SpellE>Customer_impl</span>
+subtype on my own.<span style="mso-spacerun: yes">&nbsp; </span>This is because
+the collection of objects is <span class=SpellE>heterogenous</span>.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The next problem is to figure out how, when I fetch an
+object from the map, I can identify its type.<span style="mso-spacerun:
+yes">&nbsp; </span>I can’t use <span class=SpellE>dynamic_cast</span>&lt;&gt;
+to determine the type of the object found from the map.<span
+style="mso-spacerun: yes">&nbsp; </span>That method relies on the <span
+class=SpellE>vtable</span>, and isn’t safe for objects in shared memory.<span
+style="mso-spacerun: yes">&nbsp;&nbsp; </span>If I add a member variable ‘<span
+class=SpellE>type_id</span>’ to the <span class=SpellE>Customer_impl</span>
+base implementation class, I can have every handle class set it appropriately.<span
+style="mso-spacerun: yes">&nbsp; </span>Now whenever I <span class=GramE>find(</span>)
+a <span class=SpellE>Customer_impl</span> from the map I can tell what its
+actual type was at the time of insertion.<span style="mso-spacerun:
+yes">&nbsp;&nbsp; </span>This allows me to downcast to the appropriate <span
+class=SpellE>impl</span> subtype (using <span class=SpellE>reinterpret_cast</span>&lt;&gt;),
+and from that, I can finally use a factory method to help construct the
+appropriate <span class=SpellE>dataType</span>.</p>
+
+<p class=MsoNormal><i style='mso-bidi-font-style:normal'><o:p>&nbsp;</o:p></i></p>
+
+<p class=MsoNormal style='margin-left:.5in'><i style='mso-bidi-font-style:normal'>Note:
+My use of <span class=SpellE>reinterpret_cast</span>&lt;&gt; here implies the
+assumption that for a “class <span class=GramE>A :</span> public B”, casting
+the address of A* to B* does not change the physical address.<span
+style="mso-spacerun: yes">&nbsp; </span>In cases where multiple <span
+class=GramE>inheritance</span> is used in the class hierarchy, this may <u>not</u>
+be true. <o:p></o:p></i></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The methods corresponding to <span class=GramE>insert(</span>)
+and fetch() would then be as follows:</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+style='font-family:"Courier New"'>/* This method is a generic wrapper for the
+act of inserting a type T into a map which<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-family:"Courier New"'><span
+style="mso-spacerun: yes">&nbsp;</span>* <span class=GramE>has</span> T* for
+its value type, with the map’s pointer being into shared memory, but the object<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-family:"Courier New"'><span
+style="mso-spacerun: yes">&nbsp;</span>* <span class=GramE>passed</span> not
+necessarily being in <span class=SpellE>shm</span> already.<span
+style="mso-spacerun: yes">&nbsp; </span>A copy of the object passed is made.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-family:"Courier New"'><span
+style="mso-spacerun: yes">&nbsp;</span>*/<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span><span class=GramE>template</span>
+&lt;class T&gt;<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span><span class=SpellE><span
+class=GramE>myInsert</span></span>( <span class=SpellE>mapT</span> &amp;<span
+class=SpellE>myMap</span>, <span class=SpellE>MapT::key_type</span> id, T*
+customer ) {<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:2'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=SpellE>STL_ACE_Allocator</span>&lt;<span class=SpellE>T<span class=GramE>::impl</span>_type</span>&gt;
+<span class=SpellE>alloc</span>( <span class=SpellE>myMap.allocator</span>() );<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:2'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=SpellE>T<span class=GramE>::base</span>_impl_type</span> *<span
+class=SpellE>inShm</span> = <span class=SpellE>alloc</span>-&gt;allocate( 1 );<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:2'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>*<span
+class=SpellE><span class=GramE>inShm</span></span> = *(customer-&gt;_<span
+class=SpellE>impl</span>); // assignment<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:2'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=GramE>return</span> <span class=SpellE>myMap.insert</span>( id, <span
+class=SpellE>inShm</span> ); <o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span>}<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-family:"Courier New"'>Customer*
+<span class=SpellE>myFetch</span><span class=GramE>( <span class=SpellE>mapT</span></span>
+&amp;<span class=SpellE>myMap</span>, <span class=SpellE>id_type</span> key ) {<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:2'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=SpellE><span class=GramE>mapT</span>::iterator</span> I = <span
+class=SpellE>myMap.find</span>( key );<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:2'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=GramE>if</span> ( I == <span class=SpellE>myMap.end</span>() ) return
+NULL;<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:2'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=GramE>switch</span>( <span class=SpellE>i</span>-&gt;second-&gt;<span
+class=SpellE>type_id</span> )<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:2'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>{<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:3'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=GramE>case</span> <span class=SpellE>Customer::TypeId</span>:<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=GramE>return</span> new Customer( <span class=SpellE>i</span>-&gt;second
+);<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:3'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=GramE>case</span> <span class=SpellE>ResidentialCustomer::TypeId</span>:<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=GramE>return</span> new <span class=SpellE>ResidentialCustomer</span>( <span
+class=SpellE>reinterpet_cast</span>&lt;<span class=SpellE>ResidentialCustomer_impl</span>&gt;(
+<span class=SpellE>i</span>-&gt;second ) );<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:3'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=GramE>case</span> <span class=SpellE>BusinessCustomer::TypeId</span>:<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=GramE>return</span> new <span class=SpellE>BusinessCustomer</span>( <span
+class=SpellE>reinterpet_cast</span>&lt;<span class=SpellE>BusinessCustomer_impl</span>&gt;(
+<span class=SpellE>i</span>-&gt;second ) );<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:3'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=GramE>default</span>:<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=SpellE><span class=GramE>cerr</span></span> &lt;&lt; “bug in this code:”
+__ &lt;&lt; <span class=SpellE>endl</span>;<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+class=GramE>abort</span>();<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:2'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>}<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><span
+style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span>}<span
+style='mso-tab-count:2'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-family:"Courier New"'>#####
+TODO! #####<o:p></o:p></span></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><span style='mso-tab-count:2'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+
+<p class=MsoNormal>Notice that the <span class=SpellE><span class=GramE>myInsert</span></span><span
+class=GramE>(</span>) method has the qualities of a generic algorithm.<span
+style="mso-spacerun: yes">&nbsp; </span><span class=GramE>i</span>.e. That
+should work for any class hierarchy in which the classes use the handle/body
+paradigm.<span style="mso-spacerun: yes">&nbsp; </span>We can write that method
+once and it would work for any associative container. </p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The <span class=SpellE><span class=GramE>myFetch</span></span><span
+class=GramE>(</span>) method, on the other hand, does not.<span
+style="mso-spacerun: yes">&nbsp; </span>It reflects our class hierarchy.<span
+style="mso-spacerun: yes">&nbsp; </span>It works, but what if I don’t want to
+have a chunk of code that is aware of all subtypes of Customer.<span
+style="mso-spacerun: yes">&nbsp; </span>What if I would like the map, and the
+above algorithm to work for any subclass of Customer that happens to get added
+to the application, just as a non-shared memory version would work?<span
+style="mso-spacerun: yes">&nbsp;&nbsp; </span></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><b style='mso-bidi-font-weight:normal'>Enter the Factory
+pattern…<o:p></o:p></b></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>To allow the creation of a segment of code which fetches
+unknown types from the shared map, and works with those objects <span
+class=SpellE>polymorphically</span>, we make use of a Factory (aka virtual
+constructor) to help construct the appropriate handle class from the body
+pointer fetched from the map.<span style="mso-spacerun: yes">&nbsp; </span>The
+Factory does the job of constructing the right type based on the implementation
+fetched.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The <span class=SpellE>loki</span> library has a good
+Generic Factory implementation in it, which we can use <span class=GramE>for<span
+style="mso-spacerun: yes">&nbsp; </span>this</span>.<span style="mso-spacerun:
+yes">&nbsp; </span>Basically, the various subtypes register themselves with the
+factory, giving the factory the ability to create instances of their type from
+a body pointer found in the map.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The resulting code for the fetch then looks as follows:</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>There is an answer to this: it involves the use of the <span
+class=SpellE>AbstractFactory</span> pattern to allow the <span class=SpellE><span
+class=GramE>myFetch</span></span><span class=GramE>(</span>) algorithm to
+dynamically take the subclass indicator, and pass it to the abstract factory,
+along with the address of the union, to let the abstract factory instantiate an
+instance of the appropriate subtype.<span style="mso-spacerun:
+yes">&nbsp;&nbsp; </span>As long as the abstract factory knows how to create
+the subtypes, then it does the dynamic type construction for you.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The <span class=SpellE>STLshm</span> library comes with a
+few classes that implement an abstract Factory pattern you can use in this
+way.<span style="mso-spacerun: yes">&nbsp;&nbsp;&nbsp; </span>The <span
+class=SpellE>AbstractFactory.h</span> header defines the factory.<span
+style="mso-spacerun: yes">&nbsp; </span>It is limited in that it can currently
+only work with constructors that take 0 or 1 arguments.<span
+style="mso-spacerun: yes">&nbsp; </span>(Reworking this to be based on
+something better is on my ever-growing to-do.<span style="mso-spacerun:
+yes">&nbsp; </span>The Boost libraries have implemented some classes that act
+as constructor references and would be great if adapted to this concept.)<span
+style="mso-spacerun: yes">&nbsp; </span>The <span class=SpellE>AbstractFactory</span>&lt;<span
+class=SpellE>BaseType</span>, <span class=SpellE>ParmType</span>&gt; can be
+used to construct instances of any subtype of <span class=SpellE>BaseType</span>
+that has a constructor that takes the indicated <span class=SpellE>ParamType</span>.<span
+style="mso-spacerun: yes">&nbsp; </span>(<span class=SpellE>ParamType</span>
+can be void if you want to use the default constructor.)</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>The way that the <span class=SpellE>AbstractFactory</span>
+will know to create a given subtype is by instantiating an instance of <span
+class=SpellE>AbstractRegistrar</span> to “register” the subtype with the
+factory.<span style="mso-spacerun: yes">&nbsp; </span>This can be accomplished
+most easily by simply having a private, static <span class=SpellE>AbstracTRegistrar</span>
+member in each subtype class.<span style="mso-spacerun: yes">&nbsp; </span>The <span
+class=SpellE>AbstractFactory</span> class is itself used as a Singleton, so
+order of construction is assured.<span style="mso-spacerun: yes">&nbsp;
+</span>As the static member variables of the subtypes are constructed, the
+factory is advised of how to create them.<span style="mso-spacerun: yes">&nbsp;
+</span>This works even when the subtypes are in dynamically loaded libraries,
+and can be handy for the dynamic loading of plug-in classes.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal>An example of using this approach is given in STLshmTest3.cc</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal style='mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span style='font-size:14.0pt;
+font-family:Helvetica;mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span style='font-size:14.0pt;
+font-family:Helvetica;mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='mso-pagination:none;tab-stops:1.0in 2.0in 3.0in 4.0in 5.0in 6.0in;
+mso-layout-grid-align:none;text-autospace:none'><span style='font-size:14.0pt;
+font-family:Helvetica;mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-family:"Times New Roman"'><o:p>&nbsp;</o:p></span></p>
+
+</div>
+
+</body>
+
+</html>

@@ -1,0 +1,246 @@
+*** file_lock.hpp 2009-03-28 10:39:16.000000000 -0400
+--- file_lock.hpp 2009-05-18 15:41:24.000000000 -0400
+***************
+*** 72,77 ****
+        return *this;  
+     }
+  
+     //!Closes a file lock. Does not throw.
+     ~file_lock();
+  
+--- 72,82 ----
+        return *this;  
+     }
+  
++    //!Opens a file lock.  The lock is based on a portion of the file beginning
++    //!at offset bytes from the start of the file, and extending from there
++    //!for size bytes.
++    file_lock(const char *name, offset_t offset, size_t size);
++ 
+     //!Closes a file lock. Does not throw.
+     ~file_lock();
+  
+***************
+*** 79,87 ****
+     //!Does not throw.
+     void swap(file_lock &other)
+     {
+!       file_handle_t tmp = m_file_hnd;
+        m_file_hnd = other.m_file_hnd;
+!       other.m_file_hnd = tmp;
+     }
+     
+     //Exclusive locking
+--- 84,98 ----
+     //!Does not throw.
+     void swap(file_lock &other)
+     {
+!       file_handle_t tmp1 = m_file_hnd;
+! 	  offset_t tmp2 = m_offset;
+!       size_t tmp3 = m_size;
+        m_file_hnd = other.m_file_hnd;
+!       m_offset = other.m_offset;
+!       m_size = other.m_size;
+!       other.m_file_hnd = tmp1;
+!       other.m_offset = tmp2;
+!       other.m_size = tmp3;
+     }
+     
+     //Exclusive locking
+***************
+*** 142,147 ****
+     /// @cond
+     private:
+     file_handle_t m_file_hnd;
+  
+     bool timed_acquire_file_lock
+        (file_handle_t hnd, bool &acquired, const boost::posix_time::ptime &abs_time)
+--- 153,160 ----
+     /// @cond
+     private:
+     file_handle_t m_file_hnd;
++    offset_t m_offset;
++    size_t m_size;
+  
+     bool timed_acquire_file_lock
+        (file_handle_t hnd, bool &acquired, const boost::posix_time::ptime &abs_time)
+***************
+*** 153,159 ****
+        if(now >= abs_time) return false;
+  
+        do{
+!          if(!detail::try_acquire_file_lock(hnd, acquired))
+              return false;
+  
+           if(acquired)
+--- 166,172 ----
+        if(now >= abs_time) return false;
+  
+        do{
+!          if(!detail::try_acquire_file_lock(hnd, m_offset, m_size, acquired))
+              return false;
+  
+           if(acquired)
+***************
+*** 181,187 ****
+        if(now >= abs_time) return false;
+  
+        do{
+!          if(!detail::try_acquire_file_lock_sharable(hnd, acquired))
+              return false;
+  
+           if(acquired)
+--- 194,200 ----
+        if(now >= abs_time) return false;
+  
+        do{
+!          if(!detail::try_acquire_file_lock_sharable(hnd, m_offset, m_size, acquired))
+              return false;
+  
+           if(acquired)
+***************
+*** 202,207 ****
+  };
+  
+  inline file_lock::file_lock(const char *name)
+  {
+     m_file_hnd = detail::open_existing_file(name);
+  
+--- 215,222 ----
+  };
+  
+  inline file_lock::file_lock(const char *name)
++     : m_offset(0)
++     , m_size(0)
+  {
+     m_file_hnd = detail::open_existing_file(name);
+  
+***************
+*** 211,216 ****
+     }
+  }
+  
+  inline file_lock::~file_lock()
+  {
+     if(m_file_hnd != detail::invalid_file()){
+--- 226,243 ----
+     }
+  }
+  
++ inline file_lock::file_lock(const char *name, offset_t offset, size_t size)
++ 	: m_offset(offset)
++ 	, m_size(size)
++ {
++    m_file_hnd = detail::open_existing_file(name);
++ 
++    if(m_file_hnd == detail::invalid_file()){
++       error_info err(system_error_code());
++       throw interprocess_exception(err);
++    }
++ }
++ 
+  inline file_lock::~file_lock()
+  {
+     if(m_file_hnd != detail::invalid_file()){
+***************
+*** 221,227 ****
+  
+  inline void file_lock::lock()
+  {
+!    if(!detail::acquire_file_lock(m_file_hnd)){
+        error_info err(system_error_code());
+        throw interprocess_exception(err);
+     }
+--- 248,254 ----
+  
+  inline void file_lock::lock()
+  {
+!    if(!detail::acquire_file_lock(m_file_hnd, m_offset, m_size)){
+        error_info err(system_error_code());
+        throw interprocess_exception(err);
+     }
+***************
+*** 230,236 ****
+  inline bool file_lock::try_lock()
+  {
+     bool result;
+!    if(!detail::try_acquire_file_lock(m_file_hnd, result)){
+        error_info err(system_error_code());
+        throw interprocess_exception(err);
+     }
+--- 257,263 ----
+  inline bool file_lock::try_lock()
+  {
+     bool result;
+!    if(!detail::try_acquire_file_lock(m_file_hnd, m_offset, m_size, result)){
+        error_info err(system_error_code());
+        throw interprocess_exception(err);
+     }
+***************
+*** 253,259 ****
+  
+  inline void file_lock::unlock()
+  {
+!    if(!detail::release_file_lock(m_file_hnd)){
+        error_info err(system_error_code());
+        throw interprocess_exception(err);
+     }
+--- 280,286 ----
+  
+  inline void file_lock::unlock()
+  {
+!    if(!detail::release_file_lock(m_file_hnd, m_offset, m_size)){
+        error_info err(system_error_code());
+        throw interprocess_exception(err);
+     }
+***************
+*** 261,267 ****
+  
+  inline void file_lock::lock_sharable()
+  {
+!    if(!detail::acquire_file_lock_sharable(m_file_hnd)){
+        error_info err(system_error_code());
+        throw interprocess_exception(err);
+     }
+--- 288,294 ----
+  
+  inline void file_lock::lock_sharable()
+  {
+!    if(!detail::acquire_file_lock_sharable(m_file_hnd, m_offset, m_size)){
+        error_info err(system_error_code());
+        throw interprocess_exception(err);
+     }
+***************
+*** 270,276 ****
+  inline bool file_lock::try_lock_sharable()
+  {
+     bool result;
+!    if(!detail::try_acquire_file_lock_sharable(m_file_hnd, result)){
+        error_info err(system_error_code());
+        throw interprocess_exception(err);
+     }
+--- 297,303 ----
+  inline bool file_lock::try_lock_sharable()
+  {
+     bool result;
+!    if(!detail::try_acquire_file_lock_sharable(m_file_hnd, m_offset, m_size, result)){
+        error_info err(system_error_code());
+        throw interprocess_exception(err);
+     }
+***************
+*** 293,299 ****
+  
+  inline void file_lock::unlock_sharable()
+  {
+!    if(!detail::release_file_lock_sharable(m_file_hnd)){
+        error_info err(system_error_code());
+        throw interprocess_exception(err);
+     }
+--- 320,326 ----
+  
+  inline void file_lock::unlock_sharable()
+  {
+!    if(!detail::release_file_lock_sharable(m_file_hnd, m_offset, m_size)){
+        error_info err(system_error_code());
+        throw interprocess_exception(err);
+     }

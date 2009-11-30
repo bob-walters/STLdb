@@ -1,0 +1,177 @@
+
+The concurent_trans_map is an experimental attempt to increase the level on currency in the map for some operation types,
+at the expense of additional short-duration mutexes needing to be acquired.
+
+The commit logic is altered so that any transaction which does not include erase()s can be committed by
+holding only a shared lock, rather than an exclusive one.  In fact, exclusive locks are only
+needed on the map when the application calls:
+1) an insert() method
+2) commit() on a transaction which includes one or more pending erases.
+3) rollback() on a transaction which includes a pending insert.
+(i.e. those circumstances where an entry must be added to or removed from the map)
+
+Transactions with only finds and updates can now be committed in parallel with those operations and commits from other threads.
+So applications which primarilly do find() and update() would benefit from container, particularly at higher throughput levels
+where the contention over the normal exclusive commit() lock becomes a bottleneck.  
+Apps which do lots of insert()s and erases()
+will not see much speedup, and may see a slowdown if the majority of txns include one or both of those operations.
+
+With the normal trans_map, a shared lock held for the duration of an iterator protects the iterator from seeing any new changes.
+The node that is on will not vanish or become invalid, and the value seen there will not change.
+
+Rules:
+	when calling insert(), must be holding a scoped lock on the map.
+	for all other ops (update(), lock(), erase()), a shared lock is fine.
+	(the above is the same as is seen with trans_map)
+
+The behavior of iterators changes slightly under the concurrent::trans_map:
+	
+Iterators:
+~~~~~~~~~~
+With the trans_map, iterators don't have to be worried about the data on a row changing
+while the iterator is pointing to the entry.  This is due to 2 factors in the design of
+trans_map:  1) Because updates are based on an MVCC convention, only the commit logic 
+actually modifies the entries key/value attributes (during the commit of an update), and
+2) Only the commit logic removes entries from the map.
+
+Because of these conventions, an iterator, existing while a shared lock is in place on
+the map, has assured that neither of the above can happen, thus key and value of entries
+will not change during the life of the iterator.  There is, therefore, no reason for the
+iterator to acquire any lock.
+
+With the concurrent_trans_map, we have now made it possibly for commit and rollback
+processing to occur under a shared lock, which means that values could change while an
+iterator is on a row.  We keep with the convention that an exclusive lock is needed during
+commit processing of an erase(), or a rollback of an insert(), so that iterators don't have
+to 'worry' about the entry they are on litterally vanishing out from under them.  However,
+because of the potential for the iterator to observe a change to a value in mid-commit,
+the iterator must now acquire a lock on the appropriate mutex to protect its access to the
+entry which it is currently pointing to.
+
+So iterators now lock the entry that they are pointing to when assessing the value of that
+entry, either for determining whether to skip the entry (during ++/--), or when returning
+a usable reference to it via operator* or operator->.
+
+Locks are non-copyable, but iterators must be copyable.  In early designs, this led to
+shared locks between iterators which were tracked with reference counts, etc.
+
+In the final version, the iterators associated with a container will hold one,
+and ONLY one mutex within a picket set locked at any one time, on behalf of one thread.
+(Different threads can each hold a different mutex.)  If a thread is using multiple
+iterators
+
+The reason for the one-mutex-per-thread rule has to do with preventing thread deadlocking.
+The commit logic in concurrent::trans_map executes with only a shared lock in place, but
+it must acquire the appropriate picket locks to work with the rows that need final modifications.
+It can't do this one picket lock at a time, because doing that would violate the Atomicity
+requirement of the transaction.  So instead, it must get all required locks first, 
+modify the entries, and then it can release all the locks.  To prevent deadlocking between
+different threads performing this logic, the commit process sorts the mutexes prior to
+locking them.
+
+While this prevents deadlocking between committing threads, threads which have multiple
+iterators in existence can lock mutexes in an unpredictable order, in which case those
+threads could deadlock with each other, and with committing threads.  My first experience
+with this occurred with the implementation of "i++" for the iterator.  The implementation
+of operator++(int) returns a copy of i with it's original value, after incrementing i.
+This led to the existence of 2 locks at the same time, and the chance to deadlock with a
+thread trying to go through the locking phase of the commit logic.  It was rare, but such
+deadlocks did begin to occur.    The fact that this was insidious, and associated with
+the unintended creation of a temporary led to the decision that it would better if the
+library ruled out any chance of mutex deadlocks, rather than making it a user responsibility.
+
+My strategy to address this is to make the seizing of locks automatic and enforce the rule
+that iterators only hold one lock per container, per thread, at any one time, and must
+release an existing mutex before seizing a new one.  This eliminates the chance of deadlock.
+However it has some stipulations for users of concurrent::map:
+
+ONE: Keep in mind that a pointer or reference returned from an iterator could become
+unprotected memory the moment that the iterator is moved, or destroyed.
+
+E.g.
+map_type::iterator i = mymap.begin();
+T* entry = &*i;  // currently entry is locked.
+i++;  // entry just became unlocked.
+cout << entry->first << entry->second << endl;
+// the above may reflect modifications in progress if another thread commits some
+// change during the access to entry.
+
+TWO: Because the iterator must unlock an existing mutex and lock another whenever
+the application accesses different entries via an iterator, it pays to focus the
+code on one entry at a time, to maximize efficiency.
+
+For example, the following segment will only acquire one mutex on the entry at the
+start of the map.
+
+map_type::iterator i = mymap.begin();
+if (i->second.field1 > 100 && i->second.field2 == false && i->second.field3 < 10 ) {
+
+However, the following code will oscillate the lock between the mutexes that apply to
+the first and second entries in the map.
+
+map_type::iterator i = mymap.begin();
+map_type::iterator j = ++i;
+if ( i->second.field1 == j->second.field1 &&
+     i->second.field2 == j->second.field2 &&
+     i->second.field3 == j->second.field3 )
+{
+     cout << i->first << " and " << j->first << " have the same foobar." << endl;
+}
+
+In the above code segment, the two iterators are constantly seizing the lock away from
+the other iterator, because the execution alternates between 
+i.operator->() and j.operator->() 6 times.  This results is a lot more mutex seizing than
+you probably intended.
+
+The performance problems can largely be addressed in these case by making a local copy 
+of the entry (key and/or value) when the logic requires the simultaneous use of multiple
+entries.
+
+Finally, not that as with trans_map, 
+a shared lock on the container must also held for the duration of the iterator.  
+This protects the iterator against
+invalidation due to the commit of erase operations - the node it points to will not vanish.  However the value of the entry
+
+The iterator still doesn't show uncommitted changes, but now changes (updates) can be committed
+while the iterator exists.  As a result of this, it is possible for the iterator to
+
+Explicit locking/unlocking:
+The concurrent::trans_map iterator adds some new methods which allow you to see whether
+the entry it points to is currently locked, as well as to direct it to explicitly seize
+the lock for its entry, or unlock its entry.
+
+Note that when an iterator seizes a lock in order to guard the entry it points to, that
+lock is held until:
+1) the iterator goes out of scope
+2) another iterator seizes the lock
+3) the thread commits or rolls back a transaction.
+4) an explicit call to unlock() is made.
+
+Thus, in cases where the iterator has a long lived scope, and lock seizure by another
+iterator is not likely, an explicit call to unlock() may be required to help
+maximize parallelism.  Otherwise the iterator might hold a lock long after it is no
+longer needed.  (Note: Assigning an iterator the value of map::end() also has the effect
+of unlocking it.)
+
+Sharing Iterators between threads:
+
+Iterators can only be moved between threads while the iterator is in an unlocked state.
+Passing an iterator which has a lock off to another thread is not possible, as the other
+thread would be unable to unlock the iterator.
+
+
+The concurrent::trans_map, for all the effort around it, manages only to find a way to help increase
+the parallelism of algorithms which use heavy updates and light deletes and inserts.  The
+strategy of partitioning the data is a better general-purpose solution to the problem of map
+contention on commit processing.  i.e. Rather than one map within the database, determine
+a way to partition the keys of your data set into multiple maps.
+
+
+TODO: specialize some internal class of trans_map so that when the map is guarded by a standard mutex,
+no separate row-level mutex is required.  Test this map against the one using a read/write lock
+for overall throughput.  (Especially since commit requires exclusion.)
+
+
+
+
+

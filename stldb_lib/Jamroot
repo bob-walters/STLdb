@@ -1,0 +1,56 @@
+import common ;
+import os ;
+
+path-constant BOOST_ROOT : [ os.environ BOOST_ROOT ] ;
+use-project /boostroot : $(BOOST_ROOT) ;
+
+alias libboost_serialization : /boostroot//serialization ;
+alias libboost_filesystem : /boostroot//filesystem ;
+alias libboost_thread : /boostroot//thread ;
+alias libboost_date_time : /boostroot//date_time ;
+alias libboost_system : /boostroot//system ;
+
+project stldb_lib
+	: requirements
+	  <include>$(BOOST_ROOT)
+	  <include>.
+	  <toolset>msvc:<define>NO_STDINT_H
+      <toolset>msvc:<define>_CRT_SECURE_NO_WARNINGS
+      <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS
+      <define>STLDB_TRACING
+      <threading>multi
+	;
+	
+lib stldb
+        : src/logging.cpp 
+          src/trace.cpp 
+          src/time_tracked.cpp 
+          src/timer.cpp 
+          src/bounded_interprocess_mutex.cpp
+          src/db_file_util.cpp
+          src/log_reader.cpp
+          libboost_serialization
+          libboost_filesystem
+          libboost_thread
+          libboost_system
+		  libboost_date_time
+		: <link>shared:<define>BOOST_STLDB_DYN_LINK=1 
+        ;
+
+exe log_inspector
+		: src/log_inspector.cpp
+		  stldb
+          libboost_serialization
+          libboost_filesystem
+          libboost_thread
+          libboost_system
+		  libboost_date_time
+        ;
+
+install ../dist : stldb log_inspector :
+		<variant>debug:<location>../dist/debug
+		<variant>release:<location>../dist/release 
+		<install-dependencies>on 
+		<install-type>EXE
+        <install-type>LIB
+		;

@@ -1,0 +1,59 @@
+X transactional operations of trans_map<> must remember and restore old lock_id if rollback is done.
+
+X for transactions to "wait" for a row to be released, they have to have a reference to the lock of the container in
+  question, so that they can release it when they go to wait on a condition variable.  Or else I have no choice but to
+  internalize the locking on the trans_map class.
+
+X trans_assoc_iterator doesn't currently track 'end' of the map during execution of
+  forward() or backward(), and needs that so that it can tell when it has reached the
+  end of the map.  Currently, it is relying on dereferencing luck.
+  
+X support trans_assoc_iterator safety check against _ver_num of the map to determine if it might
+  have gone invalid.
+    
+X actual logging writes/syncs in Logger
+X algorithm to get all queued commit buffers and write all of them together during Log commit.
+
+X assign commit ids at the moment of enqueue for logging, not at the start of commit.  The value is never persisted, 
+   but is used to determine whether threads which have gone before have done the  write.
+
+X trans_map: proper lock for acquiring row-level lock for lock & update operations.
+
+* fix transactional operations of map to account for multi-ops on a common row in one transaction.
+
+* trans_map : make reverse iterators work properly.
+
+* trans_map : use heap-based bulk allocator for transactional operation allocation (to save time/memory)
+
+* transaction : double check that clearing the intrusive transactional_op list does deallocate the members.
+
+X make scope_aware_allocator inherit from another boost::interprocess::allocator type and reuse it,
+   adding support for a default constructor.
+   
+X make gnu allocator inherit from another boost::interprocess::allocator type and reuse it, altering the
+   stored pointer type accordingly.
+
+* make changes to gnu basic_string to allow allocator::pointer type to be defined for it.
+  
+X actual file removal op when deleting/recreating memory region mmap file. 
+
+* map checkpoint algorithm:
+        * add tracking to trans_map:  last full checkpoint txn_id, and # of rows with modifications since that txn_id.
+        * full checkpoint algorithm:  traverse the map getting 'N' values at a time and writing those N values.
+        * incremental checkpoint - write out only rows with txn_id > last full txn_id.
+    
+X Factory in trans_map to reconstitute trans_ops from serialized form
+
+* Algorithm to re-apply log records to a container with attention to the container's loaded data(?)
+
+*  Add specialization so that trans_map<K*,V*> will not compile.
+   Specialize the transactional ops of trans_map to account for cases where K or V are pointers.  Or
+   provide a specialization of trans_map which yields a compile error if either K or V are pointers.
+   (OR: make it work, but only so long as K and Y have default constructors and thus can be recreated
+   by boost::serialization when recovery is being done.  For that, the region has to be in scope
+   when the recovery is being applied, so that objects being created can be applied.)
+
+X map's blocking insert, update, & erase methods should accept a blocking policy which determine
+  whether the cond_wait is indefinite or timed.  This replaces the Lock parameter currently on the API.
+  
+
