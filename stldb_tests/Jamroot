@@ -1,0 +1,70 @@
+import common ;
+import os ;
+
+path-constant BOOST_ROOT : [ os.environ BOOST_ROOT ] ;
+use-project /boostroot : $(BOOST_ROOT) ;
+
+alias libboost_serialization : /boostroot//serialization ;
+alias libboost_filesystem : /boostroot//filesystem ;
+alias libboost_thread : /boostroot//thread ;
+alias libboost_date_time : /boostroot//date_time ;
+alias libboost_system : /boostroot//system ;
+
+
+path-constant STLDB_ROOT : "../stldb_lib" ;
+use-project /stldb : $(STLDB_ROOT) ;
+
+alias libstldb : /stldb//stldb ;
+
+project cvgcache_cpp
+	: requirements
+	  <include>$(BOOST_ROOT)
+	  <include>$(STLDB_ROOT)
+      <define>STLDB_TRACING
+      <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS
+      <toolset>msvc:<define>_CRT_SECURE_NO_WARNINGS
+      <toolset>msvc:<define>NO_STDINT_H
+      <toolset>msvc:<cxxflags>/wd4503
+      <threading>multi
+	;
+
+exe test4 
+        : src/test4.cpp 
+		  libstldb
+          libboost_serialization
+          libboost_filesystem
+          libboost_thread
+          libboost_system
+          libboost_date_time
+		: <define>BOOST_ALL_NO_LIB
+		  <link>shared:<define>BOOST_STLDB_DYN_LINK
+        ;
+
+exe stress_test
+        : src/stress_test.cpp 
+		  libstldb
+          libboost_serialization
+          libboost_filesystem
+          libboost_thread
+          libboost_system
+          libboost_date_time
+		: <define>BOOST_ALL_NO_LIB
+		  <link>shared:<define>BOOST_STLDB_DYN_LINK
+        ;
+
+exe stldb_tests 
+        : [ glob src/test_perf*.cpp ] 
+          [ glob src/test_util*.cpp ]
+          src/main.cpp
+          src/test1.cpp
+          src/test2.cpp
+          src/test3.cpp
+		  libstldb
+          libboost_serialization
+          libboost_filesystem
+          libboost_thread
+          libboost_system
+          libboost_date_time
+		: <define>BOOST_ALL_NO_LIB
+		  <link>shared:<define>BOOST_STLDB_DYN_LINK
+        ;

@@ -1,0 +1,58 @@
+
+
+The variety of performance tests were aimed at exploring the effectiveness of different string/map types.
+
+test_perf1:
+    pure boost::interprocess::string within trans_map, with offset_ptr, and scope_aware allocators for the strings (only)
+	under this test, the string data in question is being frequently copied and 
+	allocated/deallocated since the 
+	
+test_perf2:
+	boost::interprocess::string with a boost::interprocess::map (not trans_map).  This test
+	was intended to confirm that trans_map is not adding significant overhead to the map,
+	nor creaing an additional concurrency drain.
+
+test_perf3:
+    std::basic_string, std::map, with standard pointers, and scope-aware allocators for both.
+    
+test_perf4:
+    std::basic_string, with std pointer, and scope aware allocator, 
+    inside boost::interprocess::map, with interprocess allocator, and offset ptr.
+    Compares to test_perf2.
+    
+test_perf5:
+    std::string within trans_map, with standard pointer, 
+    and scope_aware allocators for the strings (only)  This verifies that the copy-on-write
+    functionality of std::string has noticable benefits compared to test_perf1
+
+test_perf6:
+    int / struct in trans_map, with the map having offset_ptr and std interprocess allocator. 
+    shows the effective cost of the additional memory allocation required by std::string,
+    when creating/deleting instances.
+    
+test_perf7: 
+    concurrent::trans_map containing same data type as test_perf6, to attempt to discern the
+    benefit of the concurrent map.
+***** NOTE: Does not run currently with data.  test7ro or test7 fails with lock timeout exception
+***** immediately after the completion of load7.
+  
+perf_test8:
+	A test aimed at verifying the speed of different lock types.
+	
+test_perf9:
+	std::string using a region_or_heap allocator to reduce the pain on shared memory alloc,
+	combined with concurrent::trans_map which is using 
+	a cached adaptive pool for node allocation.
+
+test_perf10:
+	stldb::string (GNU 4.4 std::string backported) using a region_or_shared allocator,
+	along with a concurrent::trans_map employing a cached node allocator.
+	
+test_perf11:
+	same as perf10, except a stldb::trans_map (not concurrent model) is being used.
+	Instead of concurrent::trans_map, a partitioned test database is used so that the load
+	gets spread over multiple.
+	Contrasting this with test_perf10 shows the difference between the concurrent::trans_map
+	and the parallelism achieved by partitioning a database.
+	
+	
