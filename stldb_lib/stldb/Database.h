@@ -19,6 +19,7 @@
 #include <boost/interprocess/containers/set.hpp>
 #include <boost/interprocess/containers/vector.hpp>
 #include <boost/interprocess/containers/string.hpp>
+#include <boost/interprocess/sync/interprocess_condition.hpp>
 #include <boost/interprocess/streams/vectorstream.hpp>
 #include <boost/intrusive/slist.hpp>
 #include <boost/filesystem/path.hpp>
@@ -150,7 +151,7 @@ class Database {
 	// These define the types of locks to use for the Database.
 	typedef typename ManagedRegionType::mutex_family mutex_family;
 	typedef typename mutex_family::mutex_type mutex_type;
-	typedef typename boost::interprocess::interprocess_condition condition_type;
+	typedef boost::interprocess::interprocess_condition condition_type;
 
 	typedef container_proxy_base<ManagedRegionType> container_proxy_type;
 

@@ -5,18 +5,20 @@
  *      Author: bobw
  */
 
-#ifndef FILE_LOCK_H_
-#define FILE_LOCK_H_
+#ifndef STLDB_FILE_LOCK_H_
+#define STLDB_FILE_LOCK_H_
 
 #include <cstdio>
 #include <ios>
 #include <fstream>
 
+#include <boost/interprocess/detail/os_file_functions.hpp>
+
 #include <stldb/sync/detail/os_file_functions_ext.hpp>
 #include <stldb/sync/detail/file_lock.hpp>
 
 using std::ofstream;
-using boost::interprocess::offset_t;
+// using boost::interprocess::offset_t;
 
 namespace stldb {
 
