@@ -219,7 +219,7 @@ Database<ManagedRegionType>::Database(
 		}
 
 		// Subsequent commits will add to what already exists.
-		_dbinfo->logInfo._next_commit_txn_id = last_lsn+1;
+		_dbinfo->logInfo._next_lsn = last_lsn+1;
 		_dbinfo->logInfo._last_write_txn_id = last_lsn;
 		_dbinfo->logInfo._last_sync_txn_id = last_lsn;
 

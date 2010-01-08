@@ -12,6 +12,7 @@
 #include <boost/interprocess/containers/vector.hpp>
 #include <boost/interprocess/streams/vectorstream.hpp>
 #include <boost/intrusive/slist.hpp>
+#include <stldb/logging.h>
 
 using boost::intrusive::optimize_size;  // tag
 using boost::intrusive::void_pointer;  // tag
@@ -44,12 +45,28 @@ class commit_buffer_t
 	{
 	public:
 		int op_count;
+		struct log_header header;
 
 		// Construct
 		inline commit_buffer_t(const void_alloc_type &alloc)
 			: boost::interprocess::vector<char, typename void_alloc_type::template rebind<char>::other>( alloc )
 			, op_count(0)
 			{ }
+
+		// Prepares the header for this commit buffer.
+		inline void prepare_header() {
+			header.segment_size = this->size();
+			header.op_count = op_count;
+			header.segment_checksum = adler( reinterpret_cast<const uint8_t*>(&*(this->begin())),
+					this->size()*sizeof(char) );
+		}
+
+		// Finalizes the header by adding the lsn value.
+		inline void finalize_header(transaction_id_t txn_id) {
+			header.txn_id = txn_id;
+			header.header_checksum = 0;
+			header.header_checksum = adler( reinterpret_cast<const uint8_t*>(&header),sizeof(struct log_header));
+		}
 	};
 
 }  // namespace

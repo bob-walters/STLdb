@@ -162,6 +162,7 @@ transaction_id_t recovery_manager<ManagedRegionType>::recover_txn( std::pair<log
 			std::pair<std::string,int> op_header = TransactionalOperation::deserialize_header(bstream);
 
 			// Get the container proxy for the container that this record refers to
+			// TODO - optimize for scenario where same container name repeats from op to op.
 			container_proxy_base<ManagedRegionType>* proxy = db.getContainerProxy(op_header.first.c_str());
 
 			// Conceivably proxy could be null if a table was removed, and then the database crashed

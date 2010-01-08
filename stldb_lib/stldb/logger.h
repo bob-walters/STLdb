@@ -56,16 +56,16 @@ struct SharedLogInfo
 
 	// This sequence value is used to ensure that the order of disk writes
 	// reflects the order of transaction commits.
-	transaction_id_t _next_commit_txn_id;
+	transaction_id_t _next_lsn;
 
 	// Info about what has been written, and synced to disk...
 	transaction_id_t _last_write_txn_id;
 	transaction_id_t _last_sync_txn_id;
 
 	// queue of transactions waitng for disk write.
-	typedef std::pair<stldb::commit_buffer_t<void_alloc_t>*, transaction_id_t>  waiting_write;
-	typedef typename void_alloc_t::template rebind<waiting_write>::other shm_txn_id_alloc_t;
-	boost::interprocess::deque<waiting_write,shm_txn_id_alloc_t> waiting_txns;	// transactions waiting to enter log().
+	typedef stldb::commit_buffer_t<void_alloc_t>*  waiting_write;
+	typedef typename void_alloc_t::template rebind<waiting_write>::other deque_alloc_t;
+	boost::interprocess::deque<waiting_write,deque_alloc_t> waiting_txns;	// transactions waiting to enter log().
 
 	// Configured log directory and current filename
 	shm_string  log_dir;		// config - directory to contain log files
@@ -81,7 +81,7 @@ struct SharedLogInfo
 	// Meant to be constructed within a shared region.
 	SharedLogInfo(const void_alloc_t &alloc)
 		: _queue_mutex(), _file_mutex()
-		, _next_commit_txn_id(1)
+		, _next_lsn(1)
 		, _last_write_txn_id(0), _last_sync_txn_id(0)
 		, waiting_txns(alloc)
 		, log_dir(alloc), log_filename(alloc)
@@ -89,11 +89,6 @@ struct SharedLogInfo
 		, log_sync(true), stats()
 		{ }
 };
-
-
-static const int max_txn_per_write = 64;
-static io::write_region_t iov[max_txn_per_write*2];
-static struct log_header headers[max_txn_per_write];
 
 /**
  * The logger is invoked when transactions are committing.
@@ -103,9 +98,11 @@ class Logger
 {
 public:
 	Logger()
-		: _shm_info(NULL)
-		, _logfd(0) /* TODO - Too OS specific */
+		: padding_buffer()
+		, _shm_info(NULL)
+		, _logfd(0) /* TODO - Too OS specific an initializer? */
 		, _my_log_filename()
+		, _my_fp_offset(0)
 	{ }
 
 	/**
@@ -150,13 +147,16 @@ public:
 	transaction_id_t queue_for_commit( stldb::commit_buffer_t<void_alloc_t> *buff )
 	{
 		stldb::timer t1("Logger::queue_for_commit");
+
+		buff->prepare_header();
+
 		boost::interprocess::scoped_lock<mutex_type> lock_holder(_shm_info->_queue_mutex);
 
-		transaction_id_t retval = _shm_info->_next_commit_txn_id++;
-		_shm_info->waiting_txns.push_back( std::make_pair(buff,retval) );
-		return retval;
+		transaction_id_t lsn = _shm_info->_next_lsn++;
+		buff->finalize_header(lsn);
+		_shm_info->waiting_txns.push_back( buff );
+		return lsn;
 	}
-
 
 	/**
 	 * Acquire the right to write to the log file, and then write data from the commit
@@ -192,7 +192,7 @@ public:
 				   && new_file_len < _shm_info->log_max_len ) {
 
 				// get one txn buffer, create a header record for it.
-				stldb::commit_buffer_t<void_alloc_t> *buff = _shm_info->waiting_txns[0].first;
+				stldb::commit_buffer_t<void_alloc_t> *buff = _shm_info->waiting_txns[0];
 
 				// sanity test (debugging)
 				if (buff->size()==0 || buff->op_count==0) {
@@ -202,16 +202,8 @@ public:
 					throw std::ios_base::failure( error.str() );
 				}
 
-				headers[txn_count].segment_size = buff->size();
-				headers[txn_count].op_count = buff->op_count;
-				headers[txn_count].txn_id = _shm_info->waiting_txns[0].second;
-				headers[txn_count].segment_checksum = adler( reinterpret_cast<const uint8_t*>(&*(buff->begin())),
-						buff->size()*sizeof(char) );
-				headers[txn_count].header_checksum = 0;
-				headers[txn_count].header_checksum = adler( reinterpret_cast<const uint8_t*>(&headers[txn_count]),sizeof(struct log_header));
-
 				// add the header and the buffer to the io_vec structures.
-				iov[2*txn_count].iov_base = &(headers[txn_count]);
+				iov[2*txn_count].iov_base = &(buff->header);
 				iov[2*txn_count].iov_len = sizeof(struct log_header);
 				iov[2*txn_count+1].iov_base = const_cast<char*>(&*(buff->begin()));
 				iov[2*txn_count+1].iov_len = buff->size()*sizeof(char);
@@ -220,7 +212,7 @@ public:
 				bytes += iov[2*txn_count].iov_len + iov[2*txn_count+1].iov_len;
 				txn_written++;
 
-				max_txn_id = _shm_info->waiting_txns[0].second;
+				max_txn_id = buff->header.txn_id;
 				new_file_len += iov[2*txn_count].iov_len + iov[2*txn_count+1].iov_len;
 				txn_count++;
 
@@ -231,18 +223,29 @@ public:
 			// we can release the queue lock at this point...
 			queue_lock_holder.unlock();
 
-			// make sure out fd is pointing to the correct offset in the file.
-			boost::interprocess::detail::set_file_pointer(_logfd, _shm_info->log_len,
+			// make the total length to be written equal
+			int buffercount = txn_count*2;
+			if (bytes % optimum_write_alignment != 0) {
+				iov[2*txn_count].iov_base = padding_buffer;
+				iov[2*txn_count].iov_len = bytes % optimum_write_alignment;
+				buffercount += 1;
+			}
+
+			// make sure our fd is pointing to the correct offset in the file.
+			if (_my_fp_offset != _shm_info->log_len) {
+				boost::interprocess::detail::set_file_pointer(_logfd, _shm_info->log_len,
 					boost::interprocess::file_begin);
+			}
 
 			// Write the data we have gathered to the file
 			stldb::timer t5("write()");
-			bool written = stldb::io::gathered_write_file(_logfd, &iov[0], 2*txn_count);
+			bool written = stldb::io::gathered_write_file(_logfd, &iov[0], buffercount);
 			if (!written) {
 				std::ostringstream error;
 				error << "stldb::io::gathered_write_file() to log file failed.  errno: " << errno;
 				throw std::ios_base::failure( error.str() );
 			}
+			_my_fp_offset = new_file_len;
 			writes++;
 			t5.end();
 
@@ -253,7 +256,7 @@ public:
 		} // while max log_seq written is < my log_seq
 
 		// Ok, once here, our commit buffer has been written, but we still might
-		// need to wait for it to go to disk (via stldb::sync())
+		// need to wait for it to go to disk (via stldb::io::sync())
 		if (_shm_info->_last_sync_txn_id < my_commit_seq && _shm_info->log_sync ) {
 
 			// TODO - it might be possible to allow a thread to do additional writes to
@@ -338,10 +341,32 @@ private:
 				STLDB_TRACE(severe_e, error.str());
 				throw std::ios_base::failure( error.str() );
 			}
+			// most filesystems will benefit from this:
+			// we seek to maxsize and write a byte, so that during subsequent I/O
+			// into the file, we aren't changing the inode's length constantly.
+			boost::interprocess::detail::set_file_pointer(_logfd, _shm_info->log_max_len,
+					boost::interprocess::file_begin);
+
+			char byte = 0;
+			bool written = stldb::io::write_file(_logfd, &byte, 1);
+			if (!written) {
+				std::ostringstream error;
+				error << "stldb::io::_write_file(1) at offset log_max_len failed.  errno: " << errno;
+				throw std::ios_base::failure( error.str() );
+			}
+			_my_fp_offset = _shm_info->log_max_len +1;
+
 			// Note that we now have this file open.
 			_my_log_filename = _shm_info->log_filename.c_str();
 		}
 	}
+
+	static const int max_txn_per_write = 64;
+	static const size_t optimum_write_alignment = 512;
+
+	// Used to hold structures used with writev()
+	io::write_region_t iov[1+ max_txn_per_write*2];
+	char padding_buffer[optimum_write_alignment];
 
 	// details about logging kept in shared memory.
 	SharedLogInfo<void_alloc_t,mutex_type> *_shm_info;
@@ -349,6 +374,7 @@ private:
 	// The details of the open file as this process currently knows it.
 	boost::interprocess::file_handle_t  _logfd;
 	std::string   _my_log_filename; // what _logfd refers to
+	boost::interprocess::offset_t  _my_fp_offset;  // offset into _logfd which a write() would currently go to.
 };
 
 } // stldb namespace

@@ -55,10 +55,10 @@
 # include <ext/atomicity.h>
 # include <debug/debug.h>
 # include <initializer_list>
-# include <ext/pointer.h>  // comes with gcc 4.4.0+
-# include <ext/cast.h>     // comes with gcc 4.4.0+
-# include <ext/type_traits.h> // comes with gcc 4.4.0+
-# include <ext/cpp_type_traits.h> // comes with gcc 4.4.0+
+# include <stldb/containers/gnu/pointer.h>  // comes with gcc 4.4.0+
+# include <stldb/containers/gnu/cast.h>     // comes with gcc 4.4.0+, plus one mod for offset_ptr.
+# include <stldb/containers/gnu/type_traits.h> // comes with gcc 4.4.0+
+# include <stldb/containers/gnu/cpp_type_traits.h> // comes with gcc 4.4.0+
 #elif (__GNUC__==4 && __GNUC_MINOR__==2)
 # include <ext/atomicity.h>
 # include <debug/debug.h>
@@ -74,7 +74,7 @@
 # include <stldb/containers/gnu/type_traits.h> // subset of gcc 4.4.0 version.
 # include <stldb/containers/gnu/cpp_type_traits.h> // copy of gcc 4.4.0 version.
 #endif
-
+#include <limits>
 
 namespace stldb {
 
@@ -320,8 +320,13 @@ namespace stldb {
 
       _CharT*
       _M_data(_CharT* __p)
+#if (__GNUC__==4 && __GNUC_MINOR__>=4 || __GNUC__>4)
+      { return __gnu_cxx::__static_pointer_cast<_CharT*,pointer>(
+                  _M_dataplus._M_p = __gnu_cxx::__static_pointer_cast<pointer>(__p)); }
+#else
       { return __gnu_cxx::__static_pointer_cast1<_CharT*,pointer>(
     		  _M_dataplus._M_p = __gnu_cxx::__static_pointer_cast2<pointer>(__p)); }
+#endif
 
       _Rep*
       _M_rep() const
