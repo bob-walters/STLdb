@@ -52,6 +52,18 @@ exe stress_test
 		  <link>shared:<define>BOOST_STLDB_DYN_LINK
         ;
 
+exe logtest
+	    : src/logtest.cpp
+		  libstldb
+          libboost_serialization
+          libboost_filesystem
+          libboost_thread
+          libboost_system
+          libboost_date_time
+		: <define>BOOST_ALL_NO_LIB
+		  <link>shared:<define>BOOST_STLDB_DYN_LINK
+        ;
+	    
 exe stldb_tests 
         : [ glob src/test_perf*.cpp ] 
           [ glob src/test_util*.cpp ]
