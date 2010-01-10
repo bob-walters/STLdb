@@ -55,8 +55,9 @@
 # include <ext/atomicity.h>
 # include <debug/debug.h>
 # include <initializer_list>
-# include <stldb/containers/gnu/pointer.h>  // comes with gcc 4.4.0+
-# include <stldb/containers/gnu/cast.h>     // comes with gcc 4.4.0+, plus one mod for offset_ptr.
+# include <ext/pointer.h>  // comes with gcc 4.4.0+
+# include <ext/cast.h>
+# include <stldb/containers/gnu/cast_workaround.h>     // mod for offset_ptr.
 # include <stldb/containers/gnu/type_traits.h> // comes with gcc 4.4.0+
 # include <stldb/containers/gnu/cpp_type_traits.h> // comes with gcc 4.4.0+
 #elif (__GNUC__==4 && __GNUC_MINOR__==2)
@@ -64,6 +65,7 @@
 # include <debug/debug.h>
 # include <stldb/containers/gnu/pointer.h>  // verbatim copy of gcc 4.4.0 version
 # include <stldb/containers/gnu/cast.h>     // verbatim copy of gcc 4.4.0 version
+# include <stldb/containers/gnu/cast_workaround.h>     // mod for offset_ptr.
 # include <stldb/containers/gnu/type_traits.h> // subset of gcc 4.4.0 version.
 # include <stldb/containers/gnu/cpp_type_traits.h> // copy of gcc 4.4.0 version.
 #else
@@ -71,6 +73,7 @@
 # include <debug/debug.h>
 # include <stldb/containers/gnu/pointer.h>  // verbatim copy of gcc 4.4.0 version
 # include <stldb/containers/gnu/cast.h>     // verbatim copy of gcc 4.4.0 version
+# include <stldb/containers/gnu/cast_workaround.h>     // mod for offset_ptr.
 # include <stldb/containers/gnu/type_traits.h> // subset of gcc 4.4.0 version.
 # include <stldb/containers/gnu/cpp_type_traits.h> // copy of gcc 4.4.0 version.
 #endif
