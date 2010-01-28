@@ -62,10 +62,9 @@ class commit_buffer_t
 		}
 
 		// Finalizes the header by adding the lsn value.
-		inline void finalize_header(transaction_id_t txn_id) {
-			header.txn_id = txn_id;
-			header.header_checksum = 0;
-			header.header_checksum = adler( reinterpret_cast<const uint8_t*>(&header),sizeof(struct log_header));
+		inline void finalize_header(transaction_id_t lsn) {
+			header.lsn = lsn;
+			header.finalize();
 		}
 	};
 

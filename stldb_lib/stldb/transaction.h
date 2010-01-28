@@ -94,7 +94,7 @@ public:
 	// Recover a previously restored transactional operation.  Re-apply
 	// the transaction to the container's contents.  If the operation is non-recoverable
 	// (i.e. add_to_log() returns 0) it doesn't need to override this method.
-	virtual void recover(boost_iarchive_t& stream) { }
+	virtual void recover(boost_iarchive_t& stream, transaction_id_t lsn) { }
 
 	// Called when writing an operation out to logs.  Serializes the header of the op
 	template <class boost_archive_out>
@@ -236,6 +236,10 @@ public:
 	transaction_id_t getLockId() const
 	{ return _transId; }
 
+	//! Return the lsn assigned to this transaction.  LSN assignment occurs during commit processing.
+	transaction_id_t getLSN() const
+	{ return _commit_lsn; }
+
 	// To add an operation to the _outstandingChanges, the following is used:
 	template<class container_t>
 	void insert_work_in_progress(container_t *container, TransactionalOperation *op);
@@ -259,7 +263,7 @@ public:
 protected:
 	// Only allowed by Database or derrived.
 	Transaction()
-		: _lock(), _transId(0), _commit_transId(0)
+		: _lock(), _transId(0), _commit_lsn(0)
 		, _modifiedContainers(), _outstandingChanges(), _containerSpecificData()
 		{ }
 
@@ -287,7 +291,7 @@ private:
 	transaction_id_t _transId;
 
 	// The transaction id used for permanence when the transaction commits.
-	transaction_id_t _commit_transId;
+	transaction_id_t _commit_lsn;
 
 	// The set of containers which have been modified during this transaction.
 	std::set<void*> _modifiedContainers;
@@ -407,9 +411,9 @@ void Transaction::commit( std::map<void*, container_proxy_base<ManagedRegionType
 	}
 
 	/* Phase 2 - make the changes within the various containers permanent,
-	 * by getting all needed container locks (in predictable order), and then
-	 * calling _outstandingChanges.commit() to commit all ops,
-	 * but don't release the locks on the containers yet. */
+	 * by getting all needed container locks (in predictable order), to thereby
+	 * assure the order in which changes become visible.
+	 */
 	stldb::timer t3a("container commit work (container lock duration)");
 	stldb::timer t3b("acquiring container locks");
 	std::set<void*>::iterator j;
@@ -420,19 +424,19 @@ void Transaction::commit( std::map<void*, container_proxy_base<ManagedRegionType
 	}
 	t3b.end();
 
-	stldb::timer t3c("committing transactional operations");
-	_outstandingChanges.commit(*this);
-	t3c.end();
-
 	/**
 	 * Phase 3 - get a unique commit seq#, and put our commit buffer into
 	 * the logging queue.  At this point, we are reserving our place in the
 	 * sequence of the log file.
 	 */
-	uint64_t commit_id = 0;
 	if (!diskless) {
-		commit_id = logger.queue_for_commit(buffer);
+		_commit_lsn = logger.queue_for_commit(buffer);
 	}
+
+	// call _outstandingChanges.commit() to commit all ops,
+	stldb::timer t3c("committing transactional operations");
+	_outstandingChanges.commit(*this);
+	t3c.end();
 
 	/**
 	 * Phase 4 - release all container locks.  It is now acceptable for other
@@ -450,8 +454,8 @@ void Transaction::commit( std::map<void*, container_proxy_base<ManagedRegionType
 		logger.record_diskless_commit();
 	}
 	else {
-		STLDB_TRACE(finer_e, "Committing transaction " << _transId << " to log with LSN  " << commit_id);
-		logger.log(commit_id);
+		STLDB_TRACE(finer_e, "Committing transaction " << _transId << " to log with LSN  " << _commit_lsn);
+		logger.log(_commit_lsn);
 	}
 
 	// Done committing this transaction.  Now clean up.

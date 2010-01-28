@@ -84,7 +84,7 @@ struct map_insert_operation : public assoc_transactional_operation<map_type>
 
 	virtual void commit(Transaction &t) {
 		if (_entry->second.getOperation() == Insert_op)
-			_entry->second.unlock(t.getLockId());
+			_entry->second.unlock(t.getLSN());
 	}
 	virtual void rollback(Transaction &t) {
 		// inserts which follow a delete are handled as modifies,
@@ -98,11 +98,16 @@ struct map_insert_operation : public assoc_transactional_operation<map_type>
 		buffer & ref;
 		return 1;
 	}
-	virtual void recover(boost_iarchive_t& stream) {
+	virtual void recover(boost_iarchive_t& stream, transaction_id_t lsn) {
 		typename map_type::value_type temp;
 		stream & temp;
 		typename map_type::baseclass &ref = this->get_container();
+		temp.second.unlock(lsn);
 		ref.insert(temp);  // ignore errors if already exists.
+//		STLDB_TRACE(finer_e, "Recover insert: [" << temp.first << "," << temp.second << "] op: "
+//						<< temp.second.getOperation() << " lsn: " << temp.second.getLockId()
+//						<< "ckpt:{" << temp.second.checkpointLocation().first << ","
+//						<< temp.second.checkpointLocation().second << "}" );
 	}
 
 private:
@@ -135,8 +140,9 @@ struct map_update_operation : public assoc_transactional_operation<map_type>
 
 	virtual void commit(Transaction &t) {
 		if (_entry->second.getOperation() == Update_op) {
-			_entry->second = _newValue.second;
-			_entry->second.unlock(t.getLockId(), No_op);
+			// set the value and txn_id, but leave checkpoint location untouched.
+			_entry->second.base() = _newValue.second.base();
+			_entry->second.unlock(t.getLSN());
 		}
 	}
 	virtual void rollback(Transaction &t) {
@@ -147,16 +153,29 @@ struct map_update_operation : public assoc_transactional_operation<map_type>
 		buffer & _newValue;
 		return 1;
 	}
-	virtual void recover(boost_iarchive_t& stream) {
+	virtual void recover(boost_iarchive_t& stream, transaction_id_t lsn) {
 		stream & _newValue;
 		typename map_type::baseclass &ref = this->get_container();
 		_entry = ref.find(_newValue.first);
 		// Update is sometimes recorded for an insert on a row which already has a pending delete.
 		// so we need to be ready to insert or update
-		if (_entry != ref.end() )
-			_entry->second = _newValue.second;
-		else
+		if (_entry != ref.end() ) {
+			// set the value and txn_id, but leave checkpoint location untouched.
+			_entry->second.base() = _newValue.second.base();
+			_entry->second.unlock( lsn );
+//			STLDB_TRACE(finer_e, "Recover update: [" << _entry->first << "," << _entry->second << "] op: "
+//							<< _entry->second.getOperation() << " lsn: " << _entry->second.getLockId()
+//							<< "ckpt:{" << _entry->second.checkpointLocation().first << ","
+//							<< _entry->second.checkpointLocation().second << "}" );
+		}
+		else {
+			_newValue.second.unlock(lsn);
 			ref.insert( _newValue );
+//			STLDB_TRACE(finer_e, "Recover update: [" << _newValue.first << "," << _newValue.second << "] op: "
+//							<< _newValue.second.getOperation() << " lsn: " << _newValue.second.getLockId()
+//							<< "ckpt:{" << _newValue.second.checkpointLocation().first << ","
+//							<< _newValue.second.checkpointLocation().second << "}" );
+		}
 	}
 
 private:
@@ -191,6 +210,9 @@ struct map_delete_operation : public assoc_transactional_operation<map_type>
 	virtual void commit(Transaction &t) {
 		if (_entry->second.getOperation() == Delete_op) {
 			typename map_type::baseclass &ref = this->get_container();
+			if (_entry->second.checkpointLocation().second > 0) {
+				this->get_container()._freed_checkpoint_space.insert( _entry->second.checkpointLocation() );
+			}
 			ref.erase(_entry);
 			this->get_container()._ver_num++;
 		}
@@ -203,11 +225,73 @@ struct map_delete_operation : public assoc_transactional_operation<map_type>
 		buffer & _entry->first;
 		return 1;
 	}
-	virtual void recover(boost_iarchive_t& stream) {
+	virtual void recover(boost_iarchive_t& stream, transaction_id_t lsn) {
+		typename map_type::key_type key;
+		stream & key;
+		typename map_type::baseclass &ref = this->get_container();
+		typename map_type::baseclass::iterator entry = ref.find(key);
+		if (entry != ref.end()) {
+			if (entry->second.checkpointLocation().second > 0)
+				this->get_container()._freed_checkpoint_space.insert(
+						entry->second.checkpointLocation() );
+			STLDB_TRACE(finer_e, "Recover delete: [" << key << "] "
+							<< "ckpt:{" << entry->second.checkpointLocation().first << ","
+							<< entry->second.checkpointLocation().second << "}" );
+			ref.erase( entry );
+		}
+	}
+
+private:
+	typename map_type::baseclass::iterator _entry;	 // the entry in c being modified.
+	transaction_id_t _original_txn_id;
+};
+
+
+template <class map_type>
+struct map_deleted_insert_operation : public assoc_transactional_operation<map_type>
+{
+	// new and delete overloaded to use a pool allocator, for efficiency
+	void *operator new (size_t) {
+		return boost::singleton_pool<map_deleted_insert_operation,sizeof(map_deleted_insert_operation)>::malloc();
+	}
+	void operator delete (void *p) {
+		boost::singleton_pool<map_deleted_insert_operation,sizeof(map_deleted_insert_operation)>::free(p);
+	}
+
+	// Constructor used when operation is performed on a map
+	map_deleted_insert_operation( map_type &c, transaction_id_t original_txnid,
+						  TransactionalOperations original_op,
+						  typename map_type::baseclass::iterator &entry)
+		: assoc_transactional_operation<map_type>( c, Delete_op, original_txnid, original_op )
+		, _entry( entry )
+		{}
+
+	// Constructor used during recovery processing
+	map_deleted_insert_operation( map_type &c )
+		: assoc_transactional_operation<map_type>( c )
+		, _entry()
+		{ }
+
+	virtual void commit(Transaction &t) {
+		if (_entry->second.getOperation() == Deleted_Insert_op) {
+			typename map_type::baseclass &ref = this->get_container();
+			ref.erase(_entry);
+		}
+	}
+	virtual void rollback(Transaction &t) {
+		_entry->second.unlock( this->get_prev_txnid(), this->get_prev_op() );
+	}
+	virtual int add_to_log(boost_oarchive_t &buffer) {
+		this->serialize_header(buffer);
+		buffer & _entry->first;
+		return 1;
+	}
+	virtual void recover(boost_iarchive_t& stream, transaction_id_t lsn) {
 		typename map_type::key_type key;
 		stream & key;
 		typename map_type::baseclass &ref = this->get_container();
 		ref.erase(key); // ignore errors if row not found.
+		STLDB_TRACE(finer_e, "Recover delete pending insert: [" << key << "ckpt:{0,0}" );
 	}
 
 private:
@@ -276,6 +360,7 @@ struct map_clear_operation : public TransactionalOperation
 
 	virtual void commit(Transaction &t) {
 		_container._ver_num++;
+		_container._uncheckpointed_clear = true;
 	}
 	virtual void rollback(Transaction &t) {
 		typename map_type::baseclass &ref = _container;
@@ -299,9 +384,10 @@ struct map_clear_operation : public TransactionalOperation
 		this->serialize_header(buffer);
 		return 1;
 	}
-	virtual void recover(boost_iarchive_t& stream) {
+	virtual void recover(boost_iarchive_t& stream, transaction_id_t lsn) {
 		typename map_type::baseclass &ref = _container;
 		ref.clear();
+		_container._uncheckpointed_clear = true;
 	}
 
 private:
@@ -337,6 +423,8 @@ struct map_swap_operation : public TransactionalOperation
 
 	virtual void commit(Transaction &t) {
 		_container._ver_num++;
+		_other_container._ver_num++;
+		// TODO - set last_clear_or_swap_lsn on BOTH maps
 	}
 	virtual void rollback(Transaction &t) {
 		typename map_type::baseclass &ref = _container;
@@ -366,14 +454,15 @@ struct map_swap_operation : public TransactionalOperation
 		buffer & _other_container._container_name;
 		return 1;
 	}
-	virtual void recover(boost_iarchive_t& stream) {
+	virtual void recover(boost_iarchive_t& stream, transaction_id_t lsn) {
 		// This method is not supposed to be called when recovering swap.  Let's make sure of it.
 		throw stldb_exception("Proxy class coding error.  For swap, it is supposed to call recovery(map_type&)");
 	}
 	// special multi-container form of recover.  The container proxy has to figure out to call this
-	void recover(map_type &other_container) {
+	void recover(map_type &other_container, transaction_id_t lsn) {
 		typename map_type::baseclass &ref = _container;
 		ref.swap( other_container );
+		// TODO - set last_clear_or_swap_lsn  on BOTH maps
 	}
 
 private:

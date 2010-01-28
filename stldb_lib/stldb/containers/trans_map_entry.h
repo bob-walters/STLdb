@@ -24,6 +24,7 @@ enum TransactionalOperations
 	Insert_op, // row was inserted into the container.
 	Update_op, // row has a pending update planned.
 	Delete_op, // row has a pending delete planned.
+	Deleted_Insert_op, // delete of a pending insert.
 	Clear_op,
 	Swap_op
 };
@@ -38,21 +39,23 @@ template<typename T>
 class TransEntry: public T
 {
 public:
+	typedef T actual_type;
+
 	// Default Constructor
 	TransEntry() :
-		T(), _op(No_op), _txn_id(0)
+		T(), _op(No_op), _txn_id(0), _checkpoint_location(0,0)
 	{
 	}
 
 	// Well formed copy constructor
 	TransEntry(const TransEntry<T> &rarg) :
-		T(rarg), _op(rarg._op), _txn_id(rarg._txn_id)
+		T(rarg), _op(rarg._op), _txn_id(rarg._txn_id), _checkpoint_location(rarg._checkpoint_location)
 	{
 	}
 
 	// Copy from T.
 	TransEntry(const T& rarg) :
-		T(rarg), _op(No_op), _txn_id(0)
+		T(rarg), _op(No_op), _txn_id(0), _checkpoint_location(0,0)
 	{
 	}
 
@@ -66,6 +69,7 @@ public:
 		T::operator=(value);
 		_op = value._op;
 		_txn_id = value._txn_id;
+		_checkpoint_location = value._checkpoint_location;
 		return *this;
 	}
 
@@ -76,11 +80,21 @@ public:
 		return *this;
 	}
 
+	T&
+	base() {
+		return *this;
+	}
+
+	const T&
+	base() const {
+		return *this;
+	}
+
 	// Lock the row, setting its op_id to the op code provided, and its
 	// txn_id to the value of the transaction.
 	transaction_id_t lock(Transaction &t, TransactionalOperations op)
 	{
-        transaction_id_t current_value = _txn_id;
+	    transaction_id_t current_value = _txn_id;
 		_op = op;
 		_txn_id = t.getLockId();
 		return current_value;
@@ -106,13 +120,33 @@ public:
 		return _txn_id;
 	}
 
+	std::pair<boost::interprocess::offset_t,std::size_t> checkpointLocation() const
+	{
+		return _checkpoint_location;
+	}
+
+	void setCheckpointLocation(std::pair<boost::interprocess::offset_t,std::size_t> loc)
+	{
+		_checkpoint_location = loc;
+	}
+
 	// Boost::serialization
 	template<class Archive>
-	void serialize(Archive &ar, const unsigned int version)
+	void save(Archive &ar, const unsigned int version) const
 	{
-	    // invoke serialization of the base class
-	    ar & boost::serialization::base_object<T>(*this);
+		transaction_id_t txn_id = _txn_id;
+	    ar & boost::serialization::base_object<T>(*this) & txn_id;
 	}
+
+	template<class Archive>
+	void load(Archive &ar, const unsigned int version)
+	{
+		transaction_id_t txn_id;
+	    ar & boost::serialization::base_object<T>(*this) & txn_id;
+	    _txn_id = txn_id;
+	}
+
+	BOOST_SERIALIZATION_SPLIT_MEMBER()
 
 private:
 	// Pending operation.
@@ -123,6 +157,9 @@ private:
 	// Otherwise, it is the transaction_id_t of the last committed
 	// transaction.
 	transaction_id_t _txn_id :60;
+
+	// the location and size of this entry in the checkpoint file. (0,0 = not in checkpoint)
+	std::pair<boost::interprocess::offset_t, std::size_t> _checkpoint_location;
 };
 
 } // namespace

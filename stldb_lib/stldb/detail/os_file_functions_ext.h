@@ -75,11 +75,25 @@ typedef struct iovec write_region_t;
  * Read up to nbyte bytes of data from file f, into the buffer
  * pointed to by buf.  Return the # of bytes read.  0 indicates
  * EOF, a negative value indicates some class of error which is OS specific.
+ * (see errno)
  */
 inline std::size_t read_file(file_handle_t f, void *buf, std::size_t nbyte) {
-	std::size_t result;
-	while ((result = ::read(f, buf, nbyte)) == EINTR) { ; }
-	return result;
+	std::size_t read, total = 0;
+	while ((read = ::read(f, buf, nbyte)) < nbyte) {
+		if (read == -1) {
+			if (errno == EINTR)
+				continue;
+			return -1;
+		}
+		if (read == 0) { // EOF
+			return total;
+		}
+		buf = reinterpret_cast<char*>(buf) + read;
+		nbyte -= read;
+		total += read;
+	}
+	total += read;
+	return total;
 }
 
 /**

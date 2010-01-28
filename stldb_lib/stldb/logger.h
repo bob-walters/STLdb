@@ -181,7 +181,7 @@ public:
 			// get a set of commit buffers up the the limits allowed,
 			// and write them all to disk.
 			int txn_count = 0;
-			transaction_id_t max_txn_id = _shm_info->_last_write_txn_id;
+			transaction_id_t max_lsn = _shm_info->_last_write_txn_id;
 			boost::interprocess::offset_t new_file_len = _shm_info->log_len;
 
 			boost::interprocess::scoped_lock<mutex_type> queue_lock_holder(_shm_info->_queue_mutex);
@@ -212,7 +212,7 @@ public:
 				bytes += iov[2*txn_count].iov_len + iov[2*txn_count+1].iov_len;
 				txn_written++;
 
-				max_txn_id = buff->header.txn_id;
+				max_lsn = buff->header.lsn;
 				new_file_len += iov[2*txn_count].iov_len + iov[2*txn_count+1].iov_len;
 				txn_count++;
 
@@ -223,12 +223,26 @@ public:
 			// we can release the queue lock at this point...
 			queue_lock_holder.unlock();
 
-			// make the total length to be written equal
+			// pad the writes, as necessary, in order to ensure that each
+			// write can begin on sector/page boundaries, per optimum_write_alignment.
 			int buffercount = txn_count*2;
-			if (bytes % optimum_write_alignment != 0) {
-				iov[2*txn_count].iov_base = padding_buffer;
-				iov[2*txn_count].iov_len = bytes % optimum_write_alignment;
-				buffercount += 1;
+			uint64_t padding = optimum_write_alignment - (new_file_len % optimum_write_alignment);
+			if (padding != 0 && padding < sizeof(struct log_header))
+				padding += optimum_write_alignment;
+			if (padding != 0 && padding >= sizeof(struct log_header)) {
+				// we can add a padding transaction record in order to
+				// promote disk writes of 'optimum_write_alignment' increments.
+				padding_header.segment_size = padding - sizeof(struct log_header);
+				padding_header.finalize();
+				iov[2*txn_count].iov_base = &padding_header;
+				iov[2*txn_count].iov_len = sizeof(struct log_header);
+				buffercount++;
+				if (padding - sizeof(struct log_header) > 0) {
+					iov[2*txn_count+1].iov_base = padding_buffer;
+					iov[2*txn_count+1].iov_len = padding - sizeof(struct log_header);
+					buffercount++;
+				}
+				new_file_len += padding;
 			}
 
 			// make sure our fd is pointing to the correct offset in the file.
@@ -250,7 +264,7 @@ public:
 			t5.end();
 
 			// Update the info about file len, and last written log_seq
-			_shm_info->_last_write_txn_id = max_txn_id;
+			_shm_info->_last_write_txn_id = max_lsn;
 			_shm_info->log_len = new_file_len;
 
 		} // while max log_seq written is < my log_seq
@@ -365,8 +379,11 @@ private:
 	static const size_t optimum_write_alignment = 512;
 
 	// Used to hold structures used with writev()
-	io::write_region_t iov[1+ max_txn_per_write*2];
-	char padding_buffer[optimum_write_alignment];
+	io::write_region_t iov[2+ max_txn_per_write*2];
+
+	// used to provide padding of writes.
+	log_header padding_header;
+	char padding_buffer[optimum_write_alignment + sizeof(struct log_header)];
 
 	// details about logging kept in shared memory.
 	SharedLogInfo<void_alloc_t,mutex_type> *_shm_info;

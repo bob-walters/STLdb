@@ -31,6 +31,8 @@ namespace stldb {
 template <class ManagedRegionType> class Database;
 class TransactionalOperation;
 class Transaction;
+class checkpoint_ifstream;
+class checkpoint_ofstream;
 
 /**
  * Container_proxy_base is the interface between the Database
@@ -57,7 +59,7 @@ public:
 	// The op code allows the container to determine the operation which needs to be
 	// re-applied, and the stream contains the rest of the data from the serialized
 	// TransactionOperation.
-	virtual void recoverOp(int opcode, boost_iarchive_t &stream) = 0;
+	virtual void recoverOp(int opcode, boost_iarchive_t &stream, transaction_id_t lsn) = 0;
 
 	// Return the name of the container
 	virtual std::string getName() { return container_name; }
@@ -79,12 +81,17 @@ public:
 	// Called when a rollback() operation is completed.
 	virtual void completeRollback(Transaction &trans) = 0;
 
-	// Called when the container should write it's contents to the file passed
-	virtual void save_checkpoint(std::ostream &out) = 0;
+	// Called when the container should write it's current changes to the
+	// checkpoint file passed.  All rows which have been modified after last_checkpoint_lsn
+	// should be written to the checkpoint_filename passed.
+	// Upon completion, new free space shold be added to the checkpoints free space.
+	virtual void save_checkpoint(Database<ManagedRegionType> &db,
+			checkpoint_ofstream &checkpoint,
+			transaction_id_t last_checkpoint_lsn) = 0;
 
 	// Called when the container should load its contents from the input stream
 	// EOF marks the end of the data stream.
-	virtual void load_checkpoint(std::istream &in) = 0;
+	virtual void load_checkpoint(checkpoint_ifstream &checkpoint) = 0;
 
 protected:
 	// Every container in the database has a human-readable name
@@ -101,7 +108,7 @@ protected:
 // Container that meets the following contract:
 // (a) has a 1 arg constructor that takes an allocator.
 // (b) has a mutex() and a condition() member for locking/notification.
-// (c) has a recoverOp(opcode, stream) method for re-applying logs.
+// (c) has a recoverOp(opcode, stream, lsn) method for re-applying logs.
 template <class ManagedRegionType, class ContainerT>
 class container_proxy : public container_proxy_base<ManagedRegionType> {
 public:
@@ -122,8 +129,8 @@ public:
 		return _container;
 	}
 
-	virtual void recoverOp(int opcode, boost_iarchive_t &stream) {
-		_container->recoverOp(opcode, stream);
+	virtual void recoverOp(int opcode, boost_iarchive_t &stream, transaction_id_t lsn) {
+		_container->recoverOp(opcode, stream, lsn);
 	}
 	virtual void initializeCommit(Transaction &trans)
 	{
@@ -143,13 +150,15 @@ public:
 		_container->condition().notify_all(); // wake up anyone waiting on a row lock
 		_container->mutex().unlock();
 	}
-	virtual void save_checkpoint(std::ostream &out)
+	virtual void save_checkpoint(Database<ManagedRegionType> &db,
+			checkpoint_ofstream &checkpoint,
+			transaction_id_t last_checkpoint_lsn)
 	{
-		_container->checkpoint(out);
+		_container->checkpoint(checkpoint,last_checkpoint_lsn);
 	}
-	virtual void load_checkpoint(std::istream &in)
+	virtual void load_checkpoint(checkpoint_ifstream &checkpoint)
 	{
-		_container->load_checkpoint(in);
+		_container->load_checkpoint(checkpoint);
 	}
 
 private:
@@ -181,8 +190,8 @@ public:
 		return _container;
 	}
 
-	virtual void recoverOp(int opcode, boost_iarchive_t &stream) {
-		//_container->recoverOp(opcode, stream);
+	virtual void recoverOp(int opcode, boost_iarchive_t &stream, transaction_id_t lsn) {
+		//_container->recoverOp(opcode, stream, lsn);
 	}
 	virtual void initializeCommit(Transaction &trans)
 	{
@@ -203,15 +212,16 @@ public:
 		//_container->condition().notify_all(); // wake up anyone waiting on a row lock
 		//_container->mutex().unlock();
 	}
-	virtual void save_checkpoint(std::ostream &out)
+	virtual void save_checkpoint(Database<ManagedRegionType> &db,
+			checkpoint_ofstream &checkpoint,
+			transaction_id_t last_checkpoint_lsn)
 	{
-		//_container->checkpoint(out);
+		// _container->checkpoint(checkpoint,last_checkpoint_lsn);
 	}
-	virtual void load_checkpoint(std::istream &in)
+	virtual void load_checkpoint(checkpoint_ifstream &checkpoint)
 	{
-		//_container->load_checkpoint(in);
+		// _container->load_checkpoint(checkpoint);
 	}
-
 
 private:
 	container_type *_container;
@@ -242,8 +252,8 @@ public:
 		return _container;
 	}
 
-	virtual void recoverOp(int opcode, boost_iarchive_t &stream) {
-		//_container->recoverOp(opcode, stream);
+	virtual void recoverOp(int opcode, boost_iarchive_t &stream, transaction_id_t lsn) {
+		//_container->recoverOp(opcode, stream, lsn);
 	}
 	virtual void initializeCommit(Transaction &trans)
 	{
@@ -264,13 +274,15 @@ public:
 		//_container->condition().notify_all(); // wake up anyone waiting on a row lock
 		//_container->mutex().unlock();
 	}
-	virtual void save_checkpoint(std::ostream &out)
+	virtual void save_checkpoint(Database<ManagedRegionType> &db,
+			checkpoint_ofstream &checkpoint,
+			transaction_id_t last_checkpoint_lsn)
 	{
-		//_container->checkpoint(out);
+		// _container->checkpoint(checkpoint,last_checkpoint_lsn);
 	}
-	virtual void load_checkpoint(std::istream &in)
+	virtual void load_checkpoint(checkpoint_ifstream &checkpoint)
 	{
-		//_container->load_checkpoint(in);
+		// _container->load_checkpoint(checkpoint);
 	}
 
 private:

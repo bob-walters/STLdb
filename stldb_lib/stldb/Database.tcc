@@ -32,6 +32,7 @@
 #include <stldb/transaction.h>
 #include <stldb/timing/timer.h>
 #include <stldb/trace.h>
+#include <stldb/checkpoint.h>
 #include <stldb/recovery_manager.h>
 #include <stldb/detail/db_file_util.h>
 #include <stldb/detail/region_util.h>
@@ -74,9 +75,10 @@ Database<ManagedRegionType>::Database(
 )
 // Construct the region for create or open
 :	_region(NULL)
-	, _flock(ManagedRegionNamer<ManagedRegionType>::getFullName(database_directory, database_name).append(".flock").c_str())
+	, _flock(ManagedRegionNamer<ManagedRegionType>::getFullName(database_directory, database_name).append(".lock").c_str())
 	, _dbinfo(NULL), _registry(NULL), _logger()
 	, _registry_lock(database_registry<region_allocator_t>::filelock_name(database_directory, database_name).c_str())
+    , _checkpoint_lock(ManagedRegionNamer<ManagedRegionType>::getFullName(database_directory, database_name).append(".ckptlock").c_str())
 	, _registry_pid_lock(NULL)
 {
 	// Start off by getting the file lock.  We must get this BEFORE opening the region.
@@ -205,6 +207,8 @@ Database<ManagedRegionType>::Database(
 		transaction_id_t recovery_start_lsn = lsns.first;
 
 		STLDB_TRACE(fine_e, "recovering transactions from log records, sarting at LSN: " << recovery_start_lsn);
+		stldb::timer t("recovery_manager<>::recover()");
+
 		recovery_manager<ManagedRegionType> recovery(*this, container_lsn, recovery_start_lsn);
 		transaction_id_t last_lsn = recovery.recover();
 		STLDB_TRACE(fine_e, "recovered all transactions up to LSN: " << last_lsn);
@@ -367,13 +371,21 @@ void Database<ManagedRegionType>::remove(const char *database_name
 	std::vector<checkpoint_file_info> chkpts = detail::get_checkpoints(checkpoint_directory);
 	for ( std::vector<checkpoint_file_info>::iterator i = chkpts.begin(); i != chkpts.end(); i++ ) {
 		boost::filesystem::path fullname( checkpoint_directory );
-		fullname /= i->filename;
+		fullname /= i->ckpt_filename;
 		STLDB_TRACE(fine_e, "Removing checkpoint: " << fullname.string() );
 		try {
 			boost::filesystem::remove( fullname.string() );
 		}
+		catch (boost::filesystem::filesystem_error &ex) { }
+
+		boost::filesystem::path metaname( checkpoint_directory );
+		metaname /= i->meta_filename;
+		STLDB_TRACE(fine_e, "Removing checkpoint metafile: " << metaname.string() );
+		try {
+			boost::filesystem::remove( metaname.string() );
+		}
 		catch (boost::filesystem::filesystem_error &ex) {
-			STLDB_TRACE(severe_e, "Error Removing log file: " << fullname.string() << ": " << ex.what() );
+			STLDB_TRACE(severe_e, "Error Removing log file: " << metaname.string() << ": " << ex.what() );
 		}
 	}
 
@@ -460,6 +472,8 @@ Database<ManagedRegionType>::load_containers(
 #ifdef max
 #undef max
 #endif
+	stldb::timer t("Database::load_containers()");
+
 	transaction_id_t recovery_start_lsn = std::numeric_limits<transaction_id_t>::max();  // the lsn to start recovery at.
 	transaction_id_t recovery_end_lsn = -1;
 
@@ -481,7 +495,7 @@ Database<ManagedRegionType>::load_containers(
 		// find the most recent checkpoint file for this container.
 		std::map<std::string,checkpoint_file_info>::iterator chkpt = current_checkpoints.find( proxy->getName() );
 		if (chkpt != current_checkpoints.end() ) {
-			std::string filename = chkpt->second.filename;
+			std::string filename = chkpt->second.ckpt_filename;
 
 			STLDB_TRACE(fine_e, "found checkpoint " << filename << " for container: " << proxy->getName());
 			if (chkpt->second.lsn_at_start < recovery_start_lsn)
@@ -490,14 +504,11 @@ Database<ManagedRegionType>::load_containers(
 				recovery_end_lsn = chkpt->second.lsn_at_end;
 
 			// filename
-			std::string fullname( _dbinfo->checkpoint_directory.c_str() );
-			fullname.append( "/" );
-			fullname.append( filename );
-			std::ifstream in(fullname.c_str(), std::ios_base::in);
+			checkpoint_ifstream checkpoint( _dbinfo->checkpoint_directory.c_str(), chkpt->second );
 
 			// now load the container from its most recent checkpoint (if any)
-			STLDB_TRACE(fine_e, "loading checkpoint: " << fullname);
-			proxy->load_checkpoint( in );
+			STLDB_TRACE(fine_e, "loading checkpoint: " << chkpt->second.ckpt_filename);
+			proxy->load_checkpoint( checkpoint );
 
 			typename DatabaseInfo<region_allocator_t, mutex_type>::shm_string
 					container_name( chkpt->first.c_str(), alloc );
@@ -563,8 +574,6 @@ bool Database<ManagedRegionType>::remove_container(const char *name)
 	safety_check();
 	scoped_lock<mutex_type> guard(_dbinfo->mutex);
 	return _region->template destroy<ContainerType>(name);
-	STLDB_TRACE(fine_e, "destroyed container: " << name);
-
 }
 
 
@@ -689,6 +698,12 @@ template <class ManagedRegionType>
 transaction_id_t Database<ManagedRegionType>::checkpoint()
 {
 	safety_check();
+	stldb::timer t("Database::checkpoint()");
+
+	STLDB_TRACE(stldb::finest_e, "acquiring checkpoint file lock on");
+	scoped_lock<file_lock> lock(_checkpoint_lock);
+	STLDB_TRACE(stldb::finest_e, "checkpoint file lock acquired.");
+
 	std::map<void*, container_proxy_type*> containers;
 	transaction_id_t start_lsn;
 	{ 	// lock scope - to protect Database data structures
@@ -716,42 +731,37 @@ transaction_id_t Database<ManagedRegionType>::checkpoint()
 				container_name( i->second->getName().c_str(), alloc );
 		typename DatabaseInfo<region_allocator_t, mutex_type>::ckpt_history_map_t::iterator
 				entry = _dbinfo->ckpt_history_map.find( container_name );
-		if (entry != _dbinfo->ckpt_history_map.end() &&
-				entry->second == my_start_lsn )
+		transaction_id_t last_checkpoint_lsn = (entry != _dbinfo->ckpt_history_map.end()) ? entry->second : 0;
+		if (last_checkpoint_lsn == my_start_lsn)
 		{
 			STLDB_TRACE(fine_e, "Skipping checkpoint of " << i->second->getName() << ". There has been no DB activity since its last checkpoint.")
 			continue;
 		}
 		guard.unlock();
 
-		// checkpoint filename structure:  <ContainerName>.<LSN>.ckpt
-		std::string tempfilename = detail::checkpoint_work_filename(
-				_dbinfo->checkpoint_directory.c_str(),
-				i->second->getName().c_str(), my_start_lsn);
-		STLDB_TRACE(finer_e, "Starting checkpoint of " << i->second->getName() << " to file " << tempfilename << " as of LSN: " << my_start_lsn );
-		std::ofstream checkfile( tempfilename.c_str() );
+		// Prepare checkpoint file
+		checkpoint_ofstream checkpoint( _dbinfo->checkpoint_directory.c_str(), container_name.c_str() );
+
+		STLDB_TRACE(finer_e, "Starting checkpoint of " << i->second->getName() << " as of LSN: " << my_start_lsn );
 
 		try {
-			i->second->save_checkpoint(checkfile);
+			i->second->save_checkpoint( *this, checkpoint, last_checkpoint_lsn );
 		}
 		catch (...) {
 			STLDB_TRACE(error_e, "Exception during checkpoint write for container: " << i->second->getName());
-			checkfile.close();
 			continue;
 		}
 
 		// upon completing the write of all data, we can close the checkpoint file.
 		// and remove the _wip from it's name.
 		guard.lock();
-		transaction_id_t my_end_lsn = _dbinfo->logInfo._last_write_txn_id;
-		_dbinfo->ckpt_history_map[ container_name ] = my_start_lsn;
+		transaction_id_t end_lsn = _dbinfo->logInfo._last_write_txn_id;
+		_dbinfo->ckpt_history_map[ container_name ] = end_lsn;
 		guard.unlock();
 
-		checkfile.close();
-		STLDB_TRACE(finer_e, "Checkpoint write completed.");
-
-		// rename the file to it's final (completed) filename.
-		detail::complete_checkpoint_file(tempfilename, my_end_lsn);
+		// write the next metafile.
+		STLDB_TRACE(finer_e, "Committing Checkpoint.");
+		checkpoint.commit( my_start_lsn, end_lsn );
 	}
 	return start_lsn;
 }
@@ -762,14 +772,6 @@ std::vector<boost::filesystem::path> Database<ManagedRegionType>::get_archivable
 {
 	safety_check();
 	return detail::get_archivable_logs(get_checkpoint_directory(), get_logging_directory());
-}
-
-
-template <class ManagedRegionType>
-std::vector<checkpoint_file_info> Database<ManagedRegionType>::get_archivable_checkpoints()
-{
-	safety_check();
-	return detail::get_archivable_checkpoints(get_checkpoint_directory());
 }
 
 

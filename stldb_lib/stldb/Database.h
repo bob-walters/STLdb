@@ -317,12 +317,6 @@ public:
 	std::vector<boost::filesystem::path> get_archivable_logs();
 
 	/**
-	 * Get the set of obsolete checkpoint files in the directory passed.
-	 * @returns a vector of checkpoint files no longer needed for recovery processing.
-	 */
-	std::vector<checkpoint_file_info> get_archivable_checkpoints();
-
-	/**
 	 * Get the set of log files which contain transactions that are not yet reflected in
 	 * any checkpoints.  This returns the set of log files which are needed for recovery processing.
 	 * @returns a vector of log file names.
@@ -446,6 +440,25 @@ public:
 		_registry->set_invalid(value);
 	}
 
+
+	stldb::file_lock& checkpoint_lock() {
+		return _checkpoint_lock;
+	}
+
+	/**
+	 * Fast check to see if the _registry->_database_invalid flag has been set, and if it is
+	 * throw a recovery_needed exception.  This is used internally by other methods
+	 * of Database to protect the app from using a region which may have hung locks or
+	 * other forms of corruption.
+	 */
+	void safety_check() throw (recovery_needed) {
+		// This is done very frequently, so I omit the lock.  This should be
+		// safe since _register->is_valid only goes from false back to true via
+		// recovery & reconstruction of the region.
+		if (!_registry->is_valid())
+			throw recovery_needed();
+	}
+
 private:
 	// method to find or construct the shared _dbinfo structure.
 	void find_or_construct_databaseinfo(
@@ -467,19 +480,6 @@ private:
 	// Caller must hold file lock on the database.
 	static void remove_region_impl(const char *database_name, const char*database_directory);
 
-	/**
-	 * Check to see if the _registry->_database_invalid flag has been set, and if it
-	 * throw a recovery_needed exception.  This is used internally by other methods
-	 * of Database to protect the app from using a region which may have hung locks or
-	 * other forms of corruption.
-	 */
-	void safety_check() throw (recovery_needed) {
-		// This is done very frequently, so I omit the lock.  This should be
-		// safe since _register->is_valid only goes from false back to true via
-		// recovery & reconstruction of the region.
-		if (!_registry->is_valid())
-			throw recovery_needed();
-	}
 
 	// The attached managed region, holding all structures.
 	ManagedRegionType *_region;
@@ -515,6 +515,11 @@ private:
 
 	// The "dbname.reglock" file lock which guards the registry itself
 	stldb::file_lock _registry_lock;
+
+	// The file lock that a process holds when a checkpoint is in progress.  Can also
+	// be seized by an otherwise non-attached process that wants to prevent shapshots
+	// for a period of time in order to make a hot backup of a database
+	stldb::file_lock _checkpoint_lock;
 
 	// The file lock that our process holds on our "database_name.pid.XXXXX" file to signal our
 	// processes health.

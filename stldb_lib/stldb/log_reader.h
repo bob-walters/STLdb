@@ -37,9 +37,9 @@ public:
 
 	/**
 	 * Reads the log file until finding the first LSN which is equal to or greater
-	 * than the LSN passed.  Returns the transaction_id which if found.  Returns
-	 * no_transaction if the EOF is reached prior to finding an eligible transaction.
-	 * throws if an error is encountered with the content of the log file.
+	 * than the LSN passed.  Returns the transaction_id which is found.  If the
+	 * EOF is reached prior to finding an eligible transaction, the last transaction
+	 * read in is returned (i.e. a value which could be less than lsn)
 	 */
 	transaction_id_t seek_transaction(transaction_id_t lsn);
 

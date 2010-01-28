@@ -59,7 +59,6 @@ void log_reader::close()
 	// close whatever file we used to have open.
 	boost::interprocess::detail::close_file(_logfd);
 	_logfd = 0;
-	STLDB_TRACE(info_e, "Completed reading of logfile, " << _filename << ", " << _offset << " bytes");
 }
 
 
@@ -70,8 +69,10 @@ transaction_id_t log_reader::seek_transaction(transaction_id_t starting_lsn)
 		_last_txn = lsn;
 		lsn = read_next_txn();
 	}
-	if (lsn == no_transaction)
-		return lsn;
+	if (lsn == no_transaction) {
+		STLDB_TRACE(fine_e, "Located last transaction in file, LSN: " << _last_txn << " at offset: " << (_offset-sizeof(_header)-_header.segment_size));
+		return _last_txn;
+	}
 
 	STLDB_TRACE(fine_e, "Located first non-checkpointed transaction, LSN: " << lsn << " at offset: " << (_offset-sizeof(_header)-_header.segment_size));
 
@@ -95,7 +96,16 @@ transaction_id_t log_reader::next_transaction()
 transaction_id_t log_reader::read_next_txn()
 {
 	// Start by reading in the next header.
-	if ( stldb::io::read_file(_logfd, &_header, sizeof(_header)) == 0 )
+	memset( &_header, 0, sizeof(_header) );
+	std::size_t bytes_read = stldb::io::read_file(_logfd, &_header, sizeof(_header));
+	if (bytes_read < sizeof(_header)) {
+		if (!_header.empty())
+		throw recover_from_log_failed("Log Recovery: Log truncation detected while attempting to read transaction",
+				_header.lsn, _offset, _filename.c_str());
+	}
+
+	// log files are sparse files, so typically, this implies the end of the file
+	if (_header.empty() )
 		return no_transaction;
 
 	// make sure the header made it to disk ok.  validate the checksum.
@@ -107,21 +117,30 @@ transaction_id_t log_reader::read_next_txn()
 				_last_txn, _offset, _filename.c_str());
 	}
 
-	// Resize _buffer as needed and read the txn data directly into it.
-	_buffer.resize( _header.segment_size );
-	std::size_t bytes_read = stldb::io::read_file(_logfd, &_buffer[0], _header.segment_size );
-	if (bytes_read != _header.segment_size ) {
-		throw recover_from_log_failed("Log Recovery: Log truncation detected while attempting to read transaction",
-				_header.txn_id, _offset, _filename.c_str());
+	// padding headers can have a segment_size == 0 if exactly sizeof(header) bytes were needed as padding.
+	if (_header.segment_size >0) {
+		// Resize _buffer as needed and read the txn data directly into it.
+		_buffer.resize( _header.segment_size );
+		bytes_read = stldb::io::read_file(_logfd, &_buffer[0], _header.segment_size );
+		if (bytes_read != _header.segment_size ) {
+			throw recover_from_log_failed("Log Recovery: Log truncation detected while attempting to read transaction",
+					_header.lsn, _offset, _filename.c_str());
+		}
+		if (!_header.padding()) {
+			chk = adler(reinterpret_cast<const uint8_t*>(&_buffer[0]), _header.segment_size);
+			if ( _header.segment_checksum != chk ) {
+				throw recover_from_log_failed("Log Recovery: Buffer checksum failure",
+						_header.lsn, _offset, _filename.c_str());
+			}
+		}
 	}
 
-	chk = adler(reinterpret_cast<const uint8_t*>(&_buffer[0]), _header.segment_size);
-	if ( _header.segment_checksum != chk ) {
-		throw recover_from_log_failed("Log Recovery: Buffer checksum failure",
-				_header.txn_id, _offset, _filename.c_str());
-	}
 	_offset += (sizeof(_header) + _header.segment_size);
-	return _header.txn_id;
+
+	if (_header.padding())
+		return this->read_next_txn();
+
+	return _header.lsn;
 }
 
 } // namespace

@@ -29,6 +29,7 @@ lib stldb
           src/bounded_interprocess_mutex.cpp
           src/db_file_util.cpp
           src/log_reader.cpp
+          src/checkpoint.cpp
           libboost_serialization
           libboost_filesystem
           libboost_thread
@@ -47,7 +48,16 @@ exe log_inspector
 		  libboost_date_time
         ;
 
-install ../dist : stldb log_inspector :
+exe ckpt_inspector
+		: src/ckpt_inspector.cpp
+		  stldb
+          libboost_serialization
+          libboost_filesystem
+          libboost_thread
+          libboost_system
+		  libboost_date_time
+        ;
+install ../dist : stldb log_inspector ckpt_inspector :
 		<variant>debug:<location>../dist/debug
 		<variant>release:<location>../dist/release 
 		<install-dependencies>on 

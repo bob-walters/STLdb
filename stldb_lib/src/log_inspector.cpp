@@ -70,7 +70,7 @@ using stldb::no_transaction;
 template <typename _CharT, class _Traits>
 std::basic_ostream<_CharT,_Traits>& operator<<(std::basic_ostream<_CharT,_Traits> &s, log_header& header) {
 	s << "Transaction Header:" << endl
-	  << "\t txn_id:   " << header.txn_id << endl
+	  << "\t lsn:   " << header.lsn << endl
 	  << "\t op_count: " << header.op_count << endl
 	  << "\t segment_size: " << header.segment_size << endl
 	  << "\t segment_checksum: " << header.segment_checksum << endl
@@ -174,7 +174,7 @@ std::basic_ostream<_CharT,_Traits>& operator<<(std::basic_ostream<_CharT,_Traits
 	}
 	catch (boost::archive::archive_exception &ex) {
 		s << "boost::archive::archive_exception: " << ex.what();
-		s << ".  Processing txn_id: " << header.txn_id << ", operation " << i << " of " << header.op_count;
+		s << ".  Processing lsn: " << header.lsn << ", operation " << i << " of " << header.op_count;
 	}
 	return s;
 }

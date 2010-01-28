@@ -431,6 +431,20 @@ template <class K, class V, class Comparator = std::less<K>,
 	// re-acquiring the mutex.
 	uint64_t _ver_num;
 
+	// a record of space in the last checkpoint which has been freed because of
+	// erased objects.
+	std::map<boost::interprocess::offset_t, std::size_t>  _freed_checkpoint_space;
+	bool _uncheckpointed_clear;
+
+	// save checkpoint
+	template <class Database_t>
+	void save_checkpoint(Database_t &db, checkpoint_ofstream &checkpoint,
+	         transaction_id_t last_checkpoint_lsn );
+
+	// load checkpoint
+	void load_checkpoint(checkpoint_ifstream &checkpoint);
+
+
 	friend struct detail::assoc_transactional_operation<trans_map>;
 	friend struct detail::map_insert_operation<trans_map>;
 	friend struct detail::map_update_operation<trans_map>;
@@ -438,101 +452,6 @@ template <class K, class V, class Comparator = std::less<K>,
 	friend struct detail::map_lock_operation<trans_map>;
 	friend struct detail::map_clear_operation<trans_map>;
 	friend struct detail::map_swap_operation<trans_map>;
-
-	/**
-	 * Private class used as a factory with the transaction infrastructure when previously logged
-	 * records are being used to perform Database recovery.
-	 */
-	struct trans_map_op_factory
-	{
-		TransactionalOperation* create( TransactionalOperations op_code,
-				                        trans_map &map ) {
-			switch (op_code) {
-			// Note: Lock_op is missing from this list because they are never written to logs.
-			case Lock_op:
-				return new detail::map_lock_operation<trans_map>(map);
-			case Insert_op:
-				return new detail::map_insert_operation<trans_map>(map);
-			case Update_op:
-				return new detail::map_update_operation<trans_map>(map);
-			case Delete_op:
-				return new detail::map_delete_operation<trans_map>(map);
-			case Clear_op:
-				return new detail::map_clear_operation<trans_map>(map);
-			case Swap_op:
-				return new detail::map_swap_operation<trans_map>(map);
-			default:
-				return NULL; // Will indicate a problem with this code.
-			}
-		}
-	};
-
-	// trans_map contains an instance of this factory.
-	trans_map_op_factory  _factory;
-
-	// save checkpoint of map
-	void save_checkpoint(std::ostream &out)
-	{
-		int count = 0;
-		static const int entries_per_segment = 10;
-		std::pair<key_type,mapped_type> values[entries_per_segment];
-		boost_oarchive_t archive(out);
-
-		boost::interprocess::sharable_lock<upgradable_mutex_type> lock(mutex());
-		iterator i = begin();
-		while (i != end())
-		{
-			while (i != end() && count < entries_per_segment) {
-				values[count++] = *(i++);
-			}
-			i = end();  // to release entry-level lock held by iterator.
-			lock.unlock();
-			// The serialization to the output can be done without holding any lock.
-			for (int j=0; j<count; j++) {
-				// When writing out the committed data for a row which has an existing transaction
-				// in progress, the txn_id written out for that row needs to be 0,
-				// because on load, that becomes the committed LSN of that row, and we need to make sure
-				// that log processing will apply all LSNs found for that row. (In case I try to optimize
-				// recovery so that ops are not unnecessarily re-applied.)
-				if ( values[j].second.getOperation() != No_op ) {
-					values[j].second.unlock(0); // sets LSN ==0, op = No_op
-				}
-				archive & values[j];
-			}
-			// set i to next entry.
-			lock.lock();
-			i = iterator( baseclass::upper_bound(values[count-1].first), this );
-			count = 0;
-		}
-	}
-
-	// load a checkpoint.
-	void load_checkpoint(std::istream &in)
-	{
-		boost_iarchive_t archive(in);
-		value_type entry;
-		// loading a checkpoint is done as an exclusive operation.  There's no reason for it not to be.
-		// Strictly speaking the lock is not required.
-		boost::interprocess::scoped_lock<upgradable_mutex_type> lock(mutex());
-		while (in) {
-			try {
-				archive & entry;
-				baseclass::insert(entry);
-			}
-			// Boost::Serialization archives signal eof with an exception.
-		    catch (boost::archive::archive_exception& error) {
-		        // Make sure that this due to EOF.  Annoyingly, when
-		    	// this type of exception is thrown, the eof() bit on 'in'
-		    	// won't be set.  We need to try reading one more byte to
-		    	// make sure it is set.
-		        char tmp;
-		        in >> tmp;
-		        if (!in.eof())
-		          throw error;
-		      }
-		 }
-	}
-
 };
 
 
@@ -566,22 +485,46 @@ public:
 	    return _container;
 	}
 
-	virtual void recoverOp(int opcode, boost_iarchive_t &stream) {
-		auto_ptr<TransactionalOperation> operation( _container->_factory.create(
-				static_cast<TransactionalOperations>(opcode), *_container) );
-		// Special form of recover exists for swap(), because the operation is multi-container in nature.
-		detail::map_swap_operation<container_type> *swap_op = dynamic_cast<detail::map_swap_operation<container_type>*>(operation.get());
-		if (swap_op) {
-			typename boost::interprocess::basic_string<char, typename std::char_traits<char>, typename Allocator::template rebind<char>::other>
-				other_container_name(_db->getRegion().get_segment_manager());
-			stream & other_container_name;
-			container_type *other = _db->template getContainer<container_type>(
-					other_container_name.c_str());
-			swap_op->recover(*other);
-		}
-		else {
-			// All other operations use the std recovery interface
-			operation->recover(stream);
+	virtual void recoverOp(int opcode, boost_iarchive_t &stream, transaction_id_t lsn) {
+		switch (opcode) {
+			// Note: Lock_op is missing from this list because they are never written to logs.
+			case Insert_op: {
+				detail::map_insert_operation<container_type> op(*_container);
+				op.recover(stream, lsn);
+				break;
+			}
+			case Update_op: {
+				detail::map_update_operation<container_type> op(*_container);
+				op.recover(stream, lsn);
+				break;
+			}
+			case Delete_op: {
+				detail::map_delete_operation<container_type> op(*_container);
+				op.recover(stream, lsn);
+				break;
+			}
+			case Deleted_Insert_op: {
+				detail::map_deleted_insert_operation<container_type> op(*_container);
+				op.recover(stream, lsn);
+				break;
+			}
+			case Clear_op: {
+				detail::map_clear_operation<container_type> op(*_container);
+				op.recover(stream, lsn);
+				break;
+			}
+			case Swap_op: {
+				detail::map_swap_operation<container_type> op(*_container);
+				typename boost::interprocess::basic_string<char, typename std::char_traits<char>, typename Allocator::template rebind<char>::other>
+						other_container_name(_db->getRegion().get_segment_manager() );
+				stream & other_container_name;
+				container_type *other = _db->template getContainer<container_type>(
+							other_container_name.c_str());
+				op.recover(*other, lsn);
+				break;
+			}
+			default:
+				break;
 		}
 	}
 
@@ -665,13 +608,15 @@ public:
 		}
 	}
 
-	virtual void save_checkpoint(std::ostream &out)
-	{
-		_container->save_checkpoint(out);
+    virtual void save_checkpoint(Database<ManagedRegionType> &db,
+    		checkpoint_ofstream &checkpoint,
+            transaction_id_t last_checkpoint_lsn )
+    {
+		_container->save_checkpoint(db, checkpoint, last_checkpoint_lsn);
 	}
-	virtual void load_checkpoint(std::istream &in)
+	virtual void load_checkpoint(checkpoint_ifstream &checkpoint)
 	{
-		_container->load_checkpoint(in);
+		_container->load_checkpoint(checkpoint);
 	}
 
 private:
