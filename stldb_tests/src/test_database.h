@@ -65,8 +65,8 @@ public:
 		// Get root directory
 		std::string root_dir( properties.getProperty<std::string>("rootdir",std::string(".")) );
 		std::string db_dir( db_directory ? db_directory : root_dir.c_str() );
-		std::string checkpoint_dir( checkpoint_directory ? checkpoint_directory : (root_dir + "\\checkpoint").c_str());
-		std::string log_dir( log_directory ? log_directory : (root_dir + "\\log").c_str());
+		std::string checkpoint_dir( checkpoint_directory ? checkpoint_directory : (root_dir + "/checkpoint").c_str());
+		std::string log_dir( log_directory ? log_directory : (root_dir + "/log").c_str());
 
 		// Get the diskless setting
 		diskless = properties.getProperty("diskless",false);

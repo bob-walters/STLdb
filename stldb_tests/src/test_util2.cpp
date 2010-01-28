@@ -102,7 +102,7 @@ bool insert_op(StdTransMap &map, boost_iarchive_t &bstream)
 	assert(header.first == "Map");
 	assert(header.second = stldb::Insert_op);
 	map_insert_operation<StdTransMap> recovered_insert_op(map);
-	recovered_insert_op.recover( bstream );
+	recovered_insert_op.recover( bstream, 1 );
 	assert( map.baseclass::find("TestKey0001") != map.baseclass::end());
 
 	return true;
@@ -129,7 +129,7 @@ bool update_op(StdTransMap &map, boost_iarchive_t &bstream)
 	assert(header.first == "Map");
 	assert(header.second = stldb::Update_op);
 	map_update_operation<StdTransMap> recovered_update_op(map);
-	recovered_update_op.recover( bstream );
+	recovered_update_op.recover( bstream, 1 );
 	assert( map.baseclass::find("TestKey0001")->second == shm_string("UpdatedTestValue"));
 
 	return true;
@@ -154,7 +154,7 @@ bool delete_op(StdTransMap &map, boost_iarchive_t &bstream)
 	assert(header.first == "Map");
 	assert(header.second = stldb::Delete_op);
 	map_delete_operation<StdTransMap> recovered_delete_op(map);
-	recovered_delete_op.recover( bstream );
+	recovered_delete_op.recover( bstream, 1 );
 	assert( map.baseclass::find("TestKey0001") == map.baseclass::end());
 
 	return true;

@@ -67,16 +67,6 @@ using boost::unique_lock;
 using boost::lock_guard;
 
 
-static int countRows( MapType *map, Transaction *txn )
-{
-	MapType::iterator i = map->begin(*txn);
-	int count = 0;
-	while (i != map->end(*txn)) {
-		std::cout << "[" << i->first.c_str() << "," << i->second.c_str() << "]" << std::endl;
-		i++; count++;
-	}
-	return count;
-}
 
 // Config parameters (set in stress_test())
 static int g_num_db;
@@ -89,12 +79,55 @@ static std::string g_checkpoint_dir;
 static std::string g_log_dir;
 
 static boost::posix_time::time_duration  g_max_wait;
+static boost::posix_time::time_duration  g_checkpoint_interval;
+static boost::posix_time::time_duration  g_invalidation_interval;
 
 // Databases.  We need the shared mutex to coordinate re-opening of the
 // databases in the event one of the starts throwing run_recovery exceptions
 static boost::shared_mutex  g_db_mutex[100];
 static PartitionedTestDatabase<managed_mapped_file,MapType> *g_databases[100];
 
+// validates the memory allocation of the key/values within map, making sure that they
+// are all pointing to addresses allocated within the db shared region.
+static int validate( PartitionedTestDatabase<managed_mapped_file,MapType> *db )
+{
+	void *start = db->getRegion().get_address();
+	void *end = (char*)start + db->getRegion().get_size();
+	cout << "Region start: " << start << endl << "Region end: " << end << endl;
+	int errors = 0;
+
+	for (int i=0; i<g_maps_per_db; i++) {
+		cout << "Scanning map " << i << endl;
+		MapType* map = db->getMap(i);
+
+		MapType::iterator i = map->begin();
+		unsigned int count = 0;
+		while (i != map->end()) {
+			const char *keybuff = i->first.c_str();
+			const char *valbuff = i->second.c_str();
+			if (keybuff < start || keybuff > end) {
+				//cout << "Error: found key " << i->first << " with buffer address " << (void*)keybuff << endl;
+				errors++;
+			}
+			if (valbuff < start || keybuff > end) {
+				//cout << "Error: found value with buffer address " << (void*)valbuff << endl;
+				errors++;
+			}
+			count++;
+			i++;
+		}
+		if (count != map->size()) {
+			cout << "size discrepancy noted.  read " << count << " rows.  map->size()==" << map->size() << endl;
+			errors++;
+		}
+		if (errors==0) {
+			cout << "No errors detected" << endl;
+		}
+		else {
+			cout << errors << " errors detected" << endl;
+		}
+	}
+}
 
 // Wipes out all data on disk for all databases up to db_max.
 void cleanUp(int db_max)
@@ -147,6 +180,24 @@ getDatabase(int db_num, boost::shared_lock<boost::shared_mutex> &lock )
 	return result;
 }
 
+// This method is used for clean-up at the end of a run.
+void
+closeDatabase(int db_num)
+{
+	// We'll need an exclusive lock to construct the DB.
+	lock_guard<boost::shared_mutex> exholder(g_db_mutex[db_num]);
+
+	// Double check now that we're exclusive.  It could have been
+	// constructed by another thread while we waited to get 'exholder'
+	if (g_databases[db_num] != NULL) {
+		// we now perform recovery processing.
+		validate(g_databases[db_num]);
+
+		delete g_databases[db_num];
+		g_databases[db_num] = NULL;
+	}
+}
+
 // Generate a random value for the indicated key_no.  The value will
 // consist of bytes whose values cover all byte values (0..255), and
 // it is generated with a convention that allows later validation.
@@ -184,6 +235,7 @@ bool checkValue( int key_no, shm_string value ) {
 	return true;
 }
 
+
 void recoverDatabase( int db_num,
 		PartitionedTestDatabase<managed_mapped_file,MapType>* db,
 		shared_lock<boost::shared_mutex> &lock )
@@ -199,8 +251,9 @@ void recoverDatabase( int db_num,
 	// constructed by another thread while we waited to get 'exholder'
 	if (g_databases[db_num]==db) {
 		// we now perform recovery processing.
-		delete g_databases[db_num];
-		g_databases[db_num] = NULL;
+		PartitionedTestDatabase<managed_mapped_file,MapType> *db = g_databases[db_num];
+
+		db->close();
 
 		ostringstream str;
 		str << "stressDb_" << db_num;
@@ -210,6 +263,8 @@ void recoverDatabase( int db_num,
 		g_databases[db_num] = new PartitionedTestDatabase<managed_mapped_file,MapType>(
 			dbname.c_str(), g_db_dir.c_str(),
 			g_checkpoint_dir.c_str(), g_log_dir.c_str(), g_maps_per_db );
+
+		delete db;
 	}
 }
 
@@ -230,9 +285,23 @@ class CRUD_transaction : public trans_operation
 public:
 	CRUD_transaction(int ops_per_txn)
 		: txnSize(ops_per_txn)
+		, transactions(0)
+		, finds(0)
+		, founds(0)
+		, inserts(0)
+		, inserts_dupkey(0)
+		, updates(0)
+		, updates_row_removed(0)
+		, deletes(0)
+		, deletes_row_removed(0)
+		, lock_timeouts(0)
+		, db_invalids(0)
+		, recovery_needed_exceptions(0)
 		{ }
 
-	virtual ~CRUD_transaction() { }
+	virtual ~CRUD_transaction() {
+		this->print_stats();
+	}
 
 	virtual void operator()() {
 		stldb::timer t("std_transactional_operation");
@@ -274,8 +343,15 @@ public:
 					// Now...  for the indicated key, read it to see if it is present in the map.
 					// We always do this, so 50% of all CRUD traffic is reads, although that does include
 					// reads of rows which might not exist yet.
-					// find never blocks (or it isn't supposed to, so I don't handle Lock errors
+					// find never blocks (or it isn't supposed to) so I don't handle Lock errors
 					MapType::iterator entry = map->find(key, *txn);
+					finds++;
+
+					// establish allocation scope against db->getRegion()'s segment manager, or the
+					// remainder of this method.  So while 'key' is in heap for the call to find(),
+					// any other shm_string's allocated hereafter are in the region.
+					stldb::scoped_allocation<db_type::RegionType::segment_manager> alloc_scope(
+							db->getRegion().get_segment_manager());
 
 					if (entry == map->end()) {
 						// row not found, so we'll insert the row with that key.
@@ -283,11 +359,8 @@ public:
 						lock_holder.unlock();
 						scoped_lock<boost::interprocess::interprocess_upgradable_mutex> ex_lock_holder(map->mutex());
 
-						// establish allocation scope against db->getRegion()'s segment manager.
-						stldb::scoped_allocation<db_type::RegionType::segment_manager> a(db->getRegion().get_segment_manager());
-
 						// and generate a pseudo-random value for key.
-						shm_string key_in_shm( key );
+						shm_string key_in_shm( key.c_str() );  // permit allocator to change to shm
 						shm_string value( randomValue(key_no) );
 
 						// insert the new key_in_shm, value pair.
@@ -298,11 +371,12 @@ public:
 								wait_with_timeout(ex_lock_holder, g_max_wait);
 
 							result = map->insert( std::make_pair<shm_string,shm_string>( key_in_shm, value), *txn, wait_with_timeout );
-
-						} catch (stldb::row_deleted_exception) {
-							// another transaction deleted 'i' before we could lock it, so pretend
-							// that find() never read it at all.
-							return;
+						}
+						catch (stldb::lock_timeout_exception &) {
+							// The only exception possible from a blocking insert.
+							// we timed out waiting for another threads lock on a pending
+							// insert or delete for the same key to be resolved.
+							throw;
 						}
 
 						if (result.second)
@@ -316,6 +390,7 @@ public:
 					else {
 						// verify that we have read a valid value (find is working)
 						assert( checkValue(key_no, entry->second) );
+						founds++;
 
 						// With the found row, let's do one of 3 things. a) nothing, b) update it,
 						// c) delete it. (33.3% chance of each.)
@@ -327,18 +402,31 @@ public:
 						switch (operation) {
 						case 1:
 							{
-								// establish allocation scope against db->getRegion()'s segment manager.
-								stldb::scoped_allocation<db_type::RegionType::segment_manager> a(db->getRegion().get_segment_manager());
-
 								// update the entry
-								shm_string newValue( randomValue(key_no) );
-								map->update(entry, newValue, *txn, wait_with_timeout);
+								try {
+									shm_string newValue( randomValue(key_no) );
+									map->update(entry, newValue, *txn, wait_with_timeout);
+									updates++;
+								}
+								catch (stldb::row_deleted_exception &) {
+									// another transaction deleted the row while we were trying to
+									// update it.
+									updates_row_removed++;
+								}
 							}
 							break;
 						case 2:
 							{
 								// delete the entry
-								map->erase(entry, *txn, wait_with_timeout);
+								try {
+									map->erase(entry, *txn, wait_with_timeout);
+									deletes++;
+								}
+								catch (stldb::row_deleted_exception &) {
+									// another transaction deleted the row while we were trying to
+									// update it.
+									deletes_row_removed++;
+								}
 							}
 							break;
 						default: //0
@@ -347,29 +435,62 @@ public:
 						}
 					}
 				}
-			}
+			} // end of for loop
+
+			db->commit( txn );
+
 		}
 		catch( stldb::lock_timeout_exception & ) {
 			// probably means I have deadlocked with another thread.
 			// so rollback to release my locks.
 			lock_timeouts++;
-			db->rollback(txn);
-			// make sure this isn't because someone has screwed up...
-			bool db_ok = db->getDatabase()->check_integrity();
+			bool db_ok = false;
+			try {
+				db->rollback(txn);
+				// make sure this isn't because someone has screwed up...
+				db_ok = db->getDatabase()->check_integrity();
+			}
+			catch ( stldb::recovery_needed & ) {
+				cout << "Received recovery_needed exception during rollback following lock_timeout exception" << endl;
+				recovery_needed_exceptions++;
+			}
 			if (!db_ok)
-				real_panics++;
+				db_invalids++;
 		}
 		catch ( stldb::recovery_needed & ) {
 			// We have found ourselves to be using a PartitionedTestDatabase which needs
 			// recovery processing.  In other words, it has to be cloed and reopened.
+			cout << "Received recovery_needed exception" << endl;
+			recovery_needed_exceptions++;
+			// no point in doing any db->rollback(txn) as it would be ignored at this point.
 			recoverDatabase(db_no, db, lock);
 		}
+		transactions++;
+	}
+
+	void print_stats() {
+		cout << "Transactions:      " << transactions << endl
+			 << "find()s:           " << finds << endl
+			 << "   entries found:  " << founds << endl
+			 << "   no entry found: " << (finds-founds) << endl
+			 << "inserts:           " << inserts << endl
+			 << "   dup_key result: " << inserts_dupkey << endl
+			 << "updates:           " << updates << endl
+			 << "   row_deleted:    " << updates_row_removed << endl
+			 << "erase:             " << deletes << endl
+			 << "   row_deleted:    " << deletes_row_removed << endl
+			 << "lock timeouts:     " << lock_timeouts << endl
+			 << "   db_invalids:    " << db_invalids << endl
+			 << "recovery_needed:   " << recovery_needed_exceptions << endl;
 	}
 
 private:
 	int txnSize;
 
+	int transactions;
 	int finds;
+	int founds;
+
 	int inserts;
 	int inserts_dupkey;
 	int updates;
@@ -377,57 +498,94 @@ private:
 	int deletes;
 	int deletes_row_removed;
 	int lock_timeouts;
-	int real_panics;
+	int db_invalids;
+	int recovery_needed_exceptions;
 };
 
 
 // One of the possible transactional operations which is invoked.
 // Does some standard read/writes to a couple of maps within an
 // environment, and then commits.
-class checkpoint_operation
+class checkpoint_operation  : public trans_operation
 {
 public:
-	checkpoint_operation()
+	checkpoint_operation(int inter)
+		: interval( inter )
 		{ }
 
 	virtual ~checkpoint_operation() { }
 
 	virtual void operator()() {
-		// TODO - get a database, and perform a checkpoint of that database
+		while (true) {
+			sleep(interval);
+			for (int i=0; i<g_num_db; i++) {
+				try {
+					shared_lock<boost::shared_mutex> lock;
+					PartitionedTestDatabase<managed_mapped_file,MapType>* db = getDatabase(i, lock);
+					db->getDatabase()->checkpoint();
+
+					std::vector<boost::filesystem::path> logs = db->getDatabase()->get_archivable_logs();
+					for (std::vector<boost::filesystem::path>::const_iterator i = logs.begin();
+							i != logs.end(); i++ )
+					{
+						try {
+							boost::filesystem::remove( *i );
+							cout << "Archived file: " << *i << endl;
+						}
+						catch (...) {
+							cerr << "Warning: can't remove (clean-up) log file: " << *i;
+						}
+					}
+				}
+				catch ( stldb::recovery_needed & ) {
+					// We have found ourselves to be using a PartitionedTestDatabase which needs
+						// recovery processing.  In other words, it has to be cloed and reopened.
+					cout << "Received recovery_needed exception during checkpoint" << endl;
+				}
+			}
+		}
 	}
+private:
+	int interval;
 };
 
 
 // Set_invalid(true) on a random database, causing needs_recovery_exception on all
 // threads using it.
-class set_invalid_operation
+class set_invalid_operation  : public trans_operation
 {
 public:
-	set_invalid_operation()
+	set_invalid_operation(int inter)
+		: interval( inter )
 		{ }
 
 	virtual ~set_invalid_operation() { }
 
 	virtual void operator()() {
-		// TODO - get a database, and call set_invalid(true) on that database
+		while (true) {
+			sleep(interval);
+
+			int db_no = static_cast<int>(::rand() * (((double)g_num_db) / (double)RAND_MAX));
+
+			PartitionedTestDatabase<managed_mapped_file,MapType> *db, *db2;
+			{
+				shared_lock<boost::shared_mutex> lock;
+				db = getDatabase(db_no, lock);
+				db->getDatabase()->set_invalid(true);
+				db2 = db;
+			}
+			// wait for one of the CRUD_transaction threads to restore db before next sleep.
+			while (db == db2) {
+				boost::thread::yield();
+				shared_lock<boost::shared_mutex> lock;
+				db2 = getDatabase(db_no, lock);
+			}
+		}
 	}
+private:
+	int interval;
 };
 
-
-// Delete the log files marked as 'archivable' pertaining to a database.
-class remove_old_logs
-{
-public:
-	remove_old_logs()
-		{ }
-
-	virtual ~remove_old_logs()
-		{ }
-
-	virtual void operator()() {
-		// TODO - get a database, and remove all archivable logs for that database.
-	}
-};
 
 
 
@@ -482,24 +640,41 @@ int main(int argc, const char* argv[])
 	properties.parse_args(argc, argv);
 
 	stldb::timer::enabled = properties.getProperty("timing", true);
-	stldb::tracing::set_trace_level(stldb::finest_e);
+	stldb::tracing::set_trace_level(stldb::fine_e);
 
 	const int thread_count = properties.getProperty("threads", 4);
 	const int loopsize = properties.getProperty("loopsize", 100);
 	const int ops_per_txn = properties.getProperty("ops_per_txn", 10);
+
+	g_db_dir = properties.getProperty<std::string>("rootdir", std::string("."));
+	g_checkpoint_dir = g_db_dir + "/checkpoint";
+	g_log_dir = g_db_dir + "/log";
+
 	g_num_db = properties.getProperty("databases", 4);
 	g_maps_per_db = properties.getProperty("maps_per_db", 4);
 	g_max_key = properties.getProperty("max_key", 10000);
 	g_max_wait = boost::posix_time::millisec(properties.getProperty("max_wait", 10000));
+	g_checkpoint_interval = boost::posix_time::millisec(properties.getProperty("checkpoint_interval", 0));
+	g_invalidation_interval = boost::posix_time::millisec(properties.getProperty("invalidation_interval", 0));
 
 	// The loop that the running threads will execute
 	test_loop loop(loopsize);
-	loop.add( new CRUD_transaction(ops_per_txn), 100 );
+	CRUD_transaction main_op(ops_per_txn);
+	loop.add( &main_op, 100 );
 
 	// Start the threads which are going to run operations:
 	boost::thread **workers = new boost::thread *[thread_count];
 	for (int i=0; i<thread_count; i++) {
 		workers[i] = new boost::thread( loop );
+	}
+	// start a thread which does periodic checkpointing
+	boost::thread *checkpointor = NULL, *invalidator = NULL;
+	if ( g_checkpoint_interval.seconds() > 0 ) {
+		checkpointor = new boost::thread( checkpoint_operation(g_checkpoint_interval.seconds()) );
+	}
+	if ( g_invalidation_interval.seconds() > 0 ) {
+		// start a thread which does periodic invalidation, forcing recovery to be done
+		invalidator = new boost::thread( set_invalid_operation(g_invalidation_interval.seconds()) );
 	}
 
 	// now await their completion
@@ -507,6 +682,15 @@ int main(int argc, const char* argv[])
 		workers[i]->join();
 		delete workers[i];
 	}
+
+	// close the databases
+	for (int i=0; i<g_num_db; i++) {
+		closeDatabase(i);
+	}
+
+	// print timing stats (if requested)
+	if (stldb::timer::enabled)
+		stldb::time_tracked::print(std::cout, true);
 
 	return 0;
 }

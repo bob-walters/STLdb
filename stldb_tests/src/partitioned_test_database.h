@@ -57,8 +57,8 @@ public:
 		// Get root directory
 		std::string root_dir( properties.getProperty<std::string>("rootdir",std::string(".")) );
 		std::string db_dir( db_directory ? db_directory : root_dir.c_str() );
-		std::string checkpoint_dir( checkpoint_directory ? checkpoint_directory : (root_dir + "\\checkpoint").c_str());
-		std::string log_dir( log_directory ? log_directory : (root_dir + "\\log").c_str());
+		std::string checkpoint_dir( checkpoint_directory ? checkpoint_directory : (root_dir + "/checkpoint").c_str());
+		std::string log_dir( log_directory ? log_directory : (root_dir + "/log").c_str());
 
 		// Get the diskless setting
 		diskless = properties.getProperty("diskless",false);
@@ -126,6 +126,11 @@ public:
 	}
 
 	~PartitionedTestDatabase() {
+		if (db)
+			this->close();
+	}
+
+	void close() {
 		stldb::database_stats stats = db->get_stats(false);
 		std::cout << "Database Stats: " << std::endl
 			<< "region_size: " << stats.region_size << std::endl
@@ -137,6 +142,7 @@ public:
 			// shutdown properly.
 			delete db;
 		}
+		db = NULL;
 	}
 
 	Transaction* beginTransaction(Transaction *reusable_t = NULL) {

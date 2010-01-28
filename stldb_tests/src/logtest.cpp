@@ -4,9 +4,49 @@
 #include <string>
 #include "test_database.h"
 #include "properties.h"
+#include "perf_test.h"
 
 // run-time configuration in the form of name/value pairs.
 properties_t properties;
+using namespace std;
+using stldb::transaction_id_t;
+using stldb::log_reader;
+
+template <class void_allocator, class mutex_type>
+class writelog : public trans_operation
+{
+public:
+	typedef stldb::commit_buffer_t<void_allocator> commit_buffer_t;
+	typedef stldb::Logger<void_allocator, mutex_type> logger_t;
+
+	writelog(const void_allocator& alloc, logger_t& log, std::size_t buffer_size)
+		: buff( new commit_buffer_t(alloc) ), logger( log )
+	{
+	    buff->reserve(buffer_size);
+	    for (int k=0; k<buffer_size; k++) {
+	      buff->push_back(k);
+	    }
+	    assert(buff->size() == buffer_size);
+	    buff->op_count = 10;
+	}
+
+	virtual void operator()() {
+		stldb::transaction_id_t commit_id = logger.queue_for_commit( buff );
+		logger.log( commit_id );
+	}
+
+	virtual ~writelog() {
+		delete buff;
+	}
+
+	virtual void print_totals() { }
+
+private:
+    commit_buffer_t *buff;
+    logger_t &logger;
+};
+
+
 
 // Log Tester - tests log throughput
 int main(int argc, const char* argv[])
@@ -26,7 +66,7 @@ int main(int argc, const char* argv[])
   int buffer_size = properties.getProperty("buffer_size", 0);
   // number of buffers to put into the queue before making the same # of log() calls
   // only on of the log calls will write (doing all buffers by aggregation.)
-  int aggregation = properties.getProperty("aggregation", 1);
+  int thread_count = properties.getProperty("threads", 1);
 
   // how many buffers to write during the timed test.
   int loopsize = properties.getProperty("loop_size", 1000);
@@ -35,12 +75,15 @@ int main(int argc, const char* argv[])
   int log_max_len = properties.getProperty("max_log_len", 256*1024*1024);
 
   // should fsync() be done after a write?
-  int sync_write = properties.getProperty("sync", true);
+  bool sync_write = properties.getProperty("sync", true);
+
+  // should fsync() be done after a write?
+  bool verify = properties.getProperty("verify", true);
   
   // device block size for write alignment.
-//  int block_size = properties.getProperty("block_size", 512);
+  //int block_size = properties.getProperty("block_size", 512);
   // Set blocksize.
-//  stldb::Logger<std::allocator<void>, boost::interprocess::interprocess_mutex>.optimum_write_alignment = block_size;
+  //stldb::Logger<std::allocator<void>, boost::interprocess::interprocess_mutex>.optimum_write_alignment = block_size;
 
   std::allocator<void> alloc;
   stldb::SharedLogInfo<std::allocator<void>, boost::interprocess::interprocess_mutex>
@@ -51,36 +94,44 @@ int main(int argc, const char* argv[])
 
   stldb::Logger<std::allocator<void>, boost::interprocess::interprocess_mutex> logger;
   logger.set_shared_info( &shared_info );
+
+  typedef writelog<std::allocator<void>, boost::interprocess::interprocess_mutex> op_t;
   
-  // to avoid corrupting the results with buffer allocation times, I'm going
-  // to keep reusing the same buffers over and over.
-  typedef stldb::commit_buffer_t<std::allocator<void> > commit_buffer_t;
-  std::vector<commit_buffer_t*> buffers;
-  
-  for (int j=0; j<aggregation; j++) {
-    commit_buffer_t *buff = new commit_buffer_t(alloc);
-    buff->reserve(buffer_size);
-    for (int k=0; k<buffer_size; k++) {
-      buff->push_back(k);
-    }
-    assert(buff->size() == buffer_size);
-    buff->op_count = 10;
-    buffers.push_back( buff );
+  test_loop workload(loopsize);
+  workload.add( new op_t(alloc,logger,buffer_size), 100 );
+
+  performance_test(thread_count, workload);
+
+  if (verify) {
+	  cout << "Verifying log file contents" << endl;
+	  std::map<transaction_id_t,boost::filesystem::path> files = stldb::detail::get_log_files(log_dir);
+	  for (std::map<transaction_id_t,boost::filesystem::path>::const_iterator i = files.begin();
+		  i != files.end(); i++ )
+	  {
+		stldb::timer read_file("load_reader::read_log_file");
+
+		transaction_id_t txn_found;
+		std::size_t count = 0;
+		log_reader reader(i->second.string().c_str());
+		try {
+			while ((txn_found = reader.next_transaction()) != stldb::no_transaction) {
+				count++;
+			}
+		}
+		catch( stldb::recover_from_log_failed &ex ) {
+			cout << "log_reader exception received: " << ex.what() << endl;
+			cout << "Occurred at byte " << ex.offset_in_file() << " of file: " << ex.filename() << endl;
+			cout << (reader.get_transaction().first);
+		}
+		cout << "Read " << count << " transactions from " << i->second << ", ending with txn_id: " << txn_found << endl;
+	  }
   }
 
-  loopsize /= aggregation;
-  stldb::transaction_id_t commit_id[aggregation];
-  for (int i=0; i<loopsize; i++) {
-  	for (int j=0; j<aggregation; j++) {
-  	    commit_id[j] = logger.queue_for_commit( buffers[j] );
-  	}
-  	for (int j=0; j<aggregation; j++) {
-  	    logger.log( commit_id[j] );
-  	}
-  }
   if (stldb::timer::enabled) {
     stldb::time_tracked::print(std::cout, true);
   }
+
+
 }
 
 
