@@ -104,10 +104,6 @@ struct map_insert_operation : public assoc_transactional_operation<map_type>
 		typename map_type::baseclass &ref = this->get_container();
 		temp.second.unlock(lsn);
 		ref.insert(temp);  // ignore errors if already exists.
-//		STLDB_TRACE(finer_e, "Recover insert: [" << temp.first << "," << temp.second << "] op: "
-//						<< temp.second.getOperation() << " lsn: " << temp.second.getLockId()
-//						<< "ckpt:{" << temp.second.checkpointLocation().first << ","
-//						<< temp.second.checkpointLocation().second << "}" );
 	}
 
 private:
@@ -163,18 +159,10 @@ struct map_update_operation : public assoc_transactional_operation<map_type>
 			// set the value and txn_id, but leave checkpoint location untouched.
 			_entry->second.base() = _newValue.second.base();
 			_entry->second.unlock( lsn );
-//			STLDB_TRACE(finer_e, "Recover update: [" << _entry->first << "," << _entry->second << "] op: "
-//							<< _entry->second.getOperation() << " lsn: " << _entry->second.getLockId()
-//							<< "ckpt:{" << _entry->second.checkpointLocation().first << ","
-//							<< _entry->second.checkpointLocation().second << "}" );
 		}
 		else {
 			_newValue.second.unlock(lsn);
 			ref.insert( _newValue );
-//			STLDB_TRACE(finer_e, "Recover update: [" << _newValue.first << "," << _newValue.second << "] op: "
-//							<< _newValue.second.getOperation() << " lsn: " << _newValue.second.getLockId()
-//							<< "ckpt:{" << _newValue.second.checkpointLocation().first << ","
-//							<< _newValue.second.checkpointLocation().second << "}" );
 		}
 	}
 
@@ -234,9 +222,6 @@ struct map_delete_operation : public assoc_transactional_operation<map_type>
 			if (entry->second.checkpointLocation().second > 0)
 				this->get_container()._freed_checkpoint_space.insert(
 						entry->second.checkpointLocation() );
-			STLDB_TRACE(finer_e, "Recover delete: [" << key << "] "
-							<< "ckpt:{" << entry->second.checkpointLocation().first << ","
-							<< entry->second.checkpointLocation().second << "}" );
 			ref.erase( entry );
 		}
 	}
@@ -291,7 +276,6 @@ struct map_deleted_insert_operation : public assoc_transactional_operation<map_t
 		stream & key;
 		typename map_type::baseclass &ref = this->get_container();
 		ref.erase(key); // ignore errors if row not found.
-		STLDB_TRACE(finer_e, "Recover delete pending insert: [" << key << "ckpt:{0,0}" );
 	}
 
 private:

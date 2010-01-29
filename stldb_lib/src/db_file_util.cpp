@@ -35,9 +35,7 @@ namespace stldb {
 namespace detail {
 
 // standard file extensions.
-static const char *ckpt = ".ckpt";
 static const char *meta = ".meta";
-static const char *meta_wip = ".meta_wip";
 
 BOOST_STLDB_DECL
 std::map<transaction_id_t,boost::filesystem::path> get_log_files(

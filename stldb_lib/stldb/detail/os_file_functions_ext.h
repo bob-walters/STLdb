@@ -78,12 +78,13 @@ typedef struct iovec write_region_t;
  * (see errno)
  */
 inline std::size_t read_file(file_handle_t f, void *buf, std::size_t nbyte) {
-	std::size_t read, total = 0;
-	while ((read = ::read(f, buf, nbyte)) < nbyte) {
+	ssize_t read;
+	std::size_t total = 0;
+	while ((read = ::read(f, buf, nbyte)) < (ssize_t)nbyte) {
 		if (read == -1) {
 			if (errno == EINTR)
 				continue;
-			return -1;
+			throw std::ios_base::failure( strerror(errno) );
 		}
 		if (read == 0) { // EOF
 			return total;

@@ -223,8 +223,8 @@ public:
 	typedef const T*  pointer;
 
 	checkpoint_iterator(const checkpoint_iterator &rarg)
-		: _offset(rarg._offset), _checkpoint(rarg._checkpoint), _current(rarg._current)
-		,  _current_loc(rarg._current_loc)
+		: _offset(rarg._offset), _length(rarg._length), _checkpoint(rarg._checkpoint)
+		, _current(rarg._current), _current_loc(rarg._current_loc)
 		{ }
 
 	bool operator==(const checkpoint_iterator& rarg) {
@@ -245,7 +245,7 @@ public:
 
 	// Read next entry out of the file, into _current
 	checkpoint_iterator& operator++()
-		{ forward(); return *this; }
+		{ this->forward(); return *this; }
 
 	checkpoint_iterator operator++(int n)
 		{ checkpoint_iterator temp = *this; this->forward(); return temp; }
@@ -258,17 +258,18 @@ private:
 
 	// constructs an iterator at the indicated offset
 	checkpoint_iterator(checkpoint_ifstream &ckpt, std::size_t ckpt_len, boost::interprocess::offset_t off = 0 )
-		: _offset(off), _checkpoint(ckpt), _length(ckpt_len), _current(), _current_loc()
-		{ forward(); }
+		: _offset(off), _length(ckpt_len), _checkpoint(ckpt), _current(), _current_loc()
+		{ this->forward(); }
 
 	// advance forward to the next item in the file.
-	void forward() {
+	void forward() 
+	{
 		std::map<boost::interprocess::offset_t,std::size_t>::const_iterator i(_checkpoint.free_by_offset.find(_offset));
 		while (i != _checkpoint.free_by_offset.end()) {
 			_offset += i->second;
 			i = _checkpoint.free_by_offset.find(_offset);
 		}
-		if (_offset == _length)
+		if (std::size_t(_offset) == _length)
 			return;
 
 		std::size_t size;

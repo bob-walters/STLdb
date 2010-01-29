@@ -148,17 +148,17 @@ void checkpoint_ofstream::write( boost::interprocess::offset_t offset, std::size
 BOOST_STLDB_DECL
 void checkpoint_ofstream::add_free_space()
 {
-	STLDB_TRACE(stldb::fine_e, "(1) new_free_space at start of commit: ");
+	STLDB_TRACE(stldb::finest_e, "(1) new_free_space at start of commit: ");
 	for ( std::map<boost::interprocess::offset_t,std::size_t>::const_iterator
 		  i = new_free_space.begin(); i != new_free_space.end(); i++ )
 	{
-		STLDB_TRACE(stldb::fine_e, "[" << i->first << "," << i->second << "]");
+		STLDB_TRACE(stldb::finest_e, "[" << i->first << "," << i->second << "]");
 	}
-	STLDB_TRACE(stldb::fine_e, "(2) free_by_offset at start of commit: ");
+	STLDB_TRACE(stldb::finest_e, "(2) free_by_offset at start of commit: ");
 	for ( std::map<boost::interprocess::offset_t,std::size_t>::const_iterator
 		  i = free_by_offset.begin(); i != free_by_offset.end(); i++ )
 	{
-		STLDB_TRACE(stldb::fine_e, "[" << i->first << "," << i->second << "]");
+		STLDB_TRACE(stldb::finest_e, "[" << i->first << "," << i->second << "]");
 	}
 	// Reconcile new_free_space with free_space using free_by_offset
     free_by_offset.insert( new_free_space.begin(), new_free_space.end() );
@@ -169,18 +169,18 @@ void checkpoint_ofstream::add_free_space()
     {
          std::map<boost::interprocess::offset_t,std::size_t>::iterator j = i;
          j++;
-         while (j != free_by_offset.end() && j->first == i->first + i->second) {
+         while (j != free_by_offset.end() && j->first == i->first + boost::interprocess::offset_t(i->second)) {
              i->second += j->second;
              free_by_offset.erase(j);  // assumption: does not invalidate i
              j = i;
              j++;
          }
     }
-	STLDB_TRACE(stldb::fine_e, "(3) reconciled free_by_offset at end of commit: ");
+	STLDB_TRACE(stldb::finest_e, "(3) reconciled free_by_offset at end of commit: ");
 	for ( std::map<boost::interprocess::offset_t,std::size_t>::const_iterator
 		  i = free_by_offset.begin(); i != free_by_offset.end(); i++ )
 	{
-		STLDB_TRACE(stldb::fine_e, "[" << i->first << "," << i->second << "]");
+		STLDB_TRACE(stldb::finest_e, "[" << i->first << "," << i->second << "]");
 	}
     meta.free_space.clear();
     for (std::map<boost::interprocess::offset_t,std::size_t>::iterator i = free_by_offset.begin();
@@ -204,7 +204,7 @@ void checkpoint_ofstream::clear()
 			new_free_space.insert( std::make_pair(last_start, i->first - last_start));
 		last_start = i->first + i->second;
 	}
-	if (last_start < meta.file_length)
+	if (last_start < (boost::interprocess::offset_t)meta.file_length)
 		new_free_space.insert( std::make_pair(last_start, meta.file_length - last_start));
 }
 
