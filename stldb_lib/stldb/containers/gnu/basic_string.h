@@ -2550,7 +2550,9 @@ namespace stldb {
     {
       // _GLIBCXX_RESOLVE_LIB_DEFECTS
       // 586. string inserter not a formatted function
-      return __ostream_insert(__os, __str.data(), __str.size());
+	  __os.write(__str.data(), __str.size());
+	  return __os;
+      //return __ostream_insert(__os, __str.data(), __str.size());
     }
 
   /**
