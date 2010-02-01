@@ -116,6 +116,8 @@ void checkpoint_ofstream::open_checkpoint()
 	fullname /= meta.ckpt_filename;
 	filestream.open( fullname.string().c_str(), std::ios::in | std::ios::out | std::ios::ate);
 	if (!filestream) {
+		// file doesn't exist, try creating it
+		filestream.clear();
 		filestream.open( fullname.string().c_str(), std::ios::out );
 	}
 	if (!filestream) {
