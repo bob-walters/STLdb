@@ -48,6 +48,7 @@ namespace detail {
 			const boost::filesystem::path &checkpoint_path);
 
 	// Return the path of the current metafile for the container_name
+	BOOST_STLDB_DECL
 	boost::filesystem::path get_current_metafile(
 			const boost::filesystem::path &checkpoint_path,
 			const char * container_name);

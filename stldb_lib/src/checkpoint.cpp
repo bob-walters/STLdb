@@ -18,7 +18,6 @@ using boost::filesystem::directory_iterator;
 namespace stldb {
 
 // construct from the contents of the specific metafile passed.
-BOOST_STLDB_DECL
 checkpoint_fstream_base::checkpoint_fstream_base(const boost::filesystem::path &metafile)
 	: checkpoint_dir(), meta()
 {
@@ -29,7 +28,6 @@ checkpoint_fstream_base::checkpoint_fstream_base(const boost::filesystem::path &
 
 // construct by searching the checkpoint directory for a current
 // metafile for the container with the indicated name.
-BOOST_STLDB_DECL
 checkpoint_fstream_base::checkpoint_fstream_base(const boost::filesystem::path &checkpoint_path,
 		const char * container_name)
 	: checkpoint_dir(checkpoint_path), meta()
@@ -47,7 +45,6 @@ checkpoint_fstream_base::checkpoint_fstream_base(const boost::filesystem::path &
 	prepare_free_by_offset();
 }
 
-BOOST_STLDB_DECL
 checkpoint_fstream_base::checkpoint_fstream_base(const boost::filesystem::path &checkpoint_path,
 		const checkpoint_file_info &checkpoint_info)
 	: checkpoint_dir(checkpoint_path), meta(checkpoint_info)
@@ -55,7 +52,6 @@ checkpoint_fstream_base::checkpoint_fstream_base(const boost::filesystem::path &
 	prepare_free_by_offset();
 }
 
-BOOST_STLDB_DECL
 void checkpoint_fstream_base::prepare_free_by_offset() {
 	STLDB_TRACE(finer_e, "prepare_free_by_offset:");
 	std::multimap<std::size_t,boost::interprocess::offset_t>::iterator i (meta.free_space.begin() );
@@ -66,16 +62,13 @@ void checkpoint_fstream_base::prepare_free_by_offset() {
 	}
 }
 
-BOOST_STLDB_DECL
 checkpoint_fstream_base::~checkpoint_fstream_base() {
 }
 
-BOOST_STLDB_DECL
 checkpoint_ofstream::~checkpoint_ofstream() {
 	filestream.close();
 }
 
-BOOST_STLDB_DECL
 std::pair<boost::interprocess::offset_t, std::size_t> checkpoint_ofstream::allocate(std::size_t size)
 {
 	// round size needed to alignment, and account for size_t header
@@ -109,7 +102,7 @@ std::pair<boost::interprocess::offset_t, std::size_t> checkpoint_ofstream::alloc
     return std::make_pair(off,needed);
 }
 
-BOOST_STLDB_DECL
+
 void checkpoint_ofstream::open_checkpoint()
 {
 	boost::filesystem::path fullname( checkpoint_dir );
@@ -130,7 +123,7 @@ void checkpoint_ofstream::open_checkpoint()
 
 // write a serialized image to the checkpoint file at the offset indicated.
 // throws ios_base::failure upon I/O error.
-BOOST_STLDB_DECL
+
 void checkpoint_ofstream::write( boost::interprocess::offset_t offset, std::size_t length, std::string image)
 {
 	// seek to off, write image, for image.size() bytes
@@ -147,7 +140,7 @@ void checkpoint_ofstream::write( boost::interprocess::offset_t offset, std::size
 
 // adds the map of free space to the free_space member, reconciling
 // adjacent regions into one larger region in the process.
-BOOST_STLDB_DECL
+
 void checkpoint_ofstream::add_free_space()
 {
 	STLDB_TRACE(stldb::finest_e, "(1) new_free_space at start of commit: ");
@@ -195,7 +188,7 @@ void checkpoint_ofstream::add_free_space()
 // new_free_space, to be made available on the next checkpoint.  This corresponds
 // to cases where an operation like clear() or swap() invalidates everything which
 // was previously checkpointed as part of that container.
-BOOST_STLDB_DECL
+
 void checkpoint_ofstream::clear()
 {
 	boost::interprocess::offset_t last_start = 0;
@@ -211,7 +204,7 @@ void checkpoint_ofstream::clear()
 }
 
 // write out a new metafile instance with the indicated starting_lsn and ending_lsn
-BOOST_STLDB_DECL
+
 void checkpoint_ofstream::commit( transaction_id_t lsn_at_start, transaction_id_t lsn_at_end )
 {
 	// accumulated free space now becomes real free space for the next checkpoint
@@ -276,12 +269,12 @@ void checkpoint_ofstream::commit( transaction_id_t lsn_at_start, transaction_id_
 	}
 }
 
-BOOST_STLDB_DECL
+
 checkpoint_ifstream::~checkpoint_ifstream() {
 	filestream.close();
 }
 
-BOOST_STLDB_DECL
+
 void checkpoint_ifstream::open_checkpoint()
 {
 	boost::filesystem::path fullname( checkpoint_dir );

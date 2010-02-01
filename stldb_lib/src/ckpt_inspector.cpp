@@ -4,6 +4,7 @@
  *  Created on: Jan 18, 2010
  *      Author: bobw
  */
+#define BOOST_STLDB_SOURCE
 
 #include <stldb/checkpoint.h>
 #include <stldb/detail/db_file_util.h>
