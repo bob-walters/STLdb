@@ -583,7 +583,7 @@ void trans_map<K,V,Comparator,Allocator,mutex_family, picket_lock_size>::save_ch
 	  else {
 		  if (!this->_freed_checkpoint_space.empty() && tracing::get_trace_level() >= finer_e) {
 			  STLDB_TRACE(fine_e, "Checkpoint space freed by map erase() calls [offset,size]: ");
-			  typedef boost::interprocess::map<boost::interprocess::offset_t, std::size_t,
+			  typedef typename boost::interprocess::map<boost::interprocess::offset_t, std::size_t,
 					std::less<boost::interprocess::offset_t>,
 					typename Allocator::template rebind<checkpoint_loc_t >::other>::iterator iterator_t;
 			  for (iterator_t i=this->_freed_checkpoint_space.begin(); i != _freed_checkpoint_space.end(); i++)
