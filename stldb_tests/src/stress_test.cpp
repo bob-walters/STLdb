@@ -100,11 +100,11 @@ static int validate( PartitionedTestDatabase<managed_mapped_file,MapType> *db )
 		cout << "Scanning map " << i << endl;
 		MapType* map = db->getMap(i);
 
-		MapType::iterator i = map->begin();
+		MapType::iterator iter = map->begin();
 		unsigned int count = 0;
-		while (i != map->end()) {
-			const char *keybuff = i->first.c_str();
-			const char *valbuff = i->second.c_str();
+		while (iter != map->end()) {
+			const char *keybuff = iter->first.c_str();
+			const char *valbuff = iter->second.c_str();
 			if (keybuff < start || keybuff > end) {
 				//cout << "Error: found key " << i->first << " with buffer address " << (void*)keybuff << endl;
 				errors++;
@@ -114,7 +114,7 @@ static int validate( PartitionedTestDatabase<managed_mapped_file,MapType> *db )
 				errors++;
 			}
 			count++;
-			i++;
+			iter++;
 		}
 		if (count != map->size()) {
 			cout << "size discrepancy noted.  read " << count << " rows.  map->size()==" << map->size() << endl;

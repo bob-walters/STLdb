@@ -249,13 +249,13 @@ bool recover_from_checkpoint_two( )
 	for (int i=20; i<25; i++) {
 		sprintf(rawkey, "key%05d", i);
 		sprintf(rawvalue, "updated-2 value for key%05d", i);
-		MapType::iterator i = map->find(rawkey);
-		map->update(i, rawvalue, *txn);
+		MapType::iterator iter = map->find(rawkey);
+		map->update(iter, rawvalue, *txn);
 	}
 	for (int i=25; i<30; i++) {
 		sprintf(rawkey, "key%05d", i);
-		MapType::iterator i = map->find(rawkey);
-		map->erase(i, *txn);
+		MapType::iterator iter = map->find(rawkey);
+		map->erase(iter, *txn);
 	}
 
 	db.commit( txn );
@@ -306,8 +306,8 @@ bool recover_from_checkpoint_three( )
 	for (int i=19; i<21; i++) {
 		sprintf(rawkey, "key%05d", i);
 		sprintf(rawvalue, "yet another value for key%05d", i);
-		MapType::iterator i = map->find(rawkey);
-		map->update(i, rawvalue, *txn);
+		MapType::iterator iter = map->find(rawkey);
+		map->update(iter, rawvalue, *txn);
 	}
 
 	db.commit( txn );
@@ -347,8 +347,8 @@ bool recover_from_checkpoint_three( )
 	// weird, but possible.  A pending, undeleted update to a pending insert.
 	for (int i=38; i<40; i++) {
 		sprintf(rawkey, "key%05d", i);
-		MapType::iterator i = map->find(rawkey, *txn);
-		map->erase(i, *txn);
+		MapType::iterator iter = map->find(rawkey, *txn);
+		map->erase(iter, *txn);
 	}
 
 	// NOTE!  The txn transaction hasn't been committed yet...
