@@ -31,6 +31,7 @@
 #include <stldb/containers/iter_less.h>
 #include <stldb/containers/detail/map_ops.h>
 #include <stldb/transaction.h>
+#include <stldb/checkpoint.h>
 #include <stldb/trace.h>
 
 #ifndef BOOST_ARCHIVE_TEXT
@@ -356,7 +357,10 @@ private:
 
 	// a record of space in the last checkpoint which has been freed because of
 	// erased objects.
-	std::map<boost::interprocess::offset_t, std::size_t>  _freed_checkpoint_space;
+	boost::interprocess::map<boost::interprocess::offset_t, std::size_t,
+		std::less<boost::interprocess::offset_t>,
+		typename Allocator::template rebind<checkpoint_loc_t >::other>
+		_freed_checkpoint_space;
 	bool _uncheckpointed_clear;
 
 	// save checkpoint

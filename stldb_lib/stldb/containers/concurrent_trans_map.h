@@ -31,6 +31,8 @@
 #include <stldb/sync/bounded_interprocess_mutex.h>
 #include <stldb/sync/picket_lock_set.h>
 #include <stldb/transaction.h>
+#include <stldb/checkpoint.h>
+
 
 #ifndef BOOST_ARCHIVE_TEXT
 #include <boost/archive/binary_iarchive.hpp>
@@ -433,7 +435,10 @@ template <class K, class V, class Comparator = std::less<K>,
 
 	// a record of space in the last checkpoint which has been freed because of
 	// erased objects.
-	std::map<boost::interprocess::offset_t, std::size_t>  _freed_checkpoint_space;
+	boost::interprocess::map<boost::interprocess::offset_t, std::size_t,
+		std::less<boost::interprocess::offset_t>,
+		typename Allocator::template rebind<checkpoint_loc_t >::other>
+		_freed_checkpoint_space;
 	bool _uncheckpointed_clear;
 
 	// save checkpoint

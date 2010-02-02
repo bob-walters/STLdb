@@ -37,6 +37,7 @@ typedef boost::archive::text_oarchive boost_oarchive_t;
 namespace stldb {
 
 
+typedef std::pair<boost::interprocess::offset_t, std::size_t> checkpoint_loc_t;
 
 
 class checkpoint_fstream_base {
@@ -101,17 +102,18 @@ public:
 
 	// used to initialize new_free_space with space accumulated on a container
 	// from entry erasure.
-	void swap_free_space(std::map<boost::interprocess::offset_t, std::size_t> &free) {
-		new_free_space.swap(free);
+	template <class InputIterator>
+	void add_free_space( InputIterator begin, InputIterator end ) {
+		new_free_space.insert(begin,end);
 	}
 
 	// allocate space for a new copy of obj from among the committed free space.
 	// return the location that the new copy of the object has been stored in.
-	// add the previous offset,len pair to the pending free space.  The pending
+	// add the previous checkpoint_loc_t to the pending free space.  The pending
 	// free space is made permanent when the commit() method is called.
 	template <class T>
-	std::pair<boost::interprocess::offset_t,std::size_t>
-	write( const T& obj, std::pair<boost::interprocess::offset_t, std::size_t> prev_loc)
+	checkpoint_loc_t
+	write( const T& obj, checkpoint_loc_t prev_loc)
 	{
 		// If the value we are saving previously occupied some portion
 		// of the checkpoint file, we can add its previous region to the
@@ -128,7 +130,7 @@ public:
 	    std::string image = stringbuff.str();
 
 	    // allocate space from within the free space in the checkpoint file.
-	    std::pair<boost::interprocess::offset_t, std::size_t> space = this->allocate( image.size() );
+	    checkpoint_loc_t space = this->allocate( image.size() );
 
 	    // write the object to the checkpoint file.
 	    this->write( space.first, space.second, image );
@@ -142,7 +144,7 @@ public:
 protected:
 	// allocate a region in the checkpoint file of the designated size
 	// from among the currently available free space.  Best-fit algorithm
-	std::pair<boost::interprocess::offset_t,std::size_t> allocate(std::size_t size);
+	checkpoint_loc_t allocate(std::size_t size);
 
 	// write a serialized image to the checkpoint file at the offset indicated.
 	// throws ios_base::failure upon I/O error.
@@ -250,7 +252,7 @@ public:
 	checkpoint_iterator operator++(int n)
 		{ checkpoint_iterator temp = *this; this->forward(); return temp; }
 
-	std::pair<boost::interprocess::offset_t,std::size_t> checkpoint_location() const
+	checkpoint_loc_t checkpoint_location() const
 		{ return _current_loc; }
 
 private:
@@ -290,7 +292,7 @@ private:
 	std::size_t _length; // length of checkpoint file
 	checkpoint_ifstream &_checkpoint;
 	T _current; // last deserialized instance of T
-	std::pair<boost::interprocess::offset_t,std::size_t> _current_loc; // location of _current
+	checkpoint_loc_t _current_loc; // location of _current
 };
 
 

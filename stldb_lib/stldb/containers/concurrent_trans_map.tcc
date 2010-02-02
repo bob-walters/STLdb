@@ -23,7 +23,9 @@ trans_map<K,V,Comparator,Allocator,mutex_family, picket_lock_size>::trans_map(co
 	, _row_level_lock_released()
 	, _container_name(name, typename Allocator::template rebind<char>::other(alloc))
 	, _ver_num(0)
-	, _freed_checkpoint_space()
+	, _freed_checkpoint_space(std::less<boost::interprocess::offset_t>(),
+		                      typename Allocator::template rebind<checkpoint_loc_t>::other(alloc))
+	, _uncheckpointed_clear(false)
 { }
 
 template <class K, class V, class Comparator, class Allocator, class mutex_family, int picket_lock_size>
@@ -581,13 +583,17 @@ void trans_map<K,V,Comparator,Allocator,mutex_family, picket_lock_size>::save_ch
 	  else {
 		  if (!this->_freed_checkpoint_space.empty() && tracing::get_trace_level() >= finer_e) {
 			  STLDB_TRACE(fine_e, "Checkpoint space freed by map erase() calls [offset,size]: ");
-			  for (std::map<boost::interprocess::offset_t,std::size_t>::const_iterator
-				  i=this->_freed_checkpoint_space.begin(); i != _freed_checkpoint_space.end(); i++)
+			  typedef boost::interprocess::map<boost::interprocess::offset_t, std::size_t,
+					std::less<boost::interprocess::offset_t>,
+					typename Allocator::template rebind<checkpoint_loc_t >::other>::iterator iterator_t;
+			  for (iterator_t i=this->_freed_checkpoint_space.begin(); i != _freed_checkpoint_space.end(); i++)
 			  {
 				  STLDB_TRACE(fine_e, "[" << i->first << "," << i->second << "]");
 			  }
 		  }
-		  checkpoint.swap_free_space( this->_freed_checkpoint_space );
+		  // different allocator types prevent use of swap() here.
+		  checkpoint.add_free_space(_freed_checkpoint_space.begin(), _freed_checkpoint_space.end());
+		  _freed_checkpoint_space.clear();
 	  }
 	}
 

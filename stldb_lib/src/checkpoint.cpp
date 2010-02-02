@@ -69,7 +69,7 @@ checkpoint_ofstream::~checkpoint_ofstream() {
 	filestream.close();
 }
 
-std::pair<boost::interprocess::offset_t, std::size_t> checkpoint_ofstream::allocate(std::size_t size)
+checkpoint_loc_t checkpoint_ofstream::allocate(std::size_t size)
 {
 	// round size needed to alignment, and account for size_t header
 	std::size_t needed = size + sizeof(std::size_t);
