@@ -512,7 +512,7 @@ Database<ManagedRegionType>::load_containers(
 
 			typename DatabaseInfo<region_allocator_t, mutex_type>::shm_string
 					container_name( chkpt->first.c_str(), alloc );
-			_dbinfo->ckpt_history_map[container_name] = chkpt->second.lsn_at_end;
+			_dbinfo->ckpt_history_map[container_name] = chkpt->second.lsn_at_start;
 
 			container_lsn[proxy] = chkpt->second.lsn_at_start;
 		}
@@ -741,7 +741,7 @@ transaction_id_t Database<ManagedRegionType>::checkpoint()
 		typename DatabaseInfo<region_allocator_t, mutex_type>::ckpt_history_map_t::iterator
 				entry = _dbinfo->ckpt_history_map.find( container_name );
 		transaction_id_t last_checkpoint_lsn = (entry != _dbinfo->ckpt_history_map.end()) ? entry->second : 0;
-		if (last_checkpoint_lsn == my_start_lsn)
+		if ( !(my_start_lsn > last_checkpoint_lsn) )
 		{
 			STLDB_TRACE(fine_e, "Skipping checkpoint of " << i->second->getName() << ". There has been no DB activity since its last checkpoint.")
 			continue;
@@ -760,12 +760,12 @@ transaction_id_t Database<ManagedRegionType>::checkpoint()
 			STLDB_TRACE(error_e, "Exception during checkpoint write for container: " << i->second->getName());
 			continue;
 		}
+		_dbinfo->ckpt_history_map[ container_name ] = my_start_lsn;
 
 		// upon completing the write of all data, we can close the checkpoint file.
 		// and remove the _wip from it's name.
 		guard.lock();
 		transaction_id_t end_lsn = _dbinfo->logInfo._last_write_txn_id;
-		_dbinfo->ckpt_history_map[ container_name ] = end_lsn;
 		guard.unlock();
 
 		// write the next metafile.
