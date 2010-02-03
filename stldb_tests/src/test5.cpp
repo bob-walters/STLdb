@@ -480,6 +480,19 @@ bool recover_after_checkpoint( )
 	return true;
 }
 
+bool checkpoint_after_checkpoint( )
+{
+	// Construct the database, opening it in the process
+	TestDatabase<managed_mapped_file,MapType> db("test5_database");
+	assert( db.getDatabase()->check_integrity() );
+
+	// checkpoint immediately after restart (which in turn followed checkpoint)
+	// this risks the chance of repeating a checkpoint fo rthe same start_lsn;
+	db.getDatabase()->checkpoint();
+
+	return true;
+}
+
 
 // Log Tester - tests log throughput
 int main(int argc, const char* argv[])
@@ -532,6 +545,8 @@ int main(int argc, const char* argv[])
 
 	assert( recover_after_checkpoint( ) );
 	assert( reopen_and_check_mapsize(10) );
+
+	assert( checkpoint_after_checkpoint( ) );
 
 	return 0;
 }
