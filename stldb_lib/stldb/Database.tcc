@@ -732,6 +732,8 @@ transaction_id_t Database<ManagedRegionType>::checkpoint()
 	for (typename std::map<void*, container_proxy_type*>::iterator i = containers.begin();
 		 i != containers.end(); i++)
 	{
+		safety_check();
+
 		// Make sure that there has been at least one change since the last checkpoint
 		// done for this container, as seen by an increase in the last written lsn.
 		scoped_lock<mutex_type> guard(_dbinfo->mutex);
