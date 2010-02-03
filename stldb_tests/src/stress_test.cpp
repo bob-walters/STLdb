@@ -89,7 +89,7 @@ static PartitionedTestDatabase<managed_mapped_file,MapType> *g_databases[100];
 
 // validates the memory allocation of the key/values within map, making sure that they
 // are all pointing to addresses allocated within the db shared region.
-static int validate( PartitionedTestDatabase<managed_mapped_file,MapType> *db )
+static void validate( PartitionedTestDatabase<managed_mapped_file,MapType> *db )
 {
 	void *start = db->getRegion().get_address();
 	void *end = (char*)start + db->getRegion().get_size();
@@ -152,14 +152,11 @@ getDatabase(int db_num, boost::shared_lock<boost::shared_mutex> &lock )
 {
 	// result holds a lock on d_db_mutex[db_num] after construction
 	PartitionedTestDatabase<managed_mapped_file,MapType>* result = NULL;
-	lock = boost::shared_lock<boost::shared_mutex>( g_db_mutex[db_num] ).move();
+	boost::upgrade_lock<boost::shared_mutex>  ulock( g_db_mutex[db_num] );
 
-	if (g_databases[db_num] == NULL) {
-		// We need to create the database
-		lock.unlock(); // release shared lock, for now.
-
+	while (g_databases[db_num] == NULL) {
 		// We'll need an exclusive lock to construct the DB.
-		unique_lock<boost::shared_mutex> exholder(g_db_mutex[db_num]);
+		boost::upgrade_to_unique_lock<boost::shared_mutex> exlock(ulock);
 
 		// Double check now that we're exclusive.  It could have been
 		// constructed by another thread while we waited to get 'exholder'
@@ -170,10 +167,9 @@ getDatabase(int db_num, boost::shared_lock<boost::shared_mutex> &lock )
 			g_databases[db_num] = new PartitionedTestDatabase<managed_mapped_file,MapType>(
 				dbname.c_str(), g_db_dir.c_str(),
 				g_checkpoint_dir.c_str(), g_log_dir.c_str(), g_maps_per_db );
-
-		// down-grade the exclusive lock using move semantics.
-		lock = exholder.move();
 	}
+	// downgrade upgradable lock to shared lock, and return to sender.
+	lock = ulock.move();
 	result = g_databases[db_num];
 
 	// move semantics should result in lock going with return value.
@@ -517,7 +513,11 @@ public:
 
 	virtual void operator()() {
 		while (true) {
+#ifdef BOOST_INTERPROCESS_WINDOWS
+			Sleep(interval);
+#else
 			sleep(interval);
+#endif
 			for (int i=0; i<g_num_db; i++) {
 				try {
 					shared_lock<boost::shared_mutex> lock;
@@ -563,7 +563,11 @@ public:
 
 	virtual void operator()() {
 		while (true) {
+#ifdef BOOST_INTERPROCESS_WINDOWS
+			Sleep(interval);
+#else
 			sleep(interval);
+#endif
 
 			int db_no = static_cast<int>(::rand() * (((double)g_num_db) / (double)RAND_MAX));
 
