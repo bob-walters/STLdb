@@ -125,7 +125,7 @@ public:
 
 		// serialize the entry into a self-contained serialized image.
 		stringbuff.str(""); // reset buffer contents
-	    boost_oarchive_t archive(stringbuff);
+	    boost_oarchive_t archive(stringbuff, boost::archive::no_header);
 	    archive & obj;
 	    std::string image = stringbuff.str();
 
@@ -279,7 +279,7 @@ private:
 		// TODO - should this be in network byte order for portability.?
 		// are binary streams from Boost.Serialization portable to some extent?
 		_checkpoint.filestream.read(reinterpret_cast<char*>(&size), sizeof(size));
-		boost_iarchive_t archive(_checkpoint.filestream);
+		boost_iarchive_t archive(_checkpoint.filestream, boost::archive::no_header);
         archive & _current;
 		if (!_checkpoint.filestream) {
 			throw std::ios_base::failure( "fstream.write() failed in checkpoint_file::write" );

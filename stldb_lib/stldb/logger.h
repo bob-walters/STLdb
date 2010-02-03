@@ -272,30 +272,8 @@ public:
 		// Ok, once here, our commit buffer has been written, but we still might
 		// need to wait for it to go to disk (via stldb::io::sync())
 		if (_shm_info->_last_sync_txn_id < my_commit_seq && _shm_info->log_sync ) {
-
-			// TODO - it might be possible to allow a thread to do additional writes to
-			// this file while the current thread oes an fsync to sync the last write
-			// to disk.  This behavior is enabled by uncommenting the unlock() and lock()
-			// pair below.  At the present time, I've had some apparent write errors,
-			// where subsequent reads fails the checksum checks on the Log files, so I
-			// have ruled this 'optimization' out until that instability is rooted out.
-			// It might have been invalid on the Linux & Windows OSes.
-			transaction_id_t new_sync_txn_id = _shm_info->_last_write_txn_id;
-
-			//file_lock_holder.unlock();
-
-			// may block for some time....
-			stldb::timer t6("sync()");
-			stldb::io::sync(_logfd);
+			this->sync_log(file_lock_holder);
 			syncs++;
-			t6.end();
-
-			// now re-acquire the file mutex..
-			//file_lock_holder.lock();
-
-			if (_shm_info->_last_sync_txn_id < new_sync_txn_id) {
-				_shm_info->_last_sync_txn_id = new_sync_txn_id;
-			}
 		}
 
 		// record stats:
@@ -313,6 +291,44 @@ public:
 
 		// file_lock_holder releases as it goes out of scope.
 	};
+
+	// Sync the log to disk.   CALLER MUST HOLD FILE LOCK.
+	void sync_log(boost::interprocess::scoped_lock<mutex_type> &held_file_lock) {
+
+		transaction_id_t new_sync_txn_id = _shm_info->_last_write_txn_id;
+
+		// TODO - it might be possible to allow a thread to do additional writes to
+		// this file while the current thread oes an fsync to sync the last write
+		// to disk.  This behavior is enabled by uncommenting the unlock() and lock()
+		// pair below.  At the present time, I've had some apparent write errors,
+		// where subsequent reads fails the checksum checks on the Log files, so I
+		// have ruled this 'optimization' out until that instability is rooted out.
+		// It might have been invalid on the Linux & Windows OSes.
+
+		//held_file_lock.unlock();
+
+		// may block for some time....
+		stldb::timer t6("sync()");
+		stldb::io::sync(_logfd);
+		t6.end();
+
+		// now re-acquire the file mutex..
+		//held_file_lock.lock();
+		if (_shm_info->_last_sync_txn_id < new_sync_txn_id) {
+			_shm_info->_last_sync_txn_id = new_sync_txn_id;
+		}
+	}
+
+	// Called by checkpoint logic to deliberately advance the current logfile so that the
+	// the first transaction to commit after the start of a checkpoint causes all preceding
+	// logs to become archivable.  It minimizes the log reads needed during recovery.
+	// CALLER must hold file lock.
+	void advance_logfile() {
+		// In this case it is time to advance to a new log file.
+		_shm_info->log_filename = stldb::detail::log_filename(_shm_info->log_dir.c_str(), _shm_info->_last_write_txn_id).c_str();
+		_shm_info->log_len = 0;
+		STLDB_TRACE(fine_e, "Logger: starting new log file: " << _shm_info->log_filename.c_str());
+	}
 
 private:
 
@@ -333,9 +349,7 @@ private:
 			if (_shm_info->log_filename.empty() || _shm_info->log_len >= _shm_info->log_max_len)
 			{
 				// In this case it is time to advance to a new log file.
-				_shm_info->log_filename = stldb::detail::log_filename(_shm_info->log_dir.c_str(), _shm_info->_last_write_txn_id ).c_str();
-				_shm_info->log_len = 0;
-				STLDB_TRACE(fine_e, "Logger: starting new log file: " << _shm_info->log_filename.c_str());
+				this->advance_logfile();
 			}
 
 			if ( _shm_info->log_filename.compare( _my_log_filename.c_str() ) != 0
@@ -374,6 +388,7 @@ private:
 			_my_log_filename = _shm_info->log_filename.c_str();
 		}
 	}
+
 
 	static const int max_txn_per_write = 64;
 	static const size_t optimum_write_alignment = 512;

@@ -512,7 +512,7 @@ Database<ManagedRegionType>::load_containers(
 
 			typename DatabaseInfo<region_allocator_t, mutex_type>::shm_string
 					container_name( chkpt->first.c_str(), alloc );
-			_dbinfo->ckpt_history_map[container_name] = chkpt->second.lsn_at_start;
+			_dbinfo->ckpt_history_map[container_name] = chkpt->second.lsn_at_end;
 
 			container_lsn[proxy] = chkpt->second.lsn_at_start;
 		}
@@ -705,11 +705,20 @@ transaction_id_t Database<ManagedRegionType>::checkpoint()
 	STLDB_TRACE(stldb::finest_e, "checkpoint file lock acquired.");
 
 	std::map<void*, container_proxy_type*> containers;
-	transaction_id_t start_lsn;
 	{ 	// lock scope - to protect Database data structures
 		scoped_lock<mutex_type> guard(_dbinfo->mutex);
 		containers = _container_proxies;
+	}
+
+	// Get the starting lsn for the checkpoint set.
+	transaction_id_t start_lsn;
+	{
+		scoped_lock<mutex_type> file_lock_holder(_dbinfo->logInfo._file_mutex);
 		start_lsn = _dbinfo->logInfo._last_write_txn_id;
+		// As an optimization, get the _logger to advance to a new log file at this time.
+		// this will minimize the amount of disk read during recovery (after the next transaction
+		// causes a transaction with that ID to actually be written.
+		_logger.advance_logfile();
 	}
 
 	// This declaration of scoped allocation is a precaution, in case the K or V type
@@ -761,8 +770,17 @@ transaction_id_t Database<ManagedRegionType>::checkpoint()
 
 		// write the next metafile.
 		STLDB_TRACE(finer_e, "Committing Checkpoint.");
+		// This final log sync will ensure that the contents of the log will allow the
+		// recovery to work with this checkpoint.  We do this prior to the commit to ensure
+		// that recovery can't fail becuase of asynchronous logging.
+		{
+			scoped_lock<mutex_type> file_lock_holder(_dbinfo->logInfo._file_mutex);
+			if (_dbinfo->logInfo._last_sync_txn_id < end_lsn)
+				_logger.sync_log(file_lock_holder);
+		}
 		checkpoint.commit( my_start_lsn, end_lsn );
 	}
+
 	return start_lsn;
 }
 
