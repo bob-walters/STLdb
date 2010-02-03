@@ -482,13 +482,24 @@ bool recover_after_checkpoint( )
 
 bool checkpoint_after_checkpoint( )
 {
-	// Construct the database, opening it in the process
-	TestDatabase<managed_mapped_file,MapType> db("test5_database");
-	assert( db.getDatabase()->check_integrity() );
+	{
+		// Construct the database, opening it in the process
+		TestDatabase<managed_mapped_file,MapType> db("test5_database");
+		assert( db.getDatabase()->check_integrity() );
 
-	// checkpoint immediately after restart (which in turn followed checkpoint)
-	// this risks the chance of repeating a checkpoint fo rthe same start_lsn;
-	db.getDatabase()->checkpoint();
+		// checkpoint immediately after restart (which in turn followed checkpoint)
+		// this risks the chance of repeating a checkpoint fo rthe same start_lsn;
+		db.getDatabase()->checkpoint();
+	}
+	{
+		// Construct the database, opening it in the process
+		TestDatabase<managed_mapped_file,MapType> db("test5_database");
+		assert( db.getDatabase()->check_integrity() );
+
+		// checkpoint immediately after restart (which in turn followed checkpoint)
+		// this risks the chance of repeating a checkpoint fo rthe same start_lsn;
+		db.getDatabase()->checkpoint();
+	}
 
 	return true;
 }
