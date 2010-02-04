@@ -487,6 +487,22 @@ bool checkpoint_after_checkpoint( )
 		TestDatabase<managed_mapped_file,MapType> db("test5_database");
 		assert( db.getDatabase()->check_integrity() );
 
+		Transaction *txn = db.beginTransaction();
+
+		// ensure that default constructors on stldb::gnu::allocator know which region to use by default
+		stldb::scoped_allocation<managed_mapped_file::segment_manager>  a(db.getRegion().get_segment_manager());
+
+		MapType *map = db.getMap();
+
+		char rawkey[256];
+		char rawvalue[256];
+		for (int i=0; i<10; i++) {
+			sprintf(rawkey, "key%05d", i);
+			sprintf(rawvalue, "the value for key%05d", i);
+			map->insert( std::make_pair(rawkey,rawvalue), *txn );
+		}
+		db.commit( txn );
+
 		// checkpoint immediately after restart (which in turn followed checkpoint)
 		// this risks the chance of repeating a checkpoint fo rthe same start_lsn;
 		db.getDatabase()->checkpoint();
