@@ -88,6 +88,22 @@ struct SharedLogInfo
 		, log_len(0), log_max_len(256*1024*1024)
 		, log_sync(true), stats()
 		{ }
+
+	// provide for serialization of an XML-based form of DatabaseInfo contents
+	template <class Archive>
+	void serialize(Archive &ar, const unsigned int version)
+	{
+		std::size_t num_waiting_txns = waiting_txns.size();
+		ar & BOOST_SERIALIZATION_NVP(_next_lsn)
+		   & BOOST_SERIALIZATION_NVP(_last_write_txn_id)
+		   & BOOST_SERIALIZATION_NVP(_last_sync_txn_id)
+		   & BOOST_SERIALIZATION_NVP( num_waiting_txns)
+		   & BOOST_SERIALIZATION_NVP(log_dir)
+		   & BOOST_SERIALIZATION_NVP(log_filename)
+		   & BOOST_SERIALIZATION_NVP(log_len)
+		   & BOOST_SERIALIZATION_NVP(log_sync)
+		   & BOOST_SERIALIZATION_NVP(stats);
+	}
 };
 
 /**

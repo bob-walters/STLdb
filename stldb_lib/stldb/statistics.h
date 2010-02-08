@@ -9,6 +9,7 @@
 #define STATISTICS_H_
 
 #include <iostream>
+#include <boost/serialization/nvp.hpp>
 
 namespace stldb {
 
@@ -48,6 +49,21 @@ struct log_stats {
 		  << "Max Writes per Commit: " << max_writes_per_commit << std::endl
 		  << "Max Txns per Commit:   " << max_buffers_per_commit << std::endl
 		  << std::endl;
+	}
+
+	// provide for serialization of an XML-based form of DatabaseInfo contents
+	template <class Archive>
+	void serialize(Archive &ar, const unsigned int /* version */ )
+	{
+		ar & BOOST_SERIALIZATION_NVP(total_commits)
+		   & BOOST_SERIALIZATION_NVP(total_write_commits)
+		   & BOOST_SERIALIZATION_NVP(total_sync_only_commits)
+		   & BOOST_SERIALIZATION_NVP(total_free_commits)
+		   & BOOST_SERIALIZATION_NVP(total_writes)
+		   & BOOST_SERIALIZATION_NVP(total_syncs)
+		   & BOOST_SERIALIZATION_NVP(total_bytes_written)
+		   & BOOST_SERIALIZATION_NVP(max_writes_per_commit)
+		   & BOOST_SERIALIZATION_NVP(max_buffers_per_commit);
 	}
 };
 

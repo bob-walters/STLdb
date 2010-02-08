@@ -17,8 +17,10 @@
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/interprocess/detail/os_thread_functions.hpp> //getpid
 #include <boost/filesystem.hpp>
+#include <boost/serialization/vector.hpp>
 
 #include <stldb/sync/file_lock.h>
+#include <stldb/containers/string_serialize.h>
 
 using boost::interprocess::allocator;
 using boost::interprocess::vector;
@@ -126,6 +128,23 @@ public:
 			return 0;
 		return _registry.size();
 	}
+
+	template <class Archive>
+    void serialize(Archive & ar, const unsigned int /* file_version */ ){
+        std::vector<OS_process_id_t> registry;
+    	registry.insert( registry.end(), _registry.begin(), _registry.end() );
+        int attached_pids = this->attached_pids();
+        bool recovery_needed = this->check_need_for_recovery();
+
+        ar & BOOST_SERIALIZATION_NVP(_registry_construct_complete)
+           & BOOST_SERIALIZATION_NVP(_database_dir)
+           & BOOST_SERIALIZATION_NVP(_database_name)
+           & BOOST_SERIALIZATION_NVP( attached_pids)
+           & BOOST_SERIALIZATION_NVP( registry)
+           & BOOST_SERIALIZATION_NVP( recovery_needed)
+           & BOOST_SERIALIZATION_NVP(_database_construct_complete)
+           & BOOST_SERIALIZATION_NVP(_database_invalid);
+    }
 
 private:
 	database_registry(); // not allowed

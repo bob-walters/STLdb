@@ -57,7 +57,18 @@ exe ckpt_inspector
           libboost_system
 		  libboost_date_time
         ;
-install ../dist : stldb log_inspector ckpt_inspector :
+
+exe db_inspector
+		: src/db_inspector.cpp
+		  stldb
+          libboost_serialization
+          libboost_filesystem
+          libboost_thread
+          libboost_system
+		  libboost_date_time
+        ;
+
+install ../dist : stldb log_inspector ckpt_inspector db_inspector :
 		<variant>debug:<location>../dist/debug
 		<variant>release:<location>../dist/release 
 		<install-dependencies>on 

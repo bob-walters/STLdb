@@ -37,10 +37,13 @@ struct CheckLock: public std::unary_function<OS_process_id_t, bool>
 			result = flock.try_lock();
 			if (result)
 				flock.unlock();
+			else
+				STLDB_TRACE(error_e, "registry check: process " << pid << " is still connected");
 		}
 		catch (...)
 		{
 			// This probably means the file doesn't exit.
+			STLDB_TRACE(error_e, "registry check: exception on file_lock constructor for " << filename);
 			return true;
 		}
 		if (result)

@@ -24,6 +24,9 @@
 #include <boost/intrusive/slist.hpp>
 #include <boost/filesystem/path.hpp>
 
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/map.hpp>
+
 using boost::interprocess::detail::OS_process_id_t;
 using boost::intrusive::optimize_size;
 // tag
@@ -42,6 +45,7 @@ using boost::intrusive::slist;
 #include <stldb/sync/file_lock.h>
 #include <stldb/statistics.h>
 #include <stldb/detail/db_file_util.h>
+#include <stldb/containers/string_serialize.h>
 
 using boost::interprocess::set;
 using boost::interprocess::vector;
@@ -128,6 +132,21 @@ struct DatabaseInfo {
 //		, next_container_id(0)
 //		, _containers(std::less<shm_string>(), shm_map2_allocator_t(alloc))
 	{ }
+
+	// provide for serialization of an XML-based form of DatabaseInfo contents
+	template <class Archive>
+	void serialize(Archive &ar, const unsigned int version)
+	{
+		std::map<shm_string, transaction_id_t> ckpt_history( ckpt_history_map.begin(), ckpt_history_map.end() );
+
+		ar & BOOST_SERIALIZATION_NVP(database_name)
+		   & BOOST_SERIALIZATION_NVP(database_directory)
+		   & BOOST_SERIALIZATION_NVP(checkpoint_directory)
+		   & BOOST_SERIALIZATION_NVP(next_txn_id)
+		   & BOOST_SERIALIZATION_NVP(logInfo)
+		   & BOOST_SERIALIZATION_NVP(ckpt_history)
+		   & BOOST_SERIALIZATION_NVP(max_incremental_percent);
+	}
 
 private:
 	// Not allowed
@@ -459,7 +478,20 @@ public:
 			throw recovery_needed();
 	}
 
+	/**
+	 * Utility method which connects to the region of a database and then dumps
+	 * information from the contents of the shared region, including DatabaseInfo,
+	 * the current registry contents, Logging info, checkpointing info, etc.
+	 */
+	template <class Archive>
+	static void dump_metadata(Archive &ar
+			, const char* database_name // the name of this database (used for region name)
+			, const char* database_directory // the location of metadata & lock files
+			, void* fixed_mapping_addr // fixed mapping address (optional)
+	);
+
 private:
+
 	// method to find or construct the shared _dbinfo structure.
 	void find_or_construct_databaseinfo(
 			std::list<container_proxy_type*>& containers,
@@ -520,6 +552,7 @@ private:
 	// be seized by an otherwise non-attached process that wants to prevent shapshots
 	// for a period of time in order to make a hot backup of a database
 	stldb::file_lock _checkpoint_lock;
+	boost::mutex  _checkpoint_mutex;
 
 	// The file lock that our process holds on our "database_name.pid.XXXXX" file to signal our
 	// processes health.

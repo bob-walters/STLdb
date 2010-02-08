@@ -27,6 +27,7 @@
 
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/thread/locks.hpp>
 
 #include <stldb/database_registry.h>
 #include <stldb/transaction.h>
@@ -528,6 +529,11 @@ Database<ManagedRegionType>::load_containers(
 			_dbinfo->ckpt_history_map[container_name] = 0;
 		}
 	}
+	for (typename DatabaseInfo<region_allocator_t,mutex_type>::ckpt_history_map_t::iterator i = _dbinfo->ckpt_history_map.begin();
+			i != _dbinfo->ckpt_history_map.end(); i++)
+	{
+		STLDB_TRACE(fine_e, "ckpt_history_map[" << i->first << "] = " << i->second);
+	}
 	return std::make_pair( recovery_start_lsn, recovery_end_lsn );
 }
 
@@ -700,9 +706,10 @@ transaction_id_t Database<ManagedRegionType>::checkpoint()
 	safety_check();
 	stldb::timer t("Database::checkpoint()");
 
-	STLDB_TRACE(stldb::finest_e, "acquiring checkpoint file lock on");
+	// This method is required to be both inter-process and inter-thread safe.
+	// This combination lock used here will be released if a process dies.
+	boost::lock_guard<boost::mutex> guard(_checkpoint_mutex);
 	scoped_lock<file_lock> lock(_checkpoint_lock);
-	STLDB_TRACE(stldb::finest_e, "checkpoint file lock acquired.");
 
 	std::map<void*, container_proxy_type*> containers;
 	{ 	// lock scope - to protect Database data structures
@@ -745,7 +752,7 @@ transaction_id_t Database<ManagedRegionType>::checkpoint()
 		transaction_id_t last_checkpoint_lsn = (entry != _dbinfo->ckpt_history_map.end()) ? entry->second : 0;
 		if ( !(my_start_lsn > last_checkpoint_lsn) )
 		{
-			STLDB_TRACE(fine_e, "Skipping checkpoint of " << i->second->getName() << ". There has been no DB activity since its last checkpoint.")
+			STLDB_TRACE(fine_e, "Skipping checkpoint of " << i->second->getName() << ". There has been no DB activity since last checkpoint.")
 			continue;
 		}
 		guard.unlock();
@@ -753,8 +760,7 @@ transaction_id_t Database<ManagedRegionType>::checkpoint()
 		// Prepare checkpoint file
 		checkpoint_ofstream checkpoint( _dbinfo->checkpoint_directory.c_str(), container_name.c_str() );
 
-		STLDB_TRACE(finer_e, "Starting checkpoint of " << i->second->getName() << " as of LSN: " << my_start_lsn );
-
+		STLDB_TRACE(fine_e, "Starting checkpoint of " << i->second->getName() << " for LSN: " << my_start_lsn << ", previous LSN: " << last_checkpoint_lsn );
 		try {
 			i->second->save_checkpoint( *this, checkpoint, last_checkpoint_lsn );
 		}
@@ -762,12 +768,14 @@ transaction_id_t Database<ManagedRegionType>::checkpoint()
 			STLDB_TRACE(error_e, "Exception during checkpoint write for container: " << i->second->getName());
 			continue;
 		}
-		_dbinfo->ckpt_history_map[ container_name ] = my_start_lsn;
+
+		guard.lock();
 
 		// upon completing the write of all data, we can close the checkpoint file.
 		// and remove the _wip from it's name.
-		guard.lock();
+		_dbinfo->ckpt_history_map[ container_name ] = my_start_lsn;
 		transaction_id_t end_lsn = _dbinfo->logInfo._last_write_txn_id;
+
 		guard.unlock();
 
 		// write the next metafile.
@@ -811,9 +819,51 @@ std::map<std::string,checkpoint_file_info> Database<ManagedRegionType>::get_curr
 }
 
 
+template <class ManagedRegionType>
+	template <class Archive>
+void Database<ManagedRegionType>::dump_metadata(Archive &ar
+		, const char* database_name // the name of this database (used for region name)
+		, const char* database_directory // the location of metadata & lock files
+		, void* fixed_mapping_addr) // fixed mapping address (optional)
+{
+	typedef database_registry<region_allocator_t> registry_type;
+	typedef DatabaseInfo<region_allocator_t, mutex_type> dbinfo_type;
 
+	// Start off by getting the file lock.  We must get this BEFORE opening the region.
+	stldb::file_lock flock(ManagedRegionNamer<ManagedRegionType>::getFullName(database_directory, database_name).append(".lock").c_str());
+	STLDB_TRACE(stldb::finest_e, "acquiring file lock on " << flock.filename() );
+	scoped_lock<file_lock> lock(flock);
 
+	// Attach (but do not create) the managed memory region
+	std::string fullname = ManagedRegionNamer<ManagedRegionType>::getFullName(database_directory, database_name);
+	STLDB_TRACE(fine_e, "opening region " << fullname);
+	std::auto_ptr<ManagedRegionType> region( new ManagedRegionType(boost::interprocess::open_only,
+			fullname.c_str(), fixed_mapping_addr) );
+	STLDB_TRACE(fine_e, "region opened.");
 
+	// Now, get the registry data structures within the region.
+	registry_type *registry = (region->template find<registry_type>(boost::interprocess::unique_instance)).first;
+	if (!registry) {
+		throw recovery_needed("Region lacks a registry, suggesting a region which failed during construction.  Any open of this database will destroy and recover this region");
+	}
+
+	stldb::file_lock registry_lock(database_registry<region_allocator_t>::filelock_name(database_directory, database_name).c_str());
+	STLDB_TRACE(stldb::finest_e, "acquiring file lock on " << registry_lock.filename() );
+	scoped_lock<file_lock> reg_lock(registry_lock);
+
+	// dump the registry
+	ar & BOOST_SERIALIZATION_NVP(registry);
+
+	dbinfo_type *dbinfo = region->template find<dbinfo_type>("DBInfo").first;
+	if (dbinfo) {
+		scoped_lock<mutex_type> guard(dbinfo->mutex);
+		ar & BOOST_SERIALIZATION_NVP(dbinfo);
+	}
+	else {
+		// stil serializze the fact that the pointer is NULL.
+		ar & BOOST_SERIALIZATION_NVP(dbinfo);
+	}
+}
 
 } // namespace stldb;
 

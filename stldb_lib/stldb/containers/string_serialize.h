@@ -12,7 +12,11 @@
 #include <boost/config.hpp>
 #include <boost/serialization/wrapper.hpp>
 #include <boost/serialization/level.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
 #include <boost/interprocess/containers/string.hpp>
+
 
 #ifdef __GNUC__
 #include <stldb/containers/gnu/basic_string.h>
@@ -103,6 +107,26 @@ void load(Archive & ar
 		ar.load_binary(buff, len);
 		s.append(buff, len);
 	}
+}
+
+// Serialization support for boost::interprocess::basic_string
+template<class CharT, class CharTraits, class AllocType>
+void save(boost::archive::xml_oarchive & ar
+		  , const boost::interprocess::basic_string<CharT,CharTraits,AllocType>& s
+		  , unsigned int version)
+{
+	std::string value( s.c_str() );
+	ar & BOOST_SERIALIZATION_NVP(value);
+}
+
+template<class CharT, class CharTraits, class AllocType>
+void load(boost::archive::xml_iarchive & ar
+		  , boost::interprocess::basic_string<CharT,CharTraits,AllocType>& s
+		  , unsigned int version)
+{
+	std::string value;
+	ar & BOOST_SERIALIZATION_NVP(value);
+	s = value;
 }
 
 // copied from dfn of BOOST_SERIALIZATION_SPLIT_FREE()
