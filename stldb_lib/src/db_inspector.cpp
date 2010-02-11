@@ -50,12 +50,13 @@ int dump(int argc, const char *argv[])
 
 int main(int argc, const char *argv[])
 {
-	return dump<boost::interprocess::managed_mapped_file>(argc, argv);
-//	return dump< boost::interprocess::basic_managed_mapped_file< char,
-//		boost::interprocess::rbtree_best_fit<stldb::bounded_mutex_family,
-//			boost::interprocess::offset_ptr<void> >
-//		, boost::interprocess::flat_map_index>
-//	>(argc, argv);
+//	return dump<boost::interprocess::managed_mapped_file>(argc, argv);
+
+	// mememory_mapped_file database_type when constructed form java.
+	return dump< boost::interprocess::basic_managed_mapped_file< char,
+	    boost::interprocess::rbtree_best_fit<stldb::bounded_mutex_family, 
+			boost::interprocess::offset_ptr<void> >
+		, boost::interprocess::flat_map_index> >(argc, argv);
 }
 
 
