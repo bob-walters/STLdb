@@ -106,14 +106,32 @@ namespace __gnu_cxx {
       {
         if (_M_diff == 1)
           return 0;
-        else
-          return reinterpret_cast<_Tp*>(reinterpret_cast<std::ptrdiff_t>(this)
+        else {
+			_Tp *result = reinterpret_cast<_Tp*>(reinterpret_cast<std::ptrdiff_t>(this)
 					+ _M_diff);
+#ifdef STLDB_DEBUG
+	  		if (safety_check_region != NULL) {
+				void *region_end = reinterpret_cast<char*>(safety_check_region)+safety_check_region_size;
+				if (this >= safety_check_region && this < region_end
+			    	&& (result < safety_check_region || result >= region_end))
+						abort();
+			}
+#endif
+			return result;
+		}
       }
 
       void
       set(_Tp* __arg)
       {
+#ifdef STLDB_DEBUG
+	  	if (safety_check_region != NULL) {
+			void *region_end = reinterpret_cast<char*>(safety_check_region)+safety_check_region_size;
+			if (this >= safety_check_region && this < region_end
+			    && (__arg < safety_check_region || __arg >= region_end))
+					abort();
+		}
+#endif
         if (!__arg)
           _M_diff = 1;
         else
@@ -132,9 +150,29 @@ namespace __gnu_cxx {
       { return (reinterpret_cast<std::ptrdiff_t>(this->get())
 		== reinterpret_cast<std::ptrdiff_t>(__rarg.get())); }
 
+#ifdef STLDB_DEBUG
+    template<class region_type>
+    static void safety_check(region_type &region) {
+	    safety_check_region = region.get_address();
+		safety_check_region_size = region.get_size();
+	}
+
+	private:
+	static void* safety_check_region;
+	static std::size_t safety_check_region_size;
+#endif
+
     private:
        std::ptrdiff_t _M_diff;
     };
+
+#ifdef STLDB_DEBUG
+template<typename _Tp>
+void* _Relative_pointer_impl<_Tp>::safety_check_region = NULL;
+
+template<typename _Tp>
+std::size_t _Relative_pointer_impl<_Tp>::safety_check_region_size = 0;
+#endif
 
   /**
    * Relative_pointer_impl needs a specialization for const T because of
@@ -450,6 +488,7 @@ namespace __gnu_cxx {
       }
 
     }; // class _Pointer_adapter
+
 
 
 #define _GCC_CXX_POINTER_COMPARISON_OPERATION_SET(OPERATOR,BLANK) \
