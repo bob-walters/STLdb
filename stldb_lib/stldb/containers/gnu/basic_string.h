@@ -60,7 +60,7 @@
 # include <stldb/containers/gnu/cast_workaround.h>     // mod for offset_ptr.
 # include <stldb/containers/gnu/type_traits.h> // comes with gcc 4.4.0+
 # include <stldb/containers/gnu/cpp_type_traits.h> // comes with gcc 4.4.0+
-#elif (__GNUC__==4 && __GNUC_MINOR__==2)
+#elif (__GNUC__==4 && (__GNUC_MINOR__==2 || __GNUC_MINOR__==3))
 # include <ext/atomicity.h>
 # include <debug/debug.h>
 # include <stldb/containers/gnu/pointer.h>  // verbatim copy of gcc 4.4.0 version
