@@ -26,6 +26,10 @@ struct log_header {
 	uint32_t segment_checksum;
 	uint32_t header_checksum;
 
+	inline log_header()
+		: op_count(0), segment_size(0), lsn(0), segment_checksum(0), header_checksum(0)
+		{ }
+
 	inline bool padding() const {
 		return (segment_checksum == 0 && op_count == 0
 				&& lsn == 0);
