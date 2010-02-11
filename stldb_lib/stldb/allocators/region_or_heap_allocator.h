@@ -110,6 +110,15 @@ public:
 	  if(count > this->max_size())
 		 throw boost::interprocess::bad_alloc();
 	  if (WrappedAllocator::get_segment_manager() == NULL) {
+#ifdef STLDB_DEBUG
+	      // optional mechanism which can detect when/where an allocation
+		  // in a shared region is being made to allocate memory in heap.
+		  // because that tends to cause problems...
+	  	  if (safety_check_region != NULL) {
+		  	 if (this >= safety_check_region && this < reinterpret_cast<void*>(reinterpret_cast<char*>(safety_check_region)+safety_check_region_size))
+			 	abort();
+		  }
+#endif
 	  	  STLDB_TRACE(finest_e, "Allocating from heap, " << count << " bytes");
 		  return pointer(heap_alloc.allocate(count));
 	  }
@@ -122,11 +131,18 @@ public:
 	void deallocate(pointer ptr, size_type s)
 	{
 		if (WrappedAllocator::get_segment_manager() == NULL) {
+#ifdef STLDB_DEBUG
+			// optional safety mechanism check
+			if (safety_check_region != NULL) {
+			    if (this >= safety_check_region && this < reinterpret_cast<void*>(reinterpret_cast<char*>(safety_check_region)+safety_check_region_size))
+					abort();
+			}
+#endif
 	  	    STLDB_TRACE(finest_e, "Deallocating to heap, " << s << " bytes");
 			heap_alloc.deallocate(this->get_pointer(ptr), s);
 			return;
 		}
-	  STLDB_TRACE(finest_e, "Deallocating to shm, " << s << " bytes");
+	    STLDB_TRACE(finest_e, "Deallocating to shm, " << s << " bytes");
 		WrappedAllocator::deallocate(ptr, s);
 	}
 
@@ -145,6 +161,18 @@ public:
 	{
 		typedef region_or_heap_allocator< typename WrappedAllocator::template rebind<T2>::other >  other;
 	};
+
+#ifdef STLDB_DEBUG
+	template<class region_type>
+	static void safety_check(region_type &region) {
+		safety_check_region = region.get_address();
+		safety_check_region_size = region.get_size();
+	}
+
+private:
+	static void* safety_check_region;
+	static std::size_t safety_check_region_size;
+#endif
 };
 
 //!Equality test for same type
@@ -161,7 +189,13 @@ bool operator!=(const region_or_heap_allocator<WrappedAllocator>  &alloc1,
                 const region_or_heap_allocator<WrappedAllocator>  &alloc2)
    {  return alloc1.get_segment_manager() != alloc2.get_segment_manager(); }
 
+#ifdef STLDB_DEBUG
+template <class WrappedAllocator, class HeapAllocator>
+void* region_or_heap_allocator<WrappedAllocator,HeapAllocator>::safety_check_region = NULL;
 
+template <class WrappedAllocator, class HeapAllocator>
+std::size_t region_or_heap_allocator<WrappedAllocator,HeapAllocator>::safety_check_region_size = 0;
+#endif
 
 } // namespace stldb
 
