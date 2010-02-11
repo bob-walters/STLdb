@@ -8,6 +8,7 @@
 #ifndef STLDB_OS_FILE_FUNCTIONS_EXT_H
 #define STLDB_OS_FILE_FUNCTIONS_EXT_H
 
+#include <string.h> // strerror on Solaris
 #include <boost/interprocess/detail/os_file_functions.hpp>
 
 #if (!defined BOOST_INTERPROCESS_WINDOWS)
