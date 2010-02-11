@@ -482,6 +482,19 @@ bool recover_after_checkpoint( )
 
 bool checkpoint_after_checkpoint( )
 {
+
+	// clean-up after prior runs
+	std::string db_dir, checkpoint_dir, logging_dir;
+	{
+		// Construct the database, opening it in the process
+		TestDatabase<managed_mapped_file,MapType> db("test5_database");
+		db_dir = db.getDatabase()->get_database_directory();
+		checkpoint_dir = db.getDatabase()->get_checkpoint_directory();
+		logging_dir = db.getDatabase()->get_logging_directory();
+	}
+	stldb::Database<managed_mapped_file>::remove("test5_database",
+ 			db_dir.c_str(), checkpoint_dir.c_str(), logging_dir.c_str() );
+
 	{
 		// Construct the database, opening it in the process
 		TestDatabase<managed_mapped_file,MapType> db("test5_database");
@@ -520,6 +533,64 @@ bool checkpoint_after_checkpoint( )
 	return true;
 }
 
+
+bool checkpoint_after_recover_after_checkpoint( )
+{
+
+	// clean-up after prior runs
+	std::string db_dir, checkpoint_dir, logging_dir;
+	{
+		// Construct the database, opening it in the process
+		TestDatabase<managed_mapped_file,MapType> db("test5_database");
+		db_dir = db.getDatabase()->get_database_directory();
+		checkpoint_dir = db.getDatabase()->get_checkpoint_directory();
+		logging_dir = db.getDatabase()->get_logging_directory();
+	}
+	stldb::Database<managed_mapped_file>::remove("test5_database",
+ 			db_dir.c_str(), checkpoint_dir.c_str(), logging_dir.c_str() );
+
+	{
+		// Construct the database, opening it in the process
+		TestDatabase<managed_mapped_file,MapType> db("test5_database");
+		assert( db.getDatabase()->check_integrity() );
+
+		Transaction *txn = db.beginTransaction();
+
+		// ensure that default constructors on stldb::gnu::allocator know which region to use by default
+		stldb::scoped_allocation<managed_mapped_file::segment_manager>  a(db.getRegion().get_segment_manager());
+
+		MapType *map = db.getMap();
+
+		char rawkey[256];
+		char rawvalue[256];
+		for (int i=0; i<10; i++) {
+			sprintf(rawkey, "key%05d", i);
+			sprintf(rawvalue, "the value for key%05d", i);
+			map->insert( std::make_pair(rawkey,rawvalue), *txn );
+		}
+		db.commit( txn );
+
+		// checkpoint immediately after restart (which in turn followed checkpoint)
+		// this risks the chance of repeating a checkpoint fo rthe same start_lsn;
+		db.getDatabase()->checkpoint();
+
+		// and now recover, should still have 0 rows.
+		db.getDatabase()->set_invalid(true);
+		assert( !db.getDatabase()->check_integrity() );
+	}
+
+	{
+		// Construct the database, opening it in the process
+		TestDatabase<managed_mapped_file,MapType> db("test5_database");
+		assert( db.getDatabase()->check_integrity() );
+
+		// checkpoint immediately after restart (which in turn followed checkpoint)
+		// this risks the chance of repeating a checkpoint fo rthe same start_lsn;
+		db.getDatabase()->checkpoint();
+	}
+
+	return true;
+}
 
 // Log Tester - tests log throughput
 int main(int argc, const char* argv[])
@@ -574,6 +645,7 @@ int main(int argc, const char* argv[])
 	assert( reopen_and_check_mapsize(10) );
 
 	assert( checkpoint_after_checkpoint( ) );
+	assert( checkpoint_after_recover_after_checkpoint( ) );
 
 	return 0;
 }
