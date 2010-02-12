@@ -109,9 +109,8 @@ void database_registry<void_alloc_t>::await_complete_disconnect(
 	while (_registry.size() > 0) {
 		// Message about other running processes.
 		std::ostringstream pidlist;
-		pidlist << _registry[0];
-		for (unsigned int i=1; i<_registry.size(); i++) {
-			pidlist << ", " << _registry[i];
+		for (unsigned int i=0; i<_registry.size(); i++) {
+			pidlist << _registry[i] << (i==_registry.size()-1 ? "" : ", ");
 			if (_registry[i] == pid)
 				waiting_on_mypid = true;
 		}
@@ -161,6 +160,19 @@ template <class void_alloc_t>
 file_lock* database_registry<void_alloc_t>::register_pid()
 {
 	OS_process_id_t pid = boost::interprocess::detail::get_current_process_id();
+
+	// safety mechanism, to prevent an application from opening multiple
+	// copies of an environment within one app.  (undesirable, and known
+	// to cause race conditions on calls to methods like checkpoint.)
+	for (unsigned int i=0; i<_registry.size(); i++) {
+		if (_registry[i] == pid) {
+			std::ostringstream why;
+			why << "Process " << pid << " is attempting open of already opened cache environment " << _database_dir.c_str() << "/" << _database_name.c_str() << ", without closing the previous Database instance.  Found " << pid << " already in the process registry (database_registry::register_pid())";
+			STLDB_TRACE(error_e, why.str());
+			throw stldb_exception(why.str().c_str());
+		}
+	}
+
 	_registry.push_back(pid);
 
 	std::ostringstream s;
