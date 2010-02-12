@@ -241,7 +241,13 @@ void checkpoint_ofstream::commit( transaction_id_t lsn_at_start, transaction_id_
 	// make this the new metafile by renaming it.
 	boost::filesystem::path finalpath( checkpoint_dir );
 	finalpath /= meta.meta_filename;
-	boost::filesystem::rename( tempfilepath, finalpath );
+	try {
+		boost::filesystem::rename( tempfilepath, finalpath );
+	}
+	catch (boost::filesystem::filesystem_error &ex) {
+		STLDB_TRACE(severe_e, "Failed to rename " << tempfilepath.string() << " to " << finalpath.string() << ", " << ex.what());
+		throw;
+	}
 
 	// clean up:
 	// remove all previous meta files or meta_wip with this container name
