@@ -93,3 +93,15 @@ exe test5
 		  <link>shared:<define>BOOST_STLDB_DYN_LINK
         ;
         
+exe dualopentest
+	    : src/dualopentest.cpp
+		  libstldb
+          libboost_serialization
+          libboost_filesystem
+          libboost_thread
+          libboost_system
+          libboost_date_time
+		: <define>BOOST_ALL_NO_LIB
+		  <link>shared:<define>BOOST_STLDB_DYN_LINK
+        ;
+        

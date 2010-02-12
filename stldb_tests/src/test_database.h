@@ -107,6 +107,7 @@ public:
 		{
 			std::cerr << "Caught a bad_alloc exception" << std::endl;
 			std::cerr << x.what() << std::endl;
+			throw;
 		}
 		catch( boost::interprocess::bad_alloc &x )
 		{
@@ -114,6 +115,7 @@ public:
 			std::cerr << x.what() << std::endl;
 			std::cerr << x.get_error_code() << std::endl;
 			std::cerr << x.get_native_error() << std::endl;
+			throw;
 		}
 		catch( boost::interprocess::interprocess_exception &x )
 		{
@@ -121,11 +123,13 @@ public:
 			std::cerr << x.what() << std::endl;
 			std::cerr << x.get_error_code() << std::endl;
 			std::cerr << x.get_native_error() << std::endl;
+			throw;
 		}
 		catch( std::exception &x )
 		{
 			std::cerr << "An exception was thrown..." << std::endl;
 			std::cerr << x.what() << std::endl;
+			throw;
 		}
 	}
 
