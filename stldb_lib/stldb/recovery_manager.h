@@ -89,7 +89,7 @@ transaction_id_t recovery_manager<ManagedRegionType>::recover()
 	std::map<transaction_id_t, boost::filesystem::path>::iterator i = log_files.lower_bound(starting_lsn);
 	if ( i != log_files.begin() && (i == log_files.end() || i->first > starting_lsn ))
 		i --; // we will need the log file previous as well.
-	STLDB_TRACE(info_e, "determined first log file needed for recovery: " << (i==log_files.end() ? "None" : i->second.string()));
+	STLDB_TRACEDB(info_e, db.get_database_name(), "determined first log file needed for recovery: " << (i==log_files.end() ? "None" : i->second.string()));
 
 	if (i->first > starting_lsn) {
 		// hmmm, the operator deleted some log files which are needed to perform
@@ -121,7 +121,7 @@ transaction_id_t recovery_manager<ManagedRegionType>::recover()
 			max_lsn = lsn;
 			lsn = reader.next_transaction();
 		}
-		STLDB_TRACE(info_e, "Completed recovery of logfile, " << _txn_count << " transactions, " << _op_count << " operations recovered thus far");
+		STLDB_TRACEDB(info_e, db.get_database_name(), "Completed recovery of logfile, " << _txn_count << " transactions, " << _op_count << " operations recovered thus far");
 		reader.close();
 
 		// and now recover the transactions from every additional log file after the first.
@@ -131,20 +131,20 @@ transaction_id_t recovery_manager<ManagedRegionType>::recover()
 				this->recover_txn( nextLog.get_transaction() );
 				max_lsn = lsn;
 			}
-			STLDB_TRACE(info_e, "Completed recovery of logfile, " << _txn_count << " transactions, " << _op_count << " operations recovered thus far");
+			STLDB_TRACEDB(info_e, db.get_database_name(), "Completed recovery of logfile, " << _txn_count << " transactions, " << _op_count << " operations recovered thus far");
 		}
 
 		// At the conclusion of this process, we know the maximum LSN recovered
-		STLDB_TRACE(info_e, "recovery complete, recovered transactions through LSN: " << max_lsn);
+		STLDB_TRACEDB(info_e, db.get_database_name(), "recovery complete, recovered transactions through LSN: " << max_lsn);
 	}
 	catch(recover_from_log_failed &ex) {
 		// Note how far we got before the error occurred.  It may still be
 		// possible to complete recovery with lost transactions.
-		STLDB_TRACE(severe_e, "Aborting recovery: " << ex.what() << "at txn: " << max_lsn << ", at offset:"
+		STLDB_TRACEDB(severe_e, db.get_database_name(), "Aborting recovery: " << ex.what() << "at txn: " << max_lsn << ", at offset:"
 				<< ex.offset_in_file() << " of " << ex.filename() );
 	}
 	catch (std::ios_base::failure &ex) {
-		STLDB_TRACE(severe_e, "Aborting recovery: " << ex.what());
+		STLDB_TRACEDB(severe_e, db.get_database_name(), "Aborting recovery: " << ex.what());
 	}
 	return max_lsn;
 }
@@ -194,7 +194,7 @@ transaction_id_t recovery_manager<ManagedRegionType>::recover_txn( std::pair<log
 		std::ostringstream msg;
 		msg << "Log Recovery: boost::archive::archive_exception: " << ex.what();
 		msg << ".  Processing lsn: " << header.lsn << ", operation " << i << " of " << header.op_count;
-		STLDB_TRACE(severe_e, msg.str());
+		STLDB_TRACEDB(severe_e, db.get_database_name(), msg.str());
 		throw recover_from_log_failed(msg.str().c_str(), header.lsn, -1, "");
 	}
 	return header.lsn;

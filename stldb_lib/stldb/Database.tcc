@@ -83,18 +83,18 @@ Database<ManagedRegionType>::Database(
 	, _registry_pid_lock(NULL)
 {
 	// Start off by getting the file lock.  We must get this BEFORE opening the region.
-	STLDB_TRACE(stldb::finest_e, "acquiring file lock on " << database_name << ".flock");
+	STLDB_TRACEDB(stldb::finest_e, database_name, "acquiring file lock on " << database_name << ".flock");
 	scoped_lock<file_lock> lock(_flock);
-	STLDB_TRACE(stldb::finest_e, "file lock acquired.");
+	STLDB_TRACEDB(stldb::finest_e, database_name, "file lock acquired.");
 
 	bool creating_region = false;
 
 	// Attach (and optionally create) the managed memory region
 	std::string fullname = ManagedRegionNamer<ManagedRegionType>::getFullName(database_directory, database_name);
-	STLDB_TRACE(fine_e, "opening/creating region " << fullname);
+	STLDB_TRACEDB(fine_e, database_name, "opening/creating region " << fullname);
 	_region = new ManagedRegionType(boost::interprocess::open_or_create,
 			fullname.c_str(), initial_size, fixed_mapping_addr);
-	STLDB_TRACE(fine_e, "region opened.");
+	STLDB_TRACEDB(fine_e, database_name, "region opened.");
 
 	// Now, get the registry data structures within the region.
 	_registry = (_region->template find<database_registry<region_allocator_t> >
@@ -103,17 +103,17 @@ Database<ManagedRegionType>::Database(
 	bool recovery_needed = false;
 	if (_registry == NULL)
 	{
-		STLDB_TRACE(fine_e, "no registry found.  creating region data structures");
+		STLDB_TRACEDB(fine_e, database_name, "no registry found.  creating region data structures");
 		// This means (since we have the _flock) that we are creating or
 		// recovering the managed memory region from scratch.
 		creating_region = true;
 	}
 	else
 	{
-		STLDB_TRACE(fine_e, "registry found. checking need for recovery");
-		STLDB_TRACE(finest_e, "acquiring registry mutex");
+		STLDB_TRACEDB(fine_e, database_name, "registry found. checking need for recovery");
+		STLDB_TRACEDB(finest_e, database_name, "acquiring registry mutex");
 		scoped_lock<stldb::file_lock> reglock(_registry_lock);
-		STLDB_TRACE(finest_e, "registry mutex acquired.");
+		STLDB_TRACEDB(finest_e, database_name, "registry mutex acquired.");
 
 		// We have attached to a region with something already in it.
 		// Using just the RegistryInfo structure, let's see if it looks valid.
@@ -122,33 +122,33 @@ Database<ManagedRegionType>::Database(
 			recovery_needed = !_region->check_sanity();
 		if (recovery_needed)
 		{
-			STLDB_TRACE(warning_e, "recovery is needed.");
+			STLDB_TRACEDB(warning_e, database_name, "recovery is needed.");
 
 #if (defined BOOST_INTERPROCESS_WINDOWS)
 			// On Unix systems, removing a shared region while other processes
 			// are attached to it is OK.  On some other OSes, it isn't OK.
 			// So for portability, we wait for processes to all detach before
 			// deleting the region.
-			STLDB_TRACE(finest_e, "awaiting disconnect by all process currently using database.");
+			STLDB_TRACEDB(finest_e, database_name, "awaiting disconnect by all process currently using database.");
 			_registry->await_complete_disconnect(reglock);
-			STLDB_TRACE(finest_e, "all other processes have disconnected.");
+			STLDB_TRACEDB(finest_e, database_name, "all other processes have disconnected.");
 #endif
 		}
 		else {
-			STLDB_TRACE(fine_e, "no recovery is needed, passed disconnect check and check_sanity()");
+			STLDB_TRACEDB(fine_e, database_name, "no recovery is needed, passed disconnect check and check_sanity()");
 		}
 	}
 	if (recovery_needed)
 	{
-		STLDB_TRACE(warning_e, "performing recovery");
-		STLDB_TRACE(finest_e, "closing existing region");
+		STLDB_TRACEDB(warning_e, database_name, "performing recovery");
+		STLDB_TRACEDB(finest_e, database_name, "closing existing region");
 		delete _region; // close the region
-		STLDB_TRACE(fine_e, "removing existing region");
+		STLDB_TRACEDB(fine_e, database_name, "removing existing region");
 		// time for a fresh start
 		RegionRemover<ManagedRegionType>::remove(database_directory,database_name);
 
 		// Recreate the managed memory region
-		STLDB_TRACE(fine_e, "recreating region");
+		STLDB_TRACEDB(fine_e, database_name, "recreating region");
 		_region = new ManagedRegionType(boost::interprocess::create_only,
 				fullname.c_str(), initial_size, fixed_mapping_addr);
 
@@ -162,7 +162,7 @@ Database<ManagedRegionType>::Database(
 
 	if (creating_region)
 	{
-		STLDB_TRACE(fine_e, "creating registry data structures");
+		STLDB_TRACEDB(fine_e, database_name, "creating registry data structures");
 		_registry = _region->template construct<database_registry<region_allocator_t> >
 			(boost::interprocess::unique_instance)
 			(database_directory, database_name, alloc);
@@ -174,7 +174,7 @@ Database<ManagedRegionType>::Database(
 	if (_registry->connected_pids()==0 && initial_size != _region->get_size()) {
 		_region = RegionResizer<ManagedRegionType>::resize( _region, fullname.c_str(), initial_size, fixed_mapping_addr);
 
-		STLDB_TRACE(info_e, "Region resized to " << _region->get_size() << " bytes");
+		STLDB_TRACEDB(info_e, database_name, "Region resized to " << _region->get_size() << " bytes");
 
 		// Restore the _registry pointer, and then continue.
 		_registry = (_region->template find<database_registry<region_allocator_t> >
@@ -182,19 +182,19 @@ Database<ManagedRegionType>::Database(
 	}
 
 	// At this point, I can register.
-	STLDB_TRACE(fine_e, "registering this process");
+	STLDB_TRACEDB(fine_e, database_name, "registering this process");
 	_registry_pid_lock = _registry->register_pid();
 	reglock.unlock();
 
 	// find or construct all of the internal database structures, including
 	// the container instances.
-	STLDB_TRACE(fine_e, "finding/creating database info data structures");
+	STLDB_TRACEDB(fine_e, database_name, "finding/creating database info data structures");
 	this->find_or_construct_databaseinfo(containers, database_name,
 				database_directory, checkpoint_directory,
 				log_directory, max_log_file_len, synchronous_logging );
 
 	// open the containers stored within the database
-	STLDB_TRACE(fine_e, "finding/creating containers");
+	STLDB_TRACEDB(fine_e, database_name, "finding/creating containers");
 	this->open_containers(containers);
 
 	if (creating_region)
@@ -202,23 +202,23 @@ Database<ManagedRegionType>::Database(
 		// whether because it didn't exist, or because we are recreating it
 		// as part of recovery, we now need to reload any containers from any
 		// checkpoints and/or logs
-		STLDB_TRACE(fine_e, "loading containers from checkpoints");
+		STLDB_TRACEDB(fine_e, database_name, "loading containers from checkpoints");
 		std::map<container_proxy_type*,transaction_id_t> container_lsn;
 		std::pair<transaction_id_t,transaction_id_t> lsns = this->load_containers(containers, container_lsn);
 		transaction_id_t recovery_start_lsn = lsns.first;
 
-		STLDB_TRACE(fine_e, "recovering transactions from log records, sarting at LSN: " << recovery_start_lsn);
+		STLDB_TRACEDB(fine_e, database_name, "recovering transactions from log records, sarting at LSN: " << recovery_start_lsn);
 		stldb::timer t("recovery_manager<>::recover()");
 
 		recovery_manager<ManagedRegionType> recovery(*this, container_lsn, recovery_start_lsn);
 		transaction_id_t last_lsn = recovery.recover();
-		STLDB_TRACE(fine_e, "recovered all transactions up to LSN: " << last_lsn);
+		STLDB_TRACEDB(fine_e, database_name, "recovered all transactions up to LSN: " << last_lsn);
 		if (last_lsn < lsns.second) {
 			// We have a problem.  Some log record, which should have been available for
 			// recovery at the end of the log sequence were missing for some reason.  (i.e.
 			// A file was truncated or corrupt.)  As a result, tables may have inconsistencies,
 			// so we have to fail here.
-			STLDB_TRACE(fine_e, "Recovery FAILED.  Needed to recover through LSN: " << lsns.second << ", but made it only to: " << last_lsn);
+			STLDB_TRACEDB(error_e, database_name, "Recovery FAILED.  Needed to recover through LSN: " << lsns.second << ", but made it only to: " << last_lsn);
 			_registry->set_invalid(true);
 			throw stldb_exception("Recovery Failed: detected missing log records that are needed to arrive at a consistent database image.");
 		}
@@ -230,7 +230,7 @@ Database<ManagedRegionType>::Database(
 
 		// Mark the region info as valid now that everything is constructed, and
 		// all containers have been properly loaded.
-		STLDB_TRACE(fine_e, "marking database construction as completed.");
+		STLDB_TRACEDB(fine_e, database_name, "marking database construction as completed.");
 		scoped_lock<stldb::file_lock> reglock(_registry_lock);
 		_registry->construction_complete();
 	}
@@ -251,7 +251,7 @@ Database<ManagedRegionType>::close(bool final_checkpoint)
 			this->checkpoint();
 			reglock.lock();
 		}
-		STLDB_TRACE(finer_e, "unregistering process from database registry");
+		STLDB_TRACEDB(finer_e, _dbinfo->database_name, "unregistering process from database registry");
 		_registry->unregister_pid(_registry_pid_lock);
 		_registry_pid_lock = NULL;
 	}
@@ -283,7 +283,7 @@ bool Database<ManagedRegionType>::check_integrity()
 	if (!recovery_needed)
 		recovery_needed = !_region->check_sanity();
 	if (recovery_needed) {
-		STLDB_TRACE(finer_e, "need for recovery has been detected" );
+		STLDB_TRACEDB(finer_e, _dbinfo->database_name, "need for recovery has been detected" );
 	}
 	return !recovery_needed;
 }
@@ -294,10 +294,10 @@ void Database<ManagedRegionType>::remove_region(const char *database_name
 		, const char*database_directory)
 {
 	// Start off by getting the file lock.  We must get this BEFORE opening the region to synchronize properly.
-	STLDB_TRACE(stldb::finest_e, "acquiring file lock on " << database_name << ".flock");
+	STLDB_TRACEDB(stldb::finest_e, database_name, "acquiring file lock on " << database_name << ".flock");
 	stldb::file_lock flock(ManagedRegionNamer<ManagedRegionType>::getFullName(database_directory, database_name).append(".flock").c_str());
 	scoped_lock<file_lock> lock(flock);
-	STLDB_TRACE(stldb::finest_e, "file lock acquired.");
+	STLDB_TRACEDB(stldb::finest_e, database_name, "file lock acquired.");
 
 	remove_region_impl(database_name, database_directory);
 }
@@ -310,16 +310,16 @@ void Database<ManagedRegionType>::remove_region_impl(const char *database_name
 {
 	// Attach (but do not create) the managed memory region
 	std::string fullname = ManagedRegionNamer<ManagedRegionType>::getFullName(database_directory, database_name);
-	STLDB_TRACE(fine_e, "opening region " << fullname << "in order to set the invalid bit (evicting currently attached processes)");
+	STLDB_TRACEDB(fine_e, database_name, "opening region " << fullname << "in order to set the invalid bit (evicting currently attached processes)");
 	ManagedRegionType *region;
 	try {
 		region = new ManagedRegionType(boost::interprocess::open_only, fullname.c_str());
 	}
 	catch (boost::interprocess::interprocess_exception &x) {
-		STLDB_TRACE(fine_e, "region not found during region_remove() call");
+		STLDB_TRACEDB(fine_e, database_name, "region not found during region_remove() call");
 		return;
 	}
-	STLDB_TRACE(fine_e, "region opened.");
+	STLDB_TRACEDB(fine_e, database_name, "region opened.");
 
 	// Now, find the registry data structures within the region.
 	database_registry<region_allocator_t> *registry
@@ -331,7 +331,7 @@ void Database<ManagedRegionType>::remove_region_impl(const char *database_name
 
 	if (registry != NULL)
 	{
-		STLDB_TRACE(fine_e, "registry found. setting invalid bit");
+		STLDB_TRACEDB(fine_e, database_name, "registry found. setting invalid bit");
 		scoped_lock<stldb::file_lock> reglock(reg_file_lock);
 		registry->set_invalid(true);
 
@@ -340,9 +340,9 @@ void Database<ManagedRegionType>::remove_region_impl(const char *database_name
 		// are attached to it is OK.  On some other OSes, it isn't OK.
 		// So for portability, we wait for processes to all detach before
 		// deleting the region.
-		STLDB_TRACE(finest_e, "awaiting disconnect by all process currently using database.");
+		STLDB_TRACEDB(finest_e, database_name, "awaiting disconnect by all process currently using database.");
 		registry->await_complete_disconnect(reglock);
-		STLDB_TRACE(finest_e, "all other processes have disconnected.");
+		STLDB_TRACEDB(finest_e, database_name, "all other processes have disconnected.");
 #endif
 	}
 
@@ -361,10 +361,10 @@ void Database<ManagedRegionType>::remove(const char *database_name
 		, const char *log_directory)
 {
 	// Start off by getting the file lock.  We must get this BEFORE opening the region to synchronize properly.
-	STLDB_TRACE(stldb::finest_e, "acquiring file lock on " << database_name << ".flock");
+	STLDB_TRACEDB(stldb::finest_e, database_name, "acquiring file lock on " << database_name << ".flock");
 	stldb::file_lock flock(ManagedRegionNamer<ManagedRegionType>::getFullName(database_directory, database_name).append(".flock").c_str());
 	scoped_lock<file_lock> lock(flock);
-	STLDB_TRACE(stldb::finest_e, "file lock acquired.");
+	STLDB_TRACEDB(stldb::finest_e, database_name, "file lock acquired.");
 
 	remove_region_impl(database_name, database_directory);
 
@@ -373,7 +373,7 @@ void Database<ManagedRegionType>::remove(const char *database_name
 	for ( std::vector<checkpoint_file_info>::iterator i = chkpts.begin(); i != chkpts.end(); i++ ) {
 		boost::filesystem::path fullname( checkpoint_directory );
 		fullname /= i->ckpt_filename;
-		STLDB_TRACE(fine_e, "Removing checkpoint: " << fullname.string() );
+		STLDB_TRACEDB(fine_e, database_name, "Removing checkpoint: " << fullname.string() );
 		try {
 			boost::filesystem::remove( fullname.string() );
 		}
@@ -381,12 +381,12 @@ void Database<ManagedRegionType>::remove(const char *database_name
 
 		boost::filesystem::path metaname( checkpoint_directory );
 		metaname /= i->meta_filename;
-		STLDB_TRACE(fine_e, "Removing checkpoint metafile: " << metaname.string() );
+		STLDB_TRACEDB(fine_e, database_name, "Removing checkpoint metafile: " << metaname.string() );
 		try {
 			boost::filesystem::remove( metaname.string() );
 		}
 		catch (boost::filesystem::filesystem_error &ex) {
-			STLDB_TRACE(severe_e, "Error Removing log file: " << metaname.string() << ": " << ex.what() );
+			STLDB_TRACEDB(severe_e, database_name, "Error Removing checkpoint file: " << metaname.string() << ": " << ex.what() );
 		}
 	}
 
@@ -394,12 +394,12 @@ void Database<ManagedRegionType>::remove(const char *database_name
 	std::map<transaction_id_t,boost::filesystem::path> logfiles = detail::get_log_files(log_directory);
 	for ( typename std::map<transaction_id_t,boost::filesystem::path>::iterator i = logfiles.begin();
 			i != logfiles.end(); i++ ) {
-		STLDB_TRACE(fine_e, "Removing log files: " << i->second.string() );
+		STLDB_TRACEDB(fine_e, database_name, "Removing log files: " << i->second.string() );
 		try {
 			boost::filesystem::remove( i->second );
 		}
 		catch (boost::filesystem::filesystem_error &ex) {
-			STLDB_TRACE(severe_e, "Error Removing log file: " << i->second.string() << ": " << ex.what() );
+			STLDB_TRACEDB(severe_e, database_name, "Error Removing log file: " << i->second.string() << ": " << ex.what() );
 		}
 	}
 }
@@ -498,7 +498,7 @@ Database<ManagedRegionType>::load_containers(
 		if (chkpt != current_checkpoints.end() ) {
 			std::string filename = chkpt->second.ckpt_filename;
 
-			STLDB_TRACE(fine_e, "found checkpoint " << filename << " for container: " << proxy->getName());
+			STLDB_TRACEDB(fine_e, _dbinfo->database_name, "found checkpoint " << filename << " for container: " << proxy->getName());
 			if (chkpt->second.lsn_at_start < recovery_start_lsn)
 				recovery_start_lsn = chkpt->second.lsn_at_start;
 			if (chkpt->second.lsn_at_end > recovery_end_lsn)
@@ -508,7 +508,7 @@ Database<ManagedRegionType>::load_containers(
 			checkpoint_ifstream checkpoint( _dbinfo->checkpoint_directory.c_str(), chkpt->second );
 
 			// now load the container from its most recent checkpoint (if any)
-			STLDB_TRACE(fine_e, "loading checkpoint: " << chkpt->second.ckpt_filename);
+			STLDB_TRACEDB(fine_e, _dbinfo->database_name, "loading checkpoint: " << chkpt->second.ckpt_filename);
 			proxy->load_checkpoint( checkpoint );
 
 			typename DatabaseInfo<region_allocator_t, mutex_type>::shm_string
@@ -520,7 +520,7 @@ Database<ManagedRegionType>::load_containers(
 		else {
 			// recover_start_lsn has to be set to 0, since this container
 			// never managed even one successful checkpoint.
-			STLDB_TRACE(fine_e, "no checkpoint found for container: " << proxy->getName());
+			STLDB_TRACEDB(fine_e, _dbinfo->database_name, "no checkpoint found for container: " << proxy->getName());
 			recovery_start_lsn = 0;
 			container_lsn[proxy] = 0;
 
@@ -532,7 +532,7 @@ Database<ManagedRegionType>::load_containers(
 	for (typename DatabaseInfo<region_allocator_t,mutex_type>::ckpt_history_map_t::iterator i = _dbinfo->ckpt_history_map.begin();
 			i != _dbinfo->ckpt_history_map.end(); i++)
 	{
-		STLDB_TRACE(fine_e, "ckpt_history_map[" << i->first << "] = " << i->second);
+		STLDB_TRACEDB(fine_e, _dbinfo->database_name, "ckpt_history_map[" << i->first << "] = " << i->second);
 	}
 	return std::make_pair( recovery_start_lsn, recovery_end_lsn );
 }
@@ -565,7 +565,7 @@ void* Database<ManagedRegionType>::add_container(container_proxy_type *proxy)
 	_container_proxies[container] = proxy;
 	_proxies_by_name[proxy->getName()] = proxy;
 
-	STLDB_TRACE(fine_e, "opened or created container: " << proxy->getName());
+	STLDB_TRACEDB(fine_e, _dbinfo->database_name, "opened or created container: " << proxy->getName());
 	return container;
 }
 
@@ -752,7 +752,7 @@ transaction_id_t Database<ManagedRegionType>::checkpoint()
 		transaction_id_t last_checkpoint_lsn = (entry != _dbinfo->ckpt_history_map.end()) ? entry->second : 0;
 		if ( !(my_start_lsn > last_checkpoint_lsn) )
 		{
-			STLDB_TRACE(fine_e, "Skipping checkpoint of " << i->second->getName() << ". There has been no DB activity since last checkpoint.")
+			STLDB_TRACEDB(fine_e, _dbinfo->database_name, "Skipping checkpoint of " << i->second->getName() << ". There has been no DB activity since last checkpoint.")
 			continue;
 		}
 		guard.unlock();
@@ -760,12 +760,12 @@ transaction_id_t Database<ManagedRegionType>::checkpoint()
 		// Prepare checkpoint file
 		checkpoint_ofstream checkpoint( _dbinfo->checkpoint_directory.c_str(), container_name.c_str() );
 
-		STLDB_TRACE(fine_e, "Starting checkpoint of " << i->second->getName() << " for LSN: " << my_start_lsn << ", previous LSN: " << last_checkpoint_lsn );
+		STLDB_TRACEDB(fine_e, _dbinfo->database_name, "Starting checkpoint of " << i->second->getName() << " for LSN: " << my_start_lsn << ", previous LSN: " << last_checkpoint_lsn );
 		try {
 			i->second->save_checkpoint( *this, checkpoint, last_checkpoint_lsn );
 		}
 		catch (...) {
-			STLDB_TRACE(error_e, "Exception during checkpoint write for container: " << i->second->getName());
+			STLDB_TRACEDB(error_e, _dbinfo->database_name, "Exception during checkpoint write for container: " << i->second->getName());
 			continue;
 		}
 
@@ -779,7 +779,7 @@ transaction_id_t Database<ManagedRegionType>::checkpoint()
 		guard.unlock();
 
 		// write the next metafile.
-		STLDB_TRACE(finer_e, "Committing Checkpoint.");
+		STLDB_TRACEDB(finer_e, _dbinfo->database_name, "Committing Checkpoint " << i->second->getName() << ", startLSN: " << my_start_lsn << ", endLSN: " << end_lsn );
 		// This final log sync will ensure that the contents of the log will allow the
 		// recovery to work with this checkpoint.  We do this prior to the commit to ensure
 		// that recovery can't fail becuase of asynchronous logging.
@@ -831,15 +831,15 @@ void Database<ManagedRegionType>::dump_metadata(Archive &ar
 
 	// Start off by getting the file lock.  We must get this BEFORE opening the region.
 	stldb::file_lock flock(ManagedRegionNamer<ManagedRegionType>::getFullName(database_directory, database_name).append(".lock").c_str());
-	STLDB_TRACE(stldb::finest_e, "acquiring file lock on " << flock.filename() );
+	STLDB_TRACEDB(stldb::finest_e, database_name, "acquiring file lock on " << flock.filename() );
 	scoped_lock<file_lock> lock(flock);
 
 	// Attach (but do not create) the managed memory region
 	std::string fullname = ManagedRegionNamer<ManagedRegionType>::getFullName(database_directory, database_name);
-	STLDB_TRACE(fine_e, "opening region " << fullname);
+	STLDB_TRACEDB(fine_e, database_name, "opening region " << fullname);
 	std::auto_ptr<ManagedRegionType> region( new ManagedRegionType(boost::interprocess::open_only,
 			fullname.c_str(), fixed_mapping_addr) );
-	STLDB_TRACE(fine_e, "region opened.");
+	STLDB_TRACEDB(fine_e, database_name, "region opened.");
 
 	// Now, get the registry data structures within the region.
 	registry_type *registry = (region->template find<registry_type>(boost::interprocess::unique_instance)).first;
@@ -848,7 +848,7 @@ void Database<ManagedRegionType>::dump_metadata(Archive &ar
 	}
 
 	stldb::file_lock registry_lock(database_registry<region_allocator_t>::filelock_name(database_directory, database_name).c_str());
-	STLDB_TRACE(stldb::finest_e, "acquiring file lock on " << registry_lock.filename() );
+	STLDB_TRACEDB(stldb::finest_e, database_name, "acquiring file lock on " << registry_lock.filename() );
 	scoped_lock<file_lock> reg_lock(registry_lock);
 
 	// dump the registry
