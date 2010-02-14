@@ -129,7 +129,10 @@ boost::filesystem::path get_current_metafile(
 	{
 		if ( !is_directory(itr->status()) && itr->path().extension() == meta ) {
 			std::string filename( itr->path().filename() );
-			if (filename.find(container_name) == 0) {
+			if (filename.find(container_name) == 0 &&
+			    filename[strlen(container_name)] == '.')
+			{
+				// Confirmed a format of <container_name>.<anything>.meta
 				get_checkpoint_file_info(itr->path(), metainfo);
 				if (metainfo.lsn_at_start > startlsn) {
 					result = itr->path();
