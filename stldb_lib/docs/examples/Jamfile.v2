@@ -1,0 +1,28 @@
+import common ;
+import os ;
+
+path-constant BOOST_ROOT : [ os.environ BOOST_ROOT ] ;
+use-project /boostroot : $(BOOST_ROOT) ;
+
+alias libboost_serialization : /boostroot//serialization ;
+alias libboost_filesystem : /boostroot//filesystem ;
+alias libboost_thread : /boostroot//thread ;
+alias libboost_date_time : /boostroot//date_time ;
+alias libboost_system : /boostroot//system ;
+
+project stldb_lib
+	: requirements
+	  <include>$(BOOST_ROOT)
+	  <include>.
+	  <toolset>msvc:<define>NO_STDINT_H
+      <toolset>msvc:<define>_CRT_SECURE_NO_WARNINGS
+      <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS
+      <define>STLDB_TRACING
+      <threading>multi
+	;
+	
+obj PlainMapExample.o : PlainMapExample.cpp ;
+obj SharedMapExample.o : SharedMapExample.cpp ;
+obj DatabaseExample.o : DatabaseExample.cpp ;
+
+
