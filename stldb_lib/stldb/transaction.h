@@ -286,7 +286,16 @@ private:
 		_lock.unlock();
 	}
 
-	void clear(void);
+	void clear(void) {
+		// These routines call destructors on the intrusive lists holding the transactional
+		// ops, and thereby eventually end up calling the virtual destructors on the
+		// TransactionOp objects, making it possible to use their destructors as final
+		// clean-up methods.  This call to clear must always be done, to guarantee that
+		// that clean-up can fire before the transaction object itself is subsequently reused.
+		_modifiedContainers.clear();
+		_outstandingChanges.clear();
+		_containerSpecificData.clear();
+	}
 
 	// The transactions lock on the db->transaction mutex;
 	boost::interprocess::sharable_lock<boost::interprocess::interprocess_upgradable_mutex> _lock;
@@ -537,20 +546,6 @@ void Transaction::rollback(std::map<void*, container_proxy_base<ManagedRegionTyp
 		throw;
 	}
 
-}
-
-
-void Transaction::clear(void)
-{
-	// These routines call destructors on the intrusive lists holding the transactional
-	// ops, and thereby eventually end up calling the virtual destructors on the
-	// TransactionOp objects, making it possible to use their destructors as final
-	// clean-up methods.  This call to clear must always be done, to guarantee that
-	// that clean-up can fire before the transaction object itself is subsequently reused.
-	stldb::timer t("clear outstanding changes (clean up)");
-	_modifiedContainers.clear();
-	_outstandingChanges.clear();
-	_containerSpecificData.clear();
 }
 
 
