@@ -1,0 +1,215 @@
+[section:quickstart Quick Start Guide]
+
+This section presents a quick overview of how an STLdb database can be created
+and used in an application.  The concepts which are introduced in this
+section are elaborated on in the sections which follow.
+
+This example shows a simple database composed of std::maps.  We start with the maps being in the 
+heap, and them progresses that to a model in which the maps are in an STLdb database.
+
+To start with, consider a simple Shoe Store application in which a database consists
+of two data types, Customers and Accounts.  Both types are stored in their own maps,
+corresponding to the notion of database tables.
+
+[import examples/PlainMapExample.cpp]
+[types]
+
+In the above code, we establish our customer and account types.  Note that they are not concrete
+types, they have std::string members.  Now we need corresponding map types to store sets of these objects,
+keyed off the customer names.
+
+[maptypes]
+
+Now all that remains is our example of data manipulation.
+
+[main]
+
+So far, nothing beyond the standard STL map type has been introduced.  Now to create an STLdb
+example which does the same set of operations, with full transactions, we need to move the
+maps and their associated data types into shared memory.  STLdb works with the database contents
+as an active set in a boost::interprocess region of your choice (shared memory, mapped file, etc.)
+and the maps are literally accessed directly from shared memory.  This makes operations, particularly
+read operations, very efficient.  No deserialization of objects during find() calls, and no disk I/O
+for read-only operations.
+
+Understanding the paradigm for working with STL containers in Boost::interprocess shared memory regions
+is essential to the use of STLdb. This next example shows the same data structures moved into a boost::interprocess region.
+For more detailed explanations of boost::interprocess, see the
+[@http://www.boost.org/doc/libs/1_41_0/doc/html/interprocess.html boost::interprocess library documentation for details]
+
+Here's our type definitions for the case of customer and account types which will reside in shared memory.
+
+[import examples/SharedMapExample.cpp]
+[sharedtypes]
+
+Notice that in this case, we no longer use std::string for strings.  Rather, we are using boost::interprocess::basic_string
+to hold string data, because that string class will work effectively with offset_ptr, and with interprocess allocators.
+The allocator type being given to the string class in this case is not a pure interprocess_allocator, but rather an
+stldb::scope_aware_allocator wrapper, which supports a scope-based allocation scheme that enables a default
+constructor so that constructed objects implicitly know which boost::interprocess region they should use for allocation.
+You'll see more on that later.  For now, the important thing to note is that my customer_t and account_t classes needed
+to switch to use shm_string instead of std::string.  Had either of these types done their own internal memory allocation they
+would need to accept an allocator template parameter, and use that allocator for memory allocation.
+
+With the types modified to work in shared memory, we can now declare the map types which will hold these objects.
+
+[sharedmaptypes]
+
+In this case, we use the boost::interprocess::map types to hold data in shared memory, as most STL map implementations do not
+(yet) fully support custom pointer types in the manner suggested by the STL standard. In this case, I've also elected to use
+the cached_adaptive_pool allocators purely as a performance enabler since all nodes in this map are the same size, and can
+exploit that trait.
+
+Finally, we have our example of using the maps.  The process for constructing the maps is now a little different...
+
+[sharedmain1]
+
+Here, rather than just construct the maps, we must create the shared memory region, then use the associated construct
+methods to construct the maps in the region.  Then we're ready to get to work.  The next thing I do is establish
+an allocation scope designating this shared memory region as the one to use for all scope_aware_allocators which get
+constructed with a default constructor.  
+
+[sharedmain2] 
+
+This is mainly for convenience, as I could have added constructors to my
+customer_t and account_t types in order to explicitly pass the shared memory region into them and from there into
+their shm_string members.  In general however, many methods of STL containers will not compile if the allocator
+doesn't support a default constructor, so the scope_aware_allocator is both easier and needed in those cases.
+With our shm_string objects dutifully notified that they should use 'segment' for memory allocation, we now use
+the maps, and little has changed from before.
+
+[sharedmain3]
+
+Now that we've seen how this would work with boost::interprocess maps, we have a final set of changes to make
+to make this work as an STLdb database.
+
+The final set of changes we need to do are as follows:
+
+* Our customer_t and account_t types will need to support Boost.Serialization since they will now be persistent.
+* Instead of a Boost.Interprocess region, the maps will be declared within an stldb::Database
+* The map type changes to stldb::trans_map.
+* In our use of the maps, we will control concurrency using a lock on the map, and employ transactions when making changes.
+
+To begin with, we need to alter our data types to include support for Boost.Serialization.
+
+[import examples/DatabaseExample.cpp]
+[dbtypes]
+
+Note the addition of the templated serialize methods.  If you aren't sure what those are, read up on Boost.Serialization.
+
+Next the map types are changed to use stldb::trans_map.  This is a transactional
+variation on std::map which supports all map operations but does so in a transactional manner, in which changes are
+logged, isolated from other threads, and can be rolled back or committed.
+
+[dbmaptypes]
+
+Now we need to create our maps.  The way in which this is done is by constructing an stldb::database object, which
+is an equivalent to a Boost.Interprocess region with an added transactional infrastructure.
+
+[dbmain1]
+
+When the database is constructed, it creates or attaches to a shared memory region, and may conditionally perform recovery
+operations using the redo log.  Because of its capacity for recovery processing, the constructor itself needs to know the
+container types which are expected to be in the database, and this is passed to it as the last argument, the list
+of container proxies.  Aside from supporting recovery or container creation, the proxies also constitute a polymorphic
+interface for how the database infrastructure works with containers, and is meant to make it fairly easy to add additional
+container types to STLdb.
+
+[dbmain2]
+
+After the database is constructed, pointers to the maps within it can be fetched with the getContainer() calls.  This is
+the equivalent of using find_or_construct() methods on the underlying shared region.  We then establish scoped allocation
+against the shared memory region this database is using.
+
+[note The database class really represents a particular application's connection to the shared database in much the same way that a 
+boost::interprocess::shared_memory_region is really a connection to the shared region, and not the region itself.  There
+are different database constructors for different connection scenarios, including variants which never create or recover the database.
+But for this example, I'm showing the most capable constructor, which creates, opens and/or recovers the database as appropriate.]
+
+Once we have the maps, we're now ready to repeat the transactional work.  Here's where things get a bit different.
+
+The first change is that we now have to create transactions and pass those transactions to methods of trans_map which modify data.
+(An implicit, transactional scope concept similar to the allocation scope idea is planned which eliminates the need to
+explicitly pass the transactions.)  In addition, we now have to work with the lock on the map.  This isn't strictly required here
+because I know this example is single-threaded, but I'm showing the right form since this an example.  The trans_map has a
+upgradeable lock, and all operations except insert(), swap(), and clear() can be done while holding only a shared lock, permitting a
+high level of concurrency over the map as a whole.  
+
+Here's how we do the initial insert of the two records, transactionally.
+
+[tran0]
+
+In this case, we start a transaction with db.beginTransaction(), and commit it when done.  The transaction is now passed to the map's insert() methods.
+The other change here is that we must acquire exclusive locks on the maps while insert() is being called to be sure that
+the map isn't going to be corrupted by another thread or process doing similar operations.
+
+With the data insertion done, we now proceed to our first, read-only transaction.
+
+[tran1]
+
+The only difference here is that sharable locks are established while using the trans_map.  If you are wondering at this point why
+this is being done by the code and not automatically within the find() method, the answer is to give you more control over the scope
+and type of lock.  In general, iterators should only exist within the scope of some lock on the map, otherwise, the iterator itself
+could be invalid due to operations performed by other threads on the map.
+
+Note that in this case, we didn't actually start a transaction for this segment of code.  Transactions aren't needed when
+you know that a particular set of operations are read-only.  The trans_map still supports all read-only operations without requiring
+a transaction parameter.
+
+Now we move on to some operations, transactions 2 and 3.
+
+[tran2]
+
+Here we intend to modify an entry by adding a purchase to it, so we need a transaction.  For updates, we still only need
+a sharable_lock on the map itself.  This is because the map structure is not being changed, and because STLdb also has entry-level
+lock tracking which permits concurrent updates to different entries in the map by different threads.  When threads attempt
+an update operation on a row that another pending transaction has locked, one of two things will happen, depending on the
+method of trans_map which is called.  The application will either block on the other transaction, and complete the update once the
+other transaction completes, or it will get an immediate row_level_lock_contention exception to indicate that it can't update
+the row at that time.  In this example, we are calling a version of update() which does the later.  The other variation takes a
+wait policy which allows a timeout to be established (if desired.)
+
+The other thing which is different in this case is that trans_map doesn't perform updates to entries directly via the iterator, 
+there is an explicit update() method which is called with a new value in order to pass in the modified value.  The trans_map
+implements a degree of multi-version concurrency control in order to ensure that writers (pending changes) never have to block
+readers.  Because of this, updates are not done directly to the existing committed value via the iterator, rather the
+update method is used.  Thus, we make a local copy of the current entry, modify it, and pass the modified copy back to the update method.
+
+Finally, there is the lock() call.  The lock() call is there to support a pessimistic locking scheme.  Consider that if lock() was not
+there to lock the row, when I made the local copy, and applied the add_purchase() method to the account, another thread or process, in that
+same timeframe, might read the entry itself, update it, and commit its transaction, in which case my computed balance would then be wrong.
+I would be overwriting that row with a balance computed from stale data.  This is the equivalent of what can happen in relational databases
+when a C program executes:
+
+  select balance from account where name = "Joe Smith";
+  compute new balance
+  update account set balance = :newval where name = "Joe Smith";
+
+The right sequence with a relational database would be:
+
+  select balance from account where name = "Joe Smith" [*[for update]];
+  compute new balance
+  update account set balance = :newval where name = "Joe Smith";
+
+In this case, the equivalent of doing a "select ... for update" is to lock the entry using the lock() API before using the data
+on the entry found.  The lock method establishes an entry-level lock on the entry passed, which lasts until
+the transaction is comitted, and guarantees that no other thread can modify that entry while the lock exists.
+
+The lock() and update() methods of trans_map represent the only additions to the std::map API.  They were needed.
+While some version of update() might be attempted by inferring an update from non-const access to an iterator, that seemed a
+dangerous inference to me.  There would undoubtedly be cases of unwanted/unexpected updates occuring just because a row
+was mistakenly accessed in a non-const manner.  So the explicit update() method is the better option.
+
+The third transaction is essentially the same as the second, being another update() operation based on the application of a payment.
+
+[tran3]
+
+Finally, the erase transaction is as follows:
+
+[tran4]
+
+Note that erase operations can be done with a sharable lock.  This is counter intuitive, but has to do with the MVCC transactional
+conventions.  The erase() operation marks the row as erased from the map, but does not actually remove it, until the transaction is committed.
+An exclusive lock is used briefly during commit processing of the transaction, to complete the erase at that time.
+
+[endsect]

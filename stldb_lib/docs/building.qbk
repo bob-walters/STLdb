@@ -1,0 +1,54 @@
+[section:build Building STLdb]
+
+STLdb depends on several libraries within the Boost project.  It also uses the Boost
+build (bjam), documentation (quickbook), and testing tools.  Thus, you can begin
+by building the boost distribution to validate that you have correctly configured
+boost to work with your compiler.  Thereafter, building STLdb will be a matter
+of running bjam to build one additional library.
+ 
+The recommended process is as follows:
+
+# Start by building boost 1.39 or later on your machine, using the standard
+  boost build process.  During the bootstrapping phases of this process, the
+  bjam executable is built, and it is then used to build the rest of the boost
+  library.  The bjam executable is also used to build STLdb
+# Once boost is built, untar a tgz distribution of stldb somewhere.
+# set the BOOST_ROOT environment variable to the directory containing your boost distribution, and then
+
+  cd stldb_lib
+  bjam toolset=<yours> variant=debug,release link=shared
+  cd ../dist
+
+The debug and release versions of the libraries will be in debug and release
+directories under dist/. 
+
+One some platforms this process may yield a link problem when trying to link
+log_inspector using the shared version of the STLdb library.  To overcome this,
+do an initial build with 
+
+  bjam toolset=<yours> variant=debug,release link=static log_inspector
+
+to build a static version of STLdb, and statically linked log_inspector, and then you can
+
+  bjam toolset=<yours> variant=debug,release link=shared stldb
+  
+to build shared versions of the stldb library.
+
+Once the STLdb library is built, to use it you will simply need to include
+$BOOST_ROOT and the stldb_lib directory in your compiler's include path (-I)
+and link with the libraries in dist (either the debug or release versions.)
+
+Thus far, STLdb has been successfully built with the following compilers / platforms
+
+* gcc 4.2 on MacOS x86_64 (Snow Leopard) and gcc 4.1 on MacOS i686 (Leopard)
+* gcc 4.4.1 on Linux (Fedora) x86_64
+* gcc 3.4.2 on Solaris 10
+* Visual C++ 9.0 on MS Windows XP 32-bit.
+* gcc 3.4.2/cygwin on MS Windows XP 32-bit.
+
+If you run into problems building STLdb using bjam, please write to me at
+<bob.s.walters at gmail dot com>, and I'll try to help resolve the issue.
+Please make certain though that you have first been able to build the boost
+libraries using bjam as a prerequisite.  
+
+[endsect]

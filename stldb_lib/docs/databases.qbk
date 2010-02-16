@@ -1,0 +1,198 @@
+[section:databases Using Databases]
+
+[section:connecting Connecting to a Database]
+
+The [classref stldb::Database] class represents a connection to an STLdb 
+database, in much the same manner that a 
+[classref boost::interprocess::managed_shared_region] is a connection to 
+a shared memory region.  Constructing a [classref stldb::Database] object 
+constructs the associated interprocess region object, and finds or 
+constructs the key structures which support the database infrastructure,
+along with the containers which make up the contents of the database.
+
+The Database constructor will create, load, and/or recover the database, 
+if those operations are needed, and allowed, based on the constructor 
+arguments.
+ 
+[Note A particular process should only construct a single Database
+connection to a particular database.  With many databases, a 'connection'
+can only be used with one transaction at a time but the STLdb Databse class
+is designed to support multiple transactions by different threads in parallel,
+and as such, there is no need for multiple Database objects to be constructed.
+
+The construction of a Database object attaches the process to a
+shared memory region using an appropriate managed region object from
+the Boost::interprocess library.  If multiple Database objects that refer to the
+same database are constructed within one process then the process can end up
+with the same memory region mapped in at multiple virtual addresses.  The
+result of this is undefined.]
+
+There are a number of different scenarios that could occur during the
+construction of a Database object:
+
+* The database could be created (i.e. from nothing, no prior region, and no checkpoints or logs)
+* The process could connect to an already existing shared region, and use the already open and loaded database.
+* The shared memory region could be created, and the contents of the region could be loaded from existing checkpoints and logs, left behind from previous runs.  This might occur the first time that an existing database is used on a particular machine.
+* The process could discover that the existing region is potentially corrupt, and perform recovery.  When recovery is done, any existing region is destroyed, and then the contents of the database are reloaded from checkpoint and log files.
+
+Based on these possibilities, the [classref stldb::Database] class includes
+a set of overloaded constructors which each correspond to a desired
+connection behavior.  They dictate which activities  are allowed.
+The most permissive option 
+will perform any and all operations required to establish the connection.
+More restrictive variants will succeed only if the database is already
+created, loaded, or in a healthy state.
+
+The constructor variants and their associated behavior are as followed:
+
+[table Database Constructors
+    [[Constructor Variant] [Create/Load] [Connect] [Recover]]
+    [[open_or_recover] [] [yes] [yes]]
+    [[open_create_or_recover] [yes] [yes] [yes]]
+    [[create_or_recover] [yes] [] [yes]]
+    [[open_or_create] [yes] [yes] []]
+    [[open_only] [] [yes] []]
+]
+
+The specific constructor arguments which define the available behaviors when connecting to the database are as follows:
+
+* [*open_or_recover] - either attach to an existing shared region and use the database, or perform recovery if it is needed.   An exception is thrown if the region does not already exist.
+* [*open_create_or_recover] - do whatever is appropriate to create, load, open, or recover the database.
+* [*create_or_recover] - this option avoids the use of any existing shared memory region, either creating the region, and  loading it from any existing checkpoints and logs, or destroying the existing region and reloading it  per recovery processing.   This approach can be used to ensure that the process of establishing the connection won't be adversely affected by corruption in any existing region.
+* [*open_or_create] - if recovery is needed, throw an error.  Otherwise, the database can be created, loaded, or opened.
+* [*open_only] - succeed if connecting does not require creating, loading, or recovering the database. This mode of connection is guaranteed to be fast.
+
+[note Creating a region, and loading it from any existing 
+checkpoints and/or log files is always done together.  There is no 
+explicit option to create the region and ignore existing checkpoint and 
+log files.  If an application wishes to recreate a database, an existing 
+database can be removed first by by using the [memberref stldb::Database::remove] method, and then constructing a Database object using a crustor which
+permits creation.]
+
+[section:constructor_args Constructor Arguments]
+
+Aside from the first parameter of the Database constructor which determines the create/load/recover/open options that apply while connecting, the constructors take additional parameters as follows:
+
+* Database Name - used as the name of the database, and also the name given to the constructor of the underlying boost::interprocess::managed_region object.  If a managed_mapped_file is used as the database's region type, this name should not include any preceeding path.  This name serves to identify the database.
+* Database Directory - the directory where the region will be placed (if a managed mapped file is used), and also where various other file-based locks related to the database are located.
+* Checkpoint Directory - the directory where checkpoint files will be written.
+* Log Directory - the directory where write-ahead log files will be written.
+* Region size - this parameter is passed to the underlying boost::interprocess managed_region constructor to determine the size of the region for those cases where the region may be constructed.  It can also be used to resize a region.  (See below.)
+* fixed mapping address - designates a desired address for the mapping of the underlying managed shared region.    This value is passed to the constructor of the shared region.
+* maximum log file length - designates the maximum allows size for an individual log file before that file is closed and a new file begun.
+* synchronous logging (bool) - indicates whether or not the database infrastructure should issue an fsync call (or equivalent) after each write to the log buffer in order to guarantee the persistence of transactions through all forms of failure, including loss of power.  This options is described in grater detail in the section on logging.
+* container proxies.  A std::list<container_proxy_base*> which indicates the set of containers which should exist within the database.  This list is needed when constructing a new database to establish the set of containers that should exist within it.  It is also used when recovering the database.  This list (and the reason why it is required) is described below.
+
+[note that the Database, Checkpoint, and Log directories should be different for different databases. i.e. Two databases should not share any of the same directories, even though the database names, and container names within them may be different.]
+
+[endsect]
+
+[endsect]
+
+[section:resizing Resizing Database Regions]
+
+All data in the database is loaded into the managed shared region while the database is in use.  Thus the size of the shared region determines the limit on the amount of data which the database can contain.  The database region can be resized by changing the region size parameter given to the constructor of the Database object.  The value passed is used to resize any existing region under the following circumstances:
+
+* If the region exists, and no other processes are already connected to the region, then the region will be resized using the grow() or shrink_to_fit() methods of the underlying managed region type.  In this case, the region can be resized without invalidating its contents or requiring that it be recovered or reloaded.
+* If the Database must be recovered, the recovery process destroys the existing region and recreates it.  Under this circumstance, the newly created region will be created with the desired size, regardless of its previous size.
+
+Finally, if for any reason, the region does not exist when the process connects to the database, the size passed is used when creating the region.  The static [memberref stldb::Database::remove_region]() method can be used to delete the managed shared region of the database prior to establishing a connection, thus guaranteeing that it will be reconnected.
+
+[endsect]
+
+[section:removing Removing Regions and Databases]
+
+To discard the contents of an existing database, and recreate it from 
+scratch (empty), the static [memberref stldb::Database::remove]() method can be 
+used to delete checkpoints, logs, and existing regions.  Following 
+this with one of the constructor forms which can create the Database will 
+effectively re-initialize the database as an empty database.
+
+There is also a [memberref stldb::Database::remove_region] method which 
+can be used to remove the existing database region.  This method does not
+remove the database logs or checkpoints, and thus no data is lost.
+
+When a database or database region is removed, the exact behavior can
+depend on whether or not any processes are currently connected to the database.
+
+On Windows systems, the removal of the database shared region is not
+possible while any processes are connected.  Accordingly, the remove
+method will wait for all connected processes to detach (destroy their
+Database objects) before it can proceed.  To ensure that other processes
+will disconnect, the region is marked invalid when the remove() or
+remove_region() operation begins.  Any process connected to the shared
+region which is being deleted will receive a [classref stldb::recovery_needed]
+exception if it
+attempts to start any further transactions, or open any new connections
+to the database.  Processes must disconnect from the database if they
+receive this exception by destroying their existing Database objects.
+Once all existing connections are closed,
+the remove() or remove_region() operation can complete.  Other processes
+can then reconnect by reconstructing their Database objects.
+
+On Unix systems, the process performing the remove() operation does not
+need to wait for connected processes to disconnect, it can proceed
+immediately.  The region which is removed persists as an anonymous region
+until the last process disconnects from it.  Because of this, the
+existing region is still marked as invalid,
+and connected processes which continue to use it wil receive a [classref
+stldb::recovery_needed] exception to notify them to disconnect from the
+deleted region.
+
+[endsect]
+
+[section:database Database Containers]
+
+During the construction of the database, a list of container proxies 
+(subclasses of [classref stldb::container_proxy_base]) is provided. 
+These proxies identify the containers which should exist 
+within the database.  The reason for using the proxy types (as opposed 
+to passing the container types) is because the database infrastructure 
+requires a means to interact with all of the containers within it via a 
+single polymorphic interface.  The containers themselves must exist within 
+the boost::interprocess shared memory region, and thus cannot contain 
+the necessary virtual methods, so the proxy class is used as an 
+intermediary for acting on its associated container.
+
+[note The list of proxies is taken by the Database constructor because 
+it is needed immediately if recovery processing or database creation is 
+done. (i.e. if the region must be recreated or the database reloaded.)]
+
+When the database constructor completes, the shared memory region 
+contains the data for the indictaed containers, either because the 
+region already existed, or as a result of data loading or database 
+recovery.  Pointers to these containers can be acquired by calling 
+the [memberref stldb::Database::getContainer]() method.
+
+[section:add_remove_containers Adding and Removing Containers]
+
+Containers can be added to, and removed from databases while processes 
+are connected.  This is done via the 
+[memberref stldb::Database::add_container]() or 
+[memberref stldb::Database::remove_container]() methods.
+
+It is important that once a container is added to a database, 
+subsequent calls to the Database contructor, by any process, must include 
+the proxy for the added containers.  Likewise, once a container is removed 
+from a database, subsequent calls to the Database constructor should not 
+include that proxy in the constructor arguments.  It is the application's
+responsibility to keep track of the containers which should exist within 
+the database.
+
+If the container proxies passed to the database constructor do not 
+correspond to the containers that are already within the database, the 
+discrepancy is handled as follows:
+
+* If the container defintion is not removed from a subsequent Database constructor call after calling remove_container(), and if the database is recovered, then the deleted container will re-appear, with contents recovered to the point in time when the remove_container() call was made.
+* If the container definition is missing from the database constructor, after a call to add_container() method, then the container will not exist if the database is recovered.  Otherwise, if the process is connecting to an existing region, then it succeeds, and is simply unaware of the existing container within the region.
+
+The schema of a database can also be altered by changing the list of proxies passed to the database constructor:
+
+* Adding a container to the database constructor call causes the container to be added to the database during the processes of connecting to the database. 
+* Removing a container from the database constructor call causes the container to be dropped from the region the next time that the region is recreated.  (Region recreation occurs during recovery processing, or during reloading after an explicit call to database::remove_region().)
+
+[endsect]
+
+[endsect]
+
+[endsect]

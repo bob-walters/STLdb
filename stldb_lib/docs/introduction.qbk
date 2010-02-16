@@ -1,0 +1,127 @@
+[section:intro Introduction]
+
+STLdb is a C++ library which implements an ACID compliant database composed
+of STL containers.  The data of the database is held within a
+shared memory region (shared memory, memory mapped file, etc.) which can be
+simultaneously used by multiple processes (all running on the same machine).
+The library provides direct (embedded) access to the database.  Users
+directly manipulate the STL containers within the shared region, avoiding
+the overhead of inter-process communication.
+
+When an STLdb database is used with a set of maps, it provides a key/value 
+database which directly works with user-defined C++ data types.  The data types
+must support Boost.Serialization, and must be capable of being stored in
+Boost.Interprocess shared memory regions, but are otherwise unrestricted.
+In this respect it differs from implementations which only work with data that
+is represented as arbitrary byte arrays.
+
+The database is process-[*['embedded]] because access if via the direct invocation 
+of database routines.  Processes using the database connect directly to 
+the shared region containing the database data, and manipulate it 
+within that region.  Access to this region is properly synchronized, so 
+that multiple process can simultaneous make use of an STLdb database
+at the same time.  
+
+The database is [*['object-oriented]] because the contents of the database 
+are simply one or more STL containers, which in turn contain 
+application-specific data types specified as template parameters to the containers.
+You manipulate the database contents 
+by manipulating these containers, and the data they contain, using their 
+familiar APIs.
+
+The database can be memory resident.  A common practice with STLdb is to have
+the database use a managed mapped file for the shared region.  This allows
+the managed file to persist beyond machine reboots, and to exceed the size
+of available memory, but alternatively, a database can also be specified to
+use a non-durable shared memory region, thereby guaranteeing that read-only
+operations will never incur disk I/O.  Changes in either case are still written
+to write-ahead logs and database shapshots so that in the case that the shared
+region is ever lost, or corrupted, its contents can be recovered.
+
+[section:acid Acid Compliance]
+
+The database is fully ACID compliant.  The acronym ACID refers to 4 essential
+characteristics typically desired in a database implementation:  Atomicity, Consistency,
+Isolation, and Durability.
+
+The STLdb database enforces the [*['atomicity]] of all transactions.  The transaction
+infrastructure allows the application to indicate the transactions that each
+change occurs under.  The transaction is completed via an explicit call to
+either a commit() or rollback() method, which in turn guarantees that all of
+the changes in that transaction are either successfully performed (and logged)
+or that all changes are undone.  The changes related to a transaction become
+visible to all other threads at a single moment in time.
+
+The STLdb database maintains the [*['consistency]] of the containers within it
+individually.  Consistency
+constraints which apply across the containers are not handled by the STLdb database
+itself, and must currently be assured by the application code using the database.  Future work may provide a way to represent constraints which apply across
+containers so that STLdb can enforce those constraints.
+Another approach for this is to make it possible
+to use boost::multi_index::multi_index_container, with STLdb, as that container would then
+manage the data relationships between the different views of the data which it manages.
+
+STLdb provides [*['isolation]] to the extent of isolation level 1 (read committed.)
+This means is that a thread reading the data will not see uncommitted changes
+that are associated with any other transaction. Some containers, like the 
+stldb::map, provide multi-version concurrency control as part of their implementation,
+so that processes trying to read an entry in the map can always see the last
+committed copy of an entry, and are never blocked by in-progress changes.
+
+STLdb also ensures the [*['durability]] of all changes via write-ahead
+logging and checkpoints.  When a transaction is committed, the
+commit processing perform write-ahead logging of all changes ensuring the
+ability to recover the transaction thereafter.  In addition, applications
+can periodically checkpoint the database, writing out the container's
+contents to checkpoint files, and in the process, archive older log files.
+These conventions assure the durability of all data in the case that the
+shared region (memory mapped file, or shared memory region) should ever be
+corrupted by a failing process, or sudden machine failure.
+
+[endsect]
+
+[section:summary Summary of features]
+
+Some additional features of STLdb:
+
+* Multiple processes, can connect to a common database and use it concurrently.
+  Synchronization around activities like creating the database, recovering it, 
+  etc. are built into the library.
+* The need for database loading or recovery processing is detected automatically 
+  whenever any process connects (attaches to) to a database.  This is based on 
+  a mechanism for reliably detecting when previously attached processes disconnect 
+  abnormally, thereby leaving potential corruption in the shared memory region.
+* Recovery processing is automatic but also optional.  An application can
+  specify the desired mode of connection. You can 
+  allow the library to perform any required recovery, have it throw an exception 
+  if recovery is needed, or force recovery to occur by abandoning any already 
+  existing  memory regions.  The intention with this is to support architectures 
+  where all processes are equal peers, or where processes are specialized into 
+  roles.  (e.g. wanting a CGI script to never perform recovery, preferring to 
+  fail the request instead.)
+* The database's durability approach involves continuous sequential write of 
+  redo logs in response to committed transactions.   The option is available to 
+  do synchronous or asynchronous writes, permitting a tradeoff between high 
+  disk throughput vs. the chance of loosing some committed transactions in the 
+  event of  OS or machine failure.  It is also possible to specify transactions
+  which should not be logged at all, thereby supporting a disk-less database.
+* There is no assumed association between threads and transactions.  
+  A transaction could be handed off between threads, and threads can 
+  have multiple simulateous transactions in progress.
+* Some containers make use of multi-version concurrency control so that write
+  locks never block read-only operations on the containers.
+* When entry-level lock contention occurs, the API permits the caller to pass
+  in a wait policy, which defines whether to block, and establishes any maximum
+  wait time.  APIs are also available which handle lock contention on individual
+  entries by immediately throwing an exception.
+* Containers use entry-level locks, and because of this, it is possible to
+  design algorithms using the data in containers so that deadlocks are
+  impossible.  Deadlock checking is not currently in STLdb, however all mutexes
+  in the database and container can be configured with a timeout, so that upon
+  deadlock, the processes will time out and receive a lock_timeout exception
+  rather than remain deadlocked forever.
+
+[endsect]
+
+[endsect]
+

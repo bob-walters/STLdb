@@ -1,0 +1,85 @@
+[section:trans Using Transactions]
+
+Containers within the database are manipulated using APIs which conform 
+as much as possible to the APIs of the STL.  However, all modifications 
+against a container in a database must occur within the context of a 
+transaction.  Accordingly, those APIs will require a transaction parameter.
+
+A transaction designates a set of operations which must be atomically committed 
+or rolled back, and from which other threads accessing the database must be 
+isolated until that transaction completes.
+
+Transactions are optional when calling methods of containers which do not 
+modify the container.   You can, for example, iterate over the contents of a 
+map without creating a transaction.  When containers are accessed without 
+using a transaction, the methods and iterators returned by those methods show 
+only the currently committed data within the container.
+
+To call any methods which modify data within a container, a transaction must be passed.
+
+[section:create_trans Creating and Destroying Transactions]
+
+A transaction is started by calling the [memberref stldb::Database::beginTransaction]() method.
+That method returns a pointer to a transaction object which the application can then 
+pass to methods which require the transaction.
+
+The [classref stldb::Transaction] class itself has no public methods.  It is meant to be used as an 
+opaque type.  The transaction does accumulate data as it is used to perform 
+various operations.  This accumulated data serves to facilitate the commit or 
+rollback of operations when the transaction is concluded.  Because of this, it is 
+not safe to pass a transaction object from one process to another via any means.  
+However, a transaction does not have any specific association with a particular 
+thread, and could be used by different threads during its lifetime.
+See the section 
+on threads and transactions (below).
+
+[endsect]
+
+[section:complete_trans Completing Transactions]
+
+A transaction is ultimately completed by either committing the transaction, or by rolling it back, undoing all changes.
+
+A transaction is committed by calling [memberref stldb::Database::commit]().  This method completes the transacton by doing the following:
+
+* All operations performed as part fo the transaction become visible to all other threads accessing the database, atomically.
+
+* Unless the method is invoked with diskless=true, a log record is written to the database log which encapsulates all of the operations done as part of that transaction, ensuring their durability, by permitting the operations to be recovered in the event of a crash.
+
+If the application determines at some point in its processing that a transaction should be cancelled, all pending changes can be undone by calling the 
+[memberref stldb::Database::rollback]() method. 
+Rolling back a transaction undoes all changes that were done as part of that transaction.
+
+After calling either commit or rollback, the transaction object can and must then be deleted by the caller.
+
+The processing of a commit() operation can fail, due to factors like disk 
+failure.  In the event of such failures, the operation will have been 
+committed to the in-memory container data, but will not have been written to 
+disk.   It is up to the application to determine its approach for handling these failures.  However, not that once commit() is called, a subsequent call to rollback() cannot be issued, even in the case that the commit operation fails.
+
+[endsect]
+
+[section:thread_trans Threads and Transactions]
+
+In the STLdb design, there is no direct correlation between transactions and threads.  A single thread can create and  use multiple transactions against a database.  It is not required to have only one outstanding transaction at a time.
+
+Similarly, multiple threads can use one transaction.  However, the transaction is not in itself thread-safe.  Thus only one thread should make use of a transaction at any particular moment in time.
+
+A transaction is tied to the process which creates it, and to the database which it was created from.
+
+[endsect]
+
+[section:ex_trans Exclusive Transactions]
+
+Certain operations on containers, like swap() and clear(), are implemented in a manner which does not permit concurrency.  Threads must synchronize around transactons which call swap() and clear() in order to keep those methods efficient, and avoid  imposing an unacceptably long period of exclusive access against the containers during commit processing.   To address this need in the design, STLdb includes the concept of an exclusive transaction.
+
+An exclusive transaction is so named because when an exclusive transaction is in progress, no other transaction can be in progress against that same database.  Until the exclusive transaction is completed, no other transaction (standard or exclusive) can begin.  Exclusive transactions are started by calling 
+[memberref stldb::Database::begin_exclusive_transaction]().  That method must
+block if there are any standard transaction in progress.  Likewise, calls to [memberref stldb::Database::beginTransaction]() can block if there is an exclusive transaction in progress.  If the application does not make use of exclusive transactions, then the begin_transaction() method will never block.
+
+The [classref stldb::exclusive_transaction] class is a subclass of the standard [classref stldb::Transaction] class.  As such, exclusive transactions are completed by passing them to the same standard [memberref stldb::Database::commit]() or [memberref stldb::Database::rollback]() methods that are used to complete standard transactions.  The exclusive transaction can also be passed to any method which takes a standard transaction, and thus can be used to perform any transactional operation.
+
+An exclusive transaction, as with a standard transaction, can be used to perform any number of operations against any of the containers within the database.
+
+[endsect]
+
+[endsect]
