@@ -17,6 +17,7 @@
 #include <boost/intrusive/list.hpp>
 
 #include <stldb/cachetypes.h>
+#include <stldb/exceptions.h>
 #include <stldb/commit_buffer.h>
 #include <stldb/container_proxy.h>
 #include <stldb/logger.h>
@@ -280,9 +281,12 @@ private:
 		boost::interprocess::sharable_lock<boost::interprocess::interprocess_upgradable_mutex> lock(mutex);
 		_lock.swap( lock );
 	}
+
 	virtual void unlock_database() {
 		_lock.unlock();
 	}
+
+	void clear(void);
 
 	// The transactions lock on the db->transaction mutex;
 	boost::interprocess::sharable_lock<boost::interprocess::interprocess_upgradable_mutex> _lock;
@@ -362,6 +366,7 @@ T* Transaction::getContainerSpecificData(container_t *c)
 	return boost::any_cast<T>(&value);
 }
 
+
 template<class container_t>
 void Transaction::insert_work_in_progress(container_t *c, TransactionalOperation *op)
 {
@@ -393,7 +398,8 @@ void Transaction::commit( std::map<void*, container_proxy_base<ManagedRegionType
 
 	stldb::timer t1("Transaction::commit()");
 	if (!diskless) {
-		/* Phase 1 - formulate the commit buffer content.  Done concurrently - no locks. */
+		/* Phase 1 - serialize the commit buffer content.  Done concurrently - no locks. */
+
 		stldb::timer t2("add_to_log(all changes)");
 		// There's no direct way to construct vstream so that it will use buffer.  However
 		// it can initially construct a vector of size 0, and then we can swap() with buffer
@@ -410,65 +416,86 @@ void Transaction::commit( std::map<void*, container_proxy_base<ManagedRegionType
 		STLDB_TRACE(finer_e, "Committing transaction " << _transId << " with " << buffer->op_count << " operations, " << buffer->size() << " bytes of log");
 	}
 
-	/* Phase 2 - make the changes within the various containers permanent,
-	 * by getting all needed container locks (in predictable order), to thereby
-	 * assure the order in which changes become visible.
-	 */
-	stldb::timer t3a("container commit work (container lock duration)");
-	stldb::timer t3b("acquiring container locks");
 	std::set<void*>::iterator j;
-	for ( j = _modifiedContainers.begin(); j != _modifiedContainers.end(); j++ )
-	{
-		// acquire locks on the container.
-		proxies.find(*j)->second->initializeCommit(*this);
-	}
-	t3b.end();
+	bool committed_containers = false;
 
-	/**
-	 * Phase 3 - get a unique commit seq#, and put our commit buffer into
-	 * the logging queue.  At this point, we are reserving our place in the
-	 * sequence of the log file.
-	 */
-	if (!diskless) {
-		_commit_lsn = logger.queue_for_commit(buffer);
-	}
+	try {
+		/* Phase 2 - make the changes within the various containers permanent,
+		 * by getting all needed container locks (in predictable order), to thereby
+		 * assure the order in which changes become visible.
+		 */
+		stldb::timer t3a("container commit work (container lock duration)");
+		stldb::timer t3b("acquiring container locks");
+		for ( j = _modifiedContainers.begin(); j != _modifiedContainers.end(); j++ )
+		{
+			// acquire locks on the container.
+			proxies.find(*j)->second->initializeCommit(*this);
+		}
+		t3b.end();
 
-	// call _outstandingChanges.commit() to commit all ops,
-	stldb::timer t3c("committing transactional operations");
-	_outstandingChanges.commit(*this);
-	t3c.end();
+		/**
+		 * Phase 3 - get a unique commit seq#, and put our commit buffer into
+		 * the logging queue.  At this point, we are reserving our place in the
+		 * sequence of the log file.
+		 */
+		if (!diskless) {
+			_commit_lsn = logger.queue_for_commit(buffer);
+		}
 
-	/**
-	 * Phase 4 - release all container locks.  It is now acceptable for other
-	 * threads to begin doing work on top of our committed data because
-	 * they can't jump ahead of us in the logging queue.
-	 */
-	for ( j = _modifiedContainers.begin(); j != _modifiedContainers.end(); j++ )
-	{
-		proxies.find(*j)->second->completeCommit(*this);
-	}
-	t3a.end();
+		stldb::timer t3c("committing transactional operations");
+		// once we get here, there is no going back.  We either
+		// succeed, or we fail and force database recovery.
+		committed_containers = true;
 
-	/* Phase 5 - log write, with optional disk sync */
-	if (diskless) {
-		logger.record_diskless_commit();
-	}
-	else {
-		STLDB_TRACE(finer_e, "Committing transaction " << _transId << " to log with LSN  " << _commit_lsn);
-		logger.log(_commit_lsn);
-	}
+		// call _outstandingChanges.commit() to commit all ops,
+		_outstandingChanges.commit(*this);
+		t3c.end();
 
-	// Done committing this transaction.  Now clean up.
-	// _outstandingChanges.clear() calls destructors on the intrusive lists holding the transactional
-	// ops, and thereby eventually end up calling the virtual destructors on the
-	// TransactionOp objects, making it possible to use their destructors as final
-	// clean-up methods.  This call to clear must always be done, to guarantee that
-	// that clean-up can fire before the transaction object itself is subsequently reused.
-	stldb::timer t5("clear outstanding changes (clean up)");
-	_modifiedContainers.clear();
-	_outstandingChanges.clear();
-	_containerSpecificData.clear();
+		/**
+		 * Phase 4 - release all container locks.  It is now acceptable for other
+		 * threads to begin doing work on top of our committed data because
+		 * they can't jump ahead of us in the logging queue.
+		 */
+		do {
+			proxies.find(*(--j))->second->completeCommit(*this);
+		} while ( j != _modifiedContainers.begin() );
+		t3a.end();
+
+		/* Phase 5 - log write, with optional disk sync */
+		if (diskless) {
+			logger.record_diskless_commit();
+		}
+		else {
+			STLDB_TRACE(finer_e, "Committing transaction " << _transId << " to log with LSN  " << _commit_lsn);
+			logger.log(_commit_lsn);
+		}
+
+		// Now clean up.
+		clear();
+	}
+	catch (std::exception &ex) {
+		// in the event of any exception, step 4 might still need to be done
+		// to release the locks on the containers, and avoid hung locks.
+		// An exception during commit is generally bad.  However, a
+		// lock timeout exception during phase 2 is recoverable.
+		if ( j != _modifiedContainers.begin() )
+			do {
+				proxies.find(*(--j))->second->completeCommit(*this);
+			} while ( j != _modifiedContainers.begin() );
+
+		// if (committed_containers) then
+		// we passed the point of no return, having made the changes
+		// to the containers visible to other threads, but we failed
+		// to write the needed disk log.  Currently, the only way to
+		// recover from that discrepancy is via recovery.
+		if (committed_containers)
+			throw stldb::recovery_needed( ex.what() );
+		else
+			throw;
+	}
 }
+
+
 
 /**
  * Most of the work associated with rollback is likewise done by the polymorphic
@@ -479,24 +506,48 @@ void Transaction::rollback(std::map<void*, container_proxy_base<ManagedRegionTyp
 {
 	stldb::timer t1("Transaction::rollback()");
 
-	/* Phase 2 - make the changes to the various containers revert to their original state. */
 	std::set<void*>::iterator j;
-	for ( j = _modifiedContainers.begin(); j != _modifiedContainers.end(); j++ ) {
-		proxies.find(*j)->second->initializeRollback(*this);
+	try {
+		/* Phase 1 - make the changes to the various containers revert to their original state. */
+		for ( j = _modifiedContainers.begin(); j != _modifiedContainers.end(); j++ ) {
+			proxies.find(*j)->second->initializeRollback(*this);
+		}
+
+		/* Phase 2 - rollback container changes */
+		_outstandingChanges.rollback(*this);
+
+		/* Phase 3 - release locks */
+		do {
+			proxies.find(*(--j))->second->completeRollback(*this);
+		} while ( j != _modifiedContainers.begin() );
+
+		// Now clean up.
+		clear();
+	}
+	catch (...) {
+		// In the event of any exception, step 3 might still need to be done
+		// to release the locks on the containers, and avoid hung locks.
+		// An exception during commit is generally bad.  However, a
+		// lock timeout exception during phase 2 is recoverable.
+		if ( j != _modifiedContainers.begin() )
+			do {
+				proxies.find(*(--j))->second->completeRollback(*this);
+			} while ( j != _modifiedContainers.begin() );
+
+		throw;
 	}
 
-	_outstandingChanges.rollback(*this);
+}
 
-	for ( j = _modifiedContainers.begin(); j != _modifiedContainers.end(); j++ ) {
-		proxies.find(*j)->second->completeRollback(*this);
-	}
 
+void Transaction::clear(void)
+{
 	// These routines call destructors on the intrusive lists holding the transactional
 	// ops, and thereby eventually end up calling the virtual destructors on the
 	// TransactionOp objects, making it possible to use their destructors as final
 	// clean-up methods.  This call to clear must always be done, to guarantee that
 	// that clean-up can fire before the transaction object itself is subsequently reused.
-	stldb::timer t5("clear outstanding changes (clean up)");
+	stldb::timer t("clear outstanding changes (clean up)");
 	_modifiedContainers.clear();
 	_outstandingChanges.clear();
 	_containerSpecificData.clear();

@@ -310,7 +310,15 @@ public:
 	exclusive_transaction *begin_exclusive_transaction(exclusive_transaction *reusable_t = NULL);
 
 	/**
-	 * Commit the transaction (or exclusive transaction) passed.
+	 * Commit the transaction (or exclusive transaction) passed.  Returns 0 on success.
+	 * On failure, an exception is thrown.  If the exception is not a needs_recovery
+	 * exception, then the commit has had no effect on the transaction, and it still can,
+	 * and must be resolved, via a call to commit or rollback.  If there is a problem (e.g. I/O problem)
+	 * while attempting to commit the transaction, the exception is automatically escalated
+	 * to a needs_recovery exception.  Under those circumstances, the application should
+	 * disconnect and perform database recovery.  The needs_recovery exception is thrown to indicate
+	 * that the transaction was partially completed (e.g. in memory, but then could not complete
+	 * the disk logging required to make it permanent.)
 	 */
 	int commit(Transaction *t, bool diskless = false);
 
