@@ -487,25 +487,6 @@ public:
 	}
 
 	/**
-	 * Attempt to grow the size of the database, in-place (i.e. without
-	 * closing and reopening it.)  If the free space in the region is less
-	 * than minimum_free_size, then the region is extended by extra_bytes.
-	 * This method is thread-safe, but it is unsafe to use this method on
-	 * a database being used by multiple processes.
-	 */
-	void grow(std::size_t minimum_free_size, std::size_t extra_bytes) {
-		scoped_lock<mutex_type> guard(_dbinfo->mutex);
-		if (_region->get_free_memory() < minimum_free_size) {
-			// double check that only one process is connected
-			// at this time, as a safety precaution.
-			scoped_lock<stldb::file_lock> guard(_registry_lock);
-			if (_registry->is_valid() && registry->connected_pids()==1 ) {
-				_region->grow_in_place(extra_bytes);
-			}
-		}
-	}
-
-	/**
 	 * Utility method which connects to the region of a database and then dumps
 	 * information from the contents of the shared region, including DatabaseInfo,
 	 * the current registry contents, Logging info, checkpointing info, etc.
