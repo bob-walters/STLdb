@@ -11,6 +11,7 @@ properties_t properties;
 using namespace std;
 using stldb::transaction_id_t;
 using stldb::log_reader;
+using stldb::log_stats;
 
 template <class void_allocator, class mutex_type>
 class writelog : public trans_operation
@@ -23,7 +24,7 @@ public:
 		: buff( new commit_buffer_t(alloc) ), logger( log )
 	{
 	    buff->reserve(buffer_size);
-	    for (int k=0; k<buffer_size; k++) {
+	    for (std::size_t k=0; k<buffer_size; k++) {
 	      buff->push_back(k);
 	    }
 	    assert(buff->size() == buffer_size);
@@ -31,6 +32,8 @@ public:
 	}
 
 	virtual void operator()() {
+		assert(buff->op_count==10);
+		assert(buff->size() >0);
 		stldb::transaction_id_t commit_id = logger.queue_for_commit( buff );
 		logger.log( commit_id );
 	}
@@ -39,7 +42,9 @@ public:
 		delete buff;
 	}
 
-	virtual void print_totals() { }
+	virtual void print_totals() { 
+		logger.get_stats().print(std::cout);
+	}
 
 private:
     commit_buffer_t *buff;
@@ -96,9 +101,10 @@ int main(int argc, const char* argv[])
   logger.set_shared_info( &shared_info );
 
   typedef writelog<std::allocator<void>, boost::interprocess::interprocess_mutex> op_t;
-  
+  op_t *op = new op_t(alloc, logger, buffer_size);
+
   test_loop workload(loopsize);
-  workload.add( new op_t(alloc,logger,buffer_size), 100 );
+  workload.add( op, 100 );
 
   performance_test(thread_count, workload);
 
@@ -110,7 +116,7 @@ int main(int argc, const char* argv[])
 	  {
 		stldb::timer read_file("load_reader::read_log_file");
 
-		transaction_id_t txn_found;
+		transaction_id_t txn_found = 0;
 		std::size_t count = 0;
 		log_reader reader(i->second.string().c_str());
 		try {
