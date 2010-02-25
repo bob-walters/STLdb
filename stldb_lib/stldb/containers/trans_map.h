@@ -455,7 +455,13 @@ public:
 
 	virtual void initializeCommit(Transaction &trans)
 	{
-		_container->mutex().lock();
+		while (true) {
+			try {
+				_container->mutex().lock();
+				break;
+			}
+			catch (lock_timeout_exception &ex) { }
+		}
 	}
 	virtual void completeCommit(Transaction &trans)
 	{
@@ -464,7 +470,13 @@ public:
 	}
 	virtual void initializeRollback(Transaction &trans)
 	{
-		_container->mutex().lock();
+		while (true) {
+			try {
+				_container->mutex().lock();
+				break;
+			}
+			catch (lock_timeout_exception &ex) { }
+		}
 	}
 	virtual void completeRollback(Transaction &trans)
 	{

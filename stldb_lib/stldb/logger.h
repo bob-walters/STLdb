@@ -164,6 +164,14 @@ public:
 	{
 		stldb::timer t1("Logger::queue_for_commit");
 
+		// sanity test (debugging)
+		if (buff->size()==0 || buff->op_count==0) {
+			std::ostringstream error;
+			error << "Assertion: detected commit buffer of size==0 or ops==0 in log() method";
+			STLDB_TRACE(severe_e, error.str() );
+			throw std::ios_base::failure( error.str() );
+		}
+
 		buff->prepare_header();
 
 		boost::interprocess::scoped_lock<mutex_type> lock_holder(_shm_info->_queue_mutex);
@@ -210,14 +218,6 @@ public:
 				// get one txn buffer, create a header record for it.
 				stldb::commit_buffer_t<void_alloc_t> *buff = _shm_info->waiting_txns[0];
 
-				// sanity test (debugging)
-				if (buff->size()==0 || buff->op_count==0) {
-					std::ostringstream error;
-					error << "stldb::io::gathered_write_file() to log file failed.  errno: " << errno;
-					STLDB_TRACE(severe_e, "Assertion: detected commit buffer of size/ops==0 in log() method");
-					throw std::ios_base::failure( error.str() );
-				}
-
 				// add the header and the buffer to the io_vec structures.
 				iov[2*txn_count].iov_base = &(buff->header);
 				iov[2*txn_count].iov_len = sizeof(struct log_header);
@@ -242,10 +242,11 @@ public:
 			// pad the writes, as necessary, in order to ensure that each
 			// write can begin on sector/page boundaries, per optimum_write_alignment.
 			int buffercount = txn_count*2;
-			uint64_t padding = optimum_write_alignment - (new_file_len % optimum_write_alignment);
+			uint64_t padding = (new_file_len % optimum_write_alignment != 0) 
+				? optimum_write_alignment - (new_file_len % optimum_write_alignment) : 0;
 			if (padding != 0 && padding < sizeof(struct log_header))
 				padding += optimum_write_alignment;
-			if (padding != 0 && padding >= sizeof(struct log_header)) {
+			if (padding != 0) {
 				// we can add a padding transaction record in order to
 				// promote disk writes of 'optimum_write_alignment' increments.
 				padding_header.segment_size = padding - sizeof(struct log_header);
@@ -259,6 +260,7 @@ public:
 					buffercount++;
 				}
 				new_file_len += padding;
+				bytes += padding;
 			}
 
 			// make sure our fd is pointing to the correct offset in the file.
@@ -309,19 +311,16 @@ public:
 	};
 
 	// Sync the log to disk.   CALLER MUST HOLD FILE LOCK.
-	void sync_log(boost::interprocess::scoped_lock<mutex_type> &held_file_lock) {
+	void sync_log(boost::interprocess::scoped_lock<mutex_type> &held_file_lock)
+	{
 
 		transaction_id_t new_sync_txn_id = _shm_info->_last_write_txn_id;
 
-		// TODO - it might be possible to allow a thread to do additional writes to
-		// this file while the current thread oes an fsync to sync the last write
-		// to disk.  This behavior is enabled by uncommenting the unlock() and lock()
-		// pair below.  At the present time, I've had some apparent write errors,
-		// where subsequent reads fails the checksum checks on the Log files, so I
-		// have ruled this 'optimization' out until that instability is rooted out.
-		// It might have been invalid on the Linux & Windows OSes.
-
-		//held_file_lock.unlock();
+		// TODO - it might be possible to allow a thread to do additional 
+		// writes to this file while the current thread oes an fsync to 
+		// sync the last write to disk.  This behavior is enabled by 
+		// uncommenting the unlock() and lock() pair below.
+		// held_file_lock.unlock();
 
 		// may block for some time....
 		stldb::timer t6("sync()");
@@ -329,7 +328,8 @@ public:
 		t6.end();
 
 		// now re-acquire the file mutex..
-		//held_file_lock.lock();
+		// held_file_lock.lock();
+
 		if (_shm_info->_last_sync_txn_id < new_sync_txn_id) {
 			_shm_info->_last_sync_txn_id = new_sync_txn_id;
 		}

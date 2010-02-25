@@ -639,6 +639,8 @@ int Database<ManagedRegionType>::commit(Transaction *transaction, bool diskless)
 
 	// We need to get a commit txn_id from the dbinfo region
 	commit_buffer_t<region_allocator_t>* buffer = NULL;
+	// read-only transactions don't need a commit buffer.
+	if (transaction->get_work_in_progress().size() != 0 || diskless)
 	{
 		scoped_lock<mutex_type> guard(_dbinfo->mutex);
 
@@ -647,29 +649,33 @@ int Database<ManagedRegionType>::commit(Transaction *transaction, bool diskless)
 			buffer = & (_dbinfo->_buffer_queue.front());
 			_dbinfo->_buffer_queue.pop_front();
 		}
-	}
-	if (buffer == NULL) {
-		stldb::timer t2("create commit_buffer");
-		// need to construct a new commit buffer.
-		region_allocator_t alloc(_region->get_segment_manager());
-		typedef commit_buffer_t<region_allocator_t>  commit_buffer_type;
-		buffer = _region->template construct< commit_buffer_type >(anonymous_instance)(alloc);
-	}
-	else {
-		// found reusable buffer
-		buffer->op_count = 0;
-		buffer->clear();
+		guard.unlock();
+
+		if (buffer == NULL) {
+			stldb::timer t2("create commit_buffer");
+			// need to construct a new commit buffer.
+			region_allocator_t alloc(_region->get_segment_manager());
+			typedef commit_buffer_t<region_allocator_t>  commit_buffer_type;
+			buffer = _region->template construct< commit_buffer_type >(anonymous_instance)(alloc);
+		}
+		else {
+			// found reusable buffer
+			buffer->op_count = 0;
+			buffer->clear();
+		}
 	}
 
 	transaction->commit( _container_proxies, _logger, diskless, buffer );
 
+    if ( buffer != NULL)
 	{ // scope
 		stldb::timer t3("return commit_buffer to reuse queue");
-		scoped_lock<mutex_type> guard(_dbinfo->mutex);
 		// return the commit buffer to the queue.
+		scoped_lock<mutex_type> guard(_dbinfo->mutex);
 		_dbinfo->_buffer_queue.push_front(*buffer);
 	}
 
+	// release the shared or exclusive lock implied on this database.
 	transaction->unlock_database();
 	return 0;
 }

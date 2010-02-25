@@ -203,22 +203,25 @@ private:
 
 
 /**
- * @brief Transaction represents the details of an in-progress transaction, including
- * modifications which are in progress.  A transaction is created by the Database class,
- * acting as a factory.  A Transaction is resolved by passing it to either the commit
- * or rollback method of the Database.  This was done to prevent the need for the Transaction
+ * @brief Transaction represents the details of an in-progress transaction, 
+ * including modifications which are in progress.  A transaction is created 
+ * by the Database class, acting as a factory.  A Transaction is resolved 
+ * by passing it to either the commit or rollback method of the Database.  
+ * This was done to prevent the need for the Transaction
  * type to itself be a template class.
  */
 class Transaction
 {
 public:
 	/**
-	 * Most of the work associated with commit is actually done by the polymorphic
-	 * TransactionalOperation objects which accumulate in the Transaction.
-	 * Commit must lock each container in turn and hold all locks until all operations
-	 * are done.  (This is required to meet the ACI part of ACID.)
-	 * To ensure that multiple commits don't deadlock, they all must consistently lock
-	 * containers in the same order.  The ordering of _outstandingChanges assures this.
+	 * Most of the work associated with commit is actually done by the 
+	 * polymorphic TransactionalOperation objects which accumulate in the 
+	 * Transaction. Commit must lock each container in turn and hold all 
+	 * locks until all operations are done.  (This is required to meet the 
+	 * ACI part of ACID.)  To ensure that multiple commits don't deadlock, 
+	 * they all must consistently lock
+	 * containers in the same order.  The ordering of 
+	 * _outstandingChanges assures this.
 	 */
 	template<class ManagedRegionType, class void_alloc_t,class mutex_t>
 	void commit( std::map<void*, container_proxy_base<ManagedRegionType>*>& proxies,
@@ -227,8 +230,9 @@ public:
 				 commit_buffer_t<void_alloc_t>* buffer);
 
 	/**
-	 * Most of the work associated with rollback is likewise done by the polymorphic
-	 * TransactionalOperation objects which accumulate in the Transaction.
+	 * Most of the work associated with rollback is likewise done by the 
+	 * polymorphic TransactionalOperation objects which accumulate in the 
+	 * Transaction.
 	 */
 	template<class ManagedRegionType>
 	void rollback( std::map<void*, container_proxy_base<ManagedRegionType>*>& proxies );
@@ -237,7 +241,8 @@ public:
 	transaction_id_t getLockId() const
 	{ return _transId; }
 
-	//! Return the lsn assigned to this transaction.  LSN assignment occurs during commit processing.
+	//! Return the lsn assigned to this transaction.  LSN assignment 
+	/// occurs during commit processing.
 	transaction_id_t getLSN() const
 	{ return _commit_lsn; }
 
@@ -245,15 +250,19 @@ public:
 	template<class container_t>
 	void insert_work_in_progress(container_t *container, TransactionalOperation *op);
 
-	//! Returns the transactional_op_list of outstanding operations.  There are some
-	//! operations like swap() or clear() which might need to adjust information on
-	//! previous operations against the same container as part of their implementation.
+	//! Returns the transactional_op_list of outstanding operations.  
+	//! There are some
+	//! operations like swap() or clear() which might need to adjust 
+	//! information on
+	//! previous operations against the same container as part of their 
+	//! implementation.
 	transactional_op_list& get_work_in_progress()
 	{ return _outstandingChanges; }
 
 	/**
-	 * Return the pending changes container (some subclass of PendingChangeSet) for the
-	 * container ref passed.  If none exists, and create_flag = true, create one.
+	 * Return the pending changes container (some subclass of PendingChangeSet)
+	 * for the container ref passed.  If none exists, and create_flag = true, 
+	 * create one.
 	 */
 	template<class T, class container_t>
 	T* getContainerSpecificData(container_t *c);
@@ -312,9 +321,11 @@ private:
 	// This is a list of all the changes made
 	transactional_op_list _outstandingChanges;
 
-	// Each container can ask the transaction to hold some objects of data which the
-	// container is presumed to use when committing.  Where I found this valuable was with MVCC
-	// implementations.  Allowing the transaction to hold pending, uncommited new values related to
+	// Each container can ask the transaction to hold some objects of 
+	// data which the container is presumed to use when committing.  
+	// Where I found this valuable was with MVCC
+	// implementations.  Allowing the transaction to hold pending, 
+	// uncommited new values related to
 	// that transaction.  The value can be anything the container needs.
 	std::map<void*, boost::any> _containerSpecificData;
 };
@@ -407,30 +418,64 @@ void Transaction::commit( std::map<void*, container_proxy_base<ManagedRegionType
 
 	stldb::timer t1("Transaction::commit()");
 	if (!diskless) {
-		/* Phase 1 - serialize the commit buffer content.  Done concurrently - no locks. */
+		/* Phase 1 - serialize the commit buffer content.  
+		 * Done concurrently - no locks. */
 
 		stldb::timer t2("add_to_log(all changes)");
-		// There's no direct way to construct vstream so that it will use buffer.  However
-		// it can initially construct a vector of size 0, and then we can swap() with buffer
-		// so that it will use that. This is aimed at minimizing shared mem allocations
-		// It assumes the initial constructor does not allocate anything since the size()==0
-		boost::interprocess::basic_ovectorstream<commit_buffer_t<void_alloc_t> > vstream(buffer->get_allocator());
+		/* There's no direct way to construct vstream so that it will use 
+		 * buffer.  However it can initially construct a vector of size 0, 
+		 * and then we can swap() with buffer so that it will use that. This 
+		 * is aimed at minimizing shared mem allocations
+		 * It assumes the initial constructor does not allocate anything since 
+		 * the size()==0
+		 */
+		boost::interprocess::basic_ovectorstream<commit_buffer_t<void_alloc_t> >
+			vstream(buffer->get_allocator());
 		vstream.swap_vector(*buffer);
 		boost_oarchive_t bstream(vstream);
 
 		buffer->op_count = _outstandingChanges.add_to_log(bstream);
 
-		// after this, buffer is itself once again, and now contains our data...
+		// after this, buffer is itself once again, and now contains our data
 		vstream.swap_vector(*buffer);
 		STLDB_TRACE(finer_e, "Committing transaction " << _transId << " with " << buffer->op_count << " operations, " << buffer->size() << " bytes of log");
 	}
 
 	std::set<void*>::iterator j;
-	bool committed_containers = false;
+	//bool committed_containers = false;
+
+	/* Phase 2 - get a unique commit seq#, and put our commit buffer into
+	 * the logging queue.  The queue is used to allow I/O aggregation
+	 * within the log() call.  At this point, we are reserving our place 
+	 * in the sequence of the log file.
+	 */
+	if (!diskless) {
+		_commit_lsn = logger.queue_for_commit(buffer);
+	}
+
+	if (diskless) {
+		logger.record_diskless_commit();
+	}
+	else {
+		/* Now write all pending log records into the log, and sync, if
+		 * if appropriate.
+		 */
+		STLDB_TRACE(finer_e, "Committing transaction " << _transId << " to log with LSN  " << _commit_lsn);
+		logger.log(_commit_lsn);
+	}
+
+	/* An exception in the code above we have already queued for commit
+	 * suggests that the disk is full, or some other exception beyond
+	 * our control is at work.  We let those exceptions go up to the caller.
+	 * The client can either commit without disk (diskless=true) and
+	 * risk loosing transactions if they can't complete another
+	 * checkpoint, or they can call rollback and report failure.
+	 */
 
 	try {
-		/* Phase 2 - make the changes within the various containers permanent,
-		 * by getting all needed container locks (in predictable order), to thereby
+		/* Phase 3 - make the changes within the various containers permanent,
+		 * by getting all needed container locks (in predictable order), 
+		 * to thereby
 		 * assure the order in which changes become visible.
 		 */
 		stldb::timer t3a("container commit work (container lock duration)");
@@ -442,26 +487,12 @@ void Transaction::commit( std::map<void*, container_proxy_base<ManagedRegionType
 		}
 		t3b.end();
 
-		/**
-		 * Phase 3 - get a unique commit seq#, and put our commit buffer into
-		 * the logging queue.  At this point, we are reserving our place in the
-		 * sequence of the log file.
-		 */
-		if (!diskless) {
-			_commit_lsn = logger.queue_for_commit(buffer);
-		}
-
 		stldb::timer t3c("committing transactional operations");
-		// once we get here, there is no going back.  We either
-		// succeed, or we fail and force database recovery.
-		committed_containers = true;
-
-		// call _outstandingChanges.commit() to commit all ops,
 		_outstandingChanges.commit(*this);
 		t3c.end();
 
 		/**
-		 * Phase 4 - release all container locks.  It is now acceptable for other
+		 * Release all container locks.  It is now acceptable for other
 		 * threads to begin doing work on top of our committed data because
 		 * they can't jump ahead of us in the logging queue.
 		 */
@@ -469,15 +500,6 @@ void Transaction::commit( std::map<void*, container_proxy_base<ManagedRegionType
 			proxies.find(*(--j))->second->completeCommit(*this);
 		} while ( j != _modifiedContainers.begin() );
 		t3a.end();
-
-		/* Phase 5 - log write, with optional disk sync */
-		if (diskless) {
-			logger.record_diskless_commit();
-		}
-		else {
-			STLDB_TRACE(finer_e, "Committing transaction " << _transId << " to log with LSN  " << _commit_lsn);
-			logger.log(_commit_lsn);
-		}
 
 		// Now clean up.
 		clear();
@@ -497,10 +519,7 @@ void Transaction::commit( std::map<void*, container_proxy_base<ManagedRegionType
 		// to the containers visible to other threads, but we failed
 		// to write the needed disk log.  Currently, the only way to
 		// recover from that discrepancy is via recovery.
-		if (committed_containers)
-			throw stldb::recovery_needed( ex.what() );
-		else
-			throw;
+		throw stldb::recovery_needed( ex.what() );
 	}
 }
 
