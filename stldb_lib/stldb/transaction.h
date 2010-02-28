@@ -496,9 +496,10 @@ void Transaction::commit( std::map<void*, container_proxy_base<ManagedRegionType
 		 * threads to begin doing work on top of our committed data because
 		 * they can't jump ahead of us in the logging queue.
 		 */
-		do {
-			proxies.find(*(--j))->second->completeCommit(*this);
-		} while ( j != _modifiedContainers.begin() );
+		if ( j != _modifiedContainers.begin() )
+			do {
+				proxies.find(*(--j))->second->completeCommit(*this);
+			} while ( j != _modifiedContainers.begin() );
 		t3a.end();
 
 		// Now clean up.
@@ -545,9 +546,10 @@ void Transaction::rollback(std::map<void*, container_proxy_base<ManagedRegionTyp
 		_outstandingChanges.rollback(*this);
 
 		/* Phase 3 - release locks */
-		do {
-			proxies.find(*(--j))->second->completeRollback(*this);
-		} while ( j != _modifiedContainers.begin() );
+		if ( j != _modifiedContainers.begin() )
+			do {
+				proxies.find(*(--j))->second->completeRollback(*this);
+			} while ( j != _modifiedContainers.begin() );
 
 		// Now clean up.
 		clear();
@@ -564,7 +566,6 @@ void Transaction::rollback(std::map<void*, container_proxy_base<ManagedRegionTyp
 
 		throw;
 	}
-
 }
 
 

@@ -32,15 +32,15 @@ using boost::intrusive::void_pointer;
 
 template<class SegmentManager>
 class segment_within_set
-	: public set_base_hook< void_pointer< typename SegmentManager::void_pointer > >
-	, public SegmentManager
+	: public SegmentManager
+	, public set_base_hook<void_pointer<typename SegmentManager::void_pointer> >
 {
 public:
 	segment_within_set(std::size_t size)
 		: SegmentManager(size)
-		  { }
+		{ }
 
-	// as intrusive node elements, all comparisons can be based on location in memory
+	// as intrusive node elements, all comparisons can be based on location
 	bool operator<(const segment_within_set &rarg) const {
 		return this < &rarg;
 	}
@@ -67,30 +67,70 @@ public:
 
 	segment_set()
 		: base_t()
+		, m_mutex()
+		, m_lastalloc( base_t::end() )
 		{ }
 
 	boost::interprocess::interprocess_upgradable_mutex m_mutex;
 
 	typename base_t::iterator m_lastalloc;
 
-	// allocate a Chunk within host.
+	// allocate memory from one of the segments within this set
 	// can throw bad_alloc if host segment is out of memory.
-	segment_t* new_segment(SegmentManager *host) {
-	      // Safety Check if there is enough space
-	      if(BytesPerChunk < SegmentManager::get_min_size() + sizeof(segment_t))
-	         return NULL;
+	void * allocate(std::size_t size, SegmentManager *host) 
+	{
+		  boost::interprocess::sharable_lock<typename boost::interprocess::interprocess_upgradable_mutex>
+			  shared_guard(m_mutex);
 
-	      segment_t* new_sm = NULL;
-	      //Let's construct the allocator in memory
-		  void *addr = host->allocate(BytesPerChunk);
-	      new_sm = new(addr) segment_t(BytesPerChunk);
-	      this->insert(*new_sm);
-	      return new_sm;
+		if (size > BytesPerChunk)
+			return NULL;
+		// if m_lastalloc is set, then it points to a segment which
+		// previously succeeded in memory allocation.  Try it first.
+		// the idea here is to amortize segment iteration to O(1) over time.
+		if (m_lastalloc != base_t::end()) {
+			try {
+				return m_lastalloc->allocate(size);
+			}
+			catch(boost::interprocess::bad_alloc &ex) 
+			{ }
+		}
+
+		// release shared lock and get exclusive, for insertion.
+		shared_guard.unlock();
+		boost::interprocess::scoped_lock<typename boost::interprocess::interprocess_upgradable_mutex>
+			  guard(m_mutex);
+
+		void *result = NULL;
+		typename base_t::iterator i;
+		for (i = base_t::begin(); i != base_t::end(); i++ ) {
+			  try {
+				  result = i->allocate(size);
+				  m_lastalloc = i;
+				  return result;
+			  }
+			  catch(boost::interprocess::bad_alloc &ex) { }
+		}
+
+		// new need to allocate a new segment.
+		segment_t *sm = new_segment( host );
+		try {
+			result = sm->allocate(size);
+		}
+		catch(boost::interprocess::bad_alloc &ex) {
+			std::cerr << "Unexpected bad_alloc on new segment " << size << std::endl;
+			abort();
+		}
+
+		base_t::insert( *sm );
+		m_lastalloc = sm;
+		return result;
 	}
 
 	// return the address of the particular segment containing the memory
 	// at address p.
-	segment_t* segment_containing(void *p) {
+	// caller must hold m_mutex (sharable)
+	segment_t* segment_containing(void *p) 
+	{
 		typename base_t::iterator i( base_t::upper_bound( *reinterpret_cast<segment_t*>(p)) );
 		if ( i == this->end() && i != this->begin() )
 			i--;
@@ -99,6 +139,30 @@ public:
 		if ( p > bottom && p < top )
 			  return &(*i);
 		return NULL;
+	}
+
+private:
+	// allocate a Chunk within host.
+	// does not actually insert the allocated chunk into this.
+	// can throw bad_alloc if host segment is out of memory.
+	segment_t* new_segment(SegmentManager *host) 
+	{
+	      // Safety Check if there is enough space
+	      assert(BytesPerChunk > SegmentManager::get_min_size());
+
+	      segment_t* new_sm = NULL;
+
+	      //Let's construct the allocator in memory
+		  void *addr = host->allocate(BytesPerChunk);
+	      new_sm = new(addr) segment_t(BytesPerChunk);
+		  assert(new_sm == addr);
+
+		  // debug: double check that the address of the SegmentManager is
+		  // alligned according to requirements.
+		  SegmentManager *segman = static_cast<SegmentManager*>(addr);
+      	  assert((0 == (((std::size_t)segman) & (SegmentManager::memory_algorithm::Alignment - std::size_t(1u)))));
+
+	      return new_sm;
 	}
 };
 
@@ -179,33 +243,11 @@ public:
 	pointer allocate(size_type count, const_void_pointer hint = 0)
 	{
 		  (void)hint; // not used
-		  if(count > this->max_size())
+		  if(count*sizeof(T) > this->max_size())
 			 throw boost::interprocess::bad_alloc();
 		  if (count*sizeof(T) > BytesPerChunk)
 			  return pointer(static_cast<value_type*>(m_segment_manager->allocate(count*sizeof(T))));
-
-		  boost::interprocess::sharable_lock<typename boost::interprocess::interprocess_upgradable_mutex>
-			  shared_guard(m_segments->m_mutex);
-		  for (typename segment_set_t::iterator i = m_segments->begin(); i != m_segments->end(); i++ ) {
-			  try {
-				  return pointer(static_cast<value_type*>(i->allocate(count*sizeof(T))));
-			  }
-			  catch(boost::interprocess::bad_alloc &ex) {
-				  continue;
-			  }
-		  }
-
-		  // we must add an additional segment.
-		  segment_within_set<SegmentManager> *sm
-				  = m_segments->new_segment( get_pointer(m_segment_manager) );
-		  pointer result( static_cast<value_type*>( sm->allocate(count*sizeof(T))) );
-
-		  // release shared lock and get exclusive, for insertion.
-		  shared_guard.unlock();
-		  boost::interprocess::scoped_lock<typename boost::interprocess::interprocess_upgradable_mutex>
-				  guard(m_segments->m_mutex);
-		  m_segments->insert( *sm );
-		  return result;
+		  return pointer(static_cast<value_type*>(m_segments->allocate(count*sizeof(T), get_pointer(m_segment_manager))));
 	}
 
 	//!Deallocates memory previously allocated.
@@ -294,8 +336,9 @@ private:
 
 	segment_set_t* init(SegmentManager *sm) {
 		// find_or_construct the unique instance of segment_set_t
-		return sm->template find_or_construct<segment_set_t >
-			(boost::interprocess::unique_instance)();
+		return sm ?  sm->template find_or_construct<segment_set_t >
+					 	(boost::interprocess::unique_instance)()
+				  : NULL;
 	}
 };
 
