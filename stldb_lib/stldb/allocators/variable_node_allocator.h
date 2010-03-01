@@ -29,15 +29,18 @@ using boost::interprocess::detail::get_pointer;
 using boost::intrusive::set_base_hook;
 using boost::intrusive::void_pointer;
 
-
+// Note: The alignment of the SegmentManager base class is important.
+// it must be aligned on SegmentManager::memory_algorithm::Alignment
+// bytes.  TODO - make the satisfaction of this requirement assured.
+// right now I'm just getting lucky with meeting the requirement.
 template<class SegmentManager>
 class segment_within_set
-	: public SegmentManager
-	, public set_base_hook<void_pointer<typename SegmentManager::void_pointer> >
+	: public set_base_hook<void_pointer<typename SegmentManager::void_pointer> >
+	, public SegmentManager
 {
 public:
 	segment_within_set(std::size_t size)
-		: SegmentManager(size)
+		: SegmentManager(size - (sizeof(segment_within_set) - sizeof(SegmentManager)))
 		{ }
 
 	// as intrusive node elements, all comparisons can be based on location
@@ -117,7 +120,7 @@ public:
 			result = sm->allocate(size);
 		}
 		catch(boost::interprocess::bad_alloc &ex) {
-			std::cerr << "Unexpected bad_alloc on new segment " << size << std::endl;
+			std::cerr << "Unexpected bad_alloc on new segment " << size << ex.what() << std::endl;
 			abort();
 		}
 
@@ -147,22 +150,23 @@ private:
 	// can throw bad_alloc if host segment is out of memory.
 	segment_t* new_segment(SegmentManager *host) 
 	{
-	      // Safety Check if there is enough space
-	      assert(BytesPerChunk > SegmentManager::get_min_size());
+		// Safety Check if there is enough space
+		assert(BytesPerChunk > SegmentManager::get_min_size());
 
-	      segment_t* new_sm = NULL;
+		segment_t* new_sm = NULL;
 
-	      //Let's construct the allocator in memory
-		  void *addr = host->allocate(BytesPerChunk);
-	      new_sm = new(addr) segment_t(BytesPerChunk);
-		  assert(new_sm == addr);
+		//Let's construct the allocator in memory
+		void *addr = host->allocate(BytesPerChunk);
+		new_sm = new(addr) segment_t(BytesPerChunk);
+		//assert(new_sm == addr);
+		//assert(new_sm->check_sanity());
 
-		  // debug: double check that the address of the SegmentManager is
-		  // alligned according to requirements.
-		  SegmentManager *segman = static_cast<SegmentManager*>(addr);
-      	  assert((0 == (((std::size_t)segman) & (SegmentManager::memory_algorithm::Alignment - std::size_t(1u)))));
+		// debug: double check that the address of the SegmentManager is
+		// aligned according to requirements.
+		SegmentManager *segman = static_cast<SegmentManager*>(new_sm);
+		assert((0 == (((std::size_t)segman) & (SegmentManager::memory_algorithm::Alignment - std::size_t(1u)))));
 
-	      return new_sm;
+		return new_sm;
 	}
 };
 
