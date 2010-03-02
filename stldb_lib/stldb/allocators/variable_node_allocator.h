@@ -82,7 +82,7 @@ public:
 	// can throw bad_alloc if host segment is out of memory.
 	void * allocate(std::size_t size, SegmentManager *host) 
 	{
-		  boost::interprocess::sharable_lock<typename boost::interprocess::interprocess_upgradable_mutex>
+		  boost::interprocess::sharable_lock<boost::interprocess::interprocess_upgradable_mutex>
 			  shared_guard(m_mutex);
 
 		if (size > BytesPerChunk)
@@ -101,7 +101,7 @@ public:
 		// release shared lock and get exclusive, for insertion.
 		shared_guard.unlock();
 		stldb::timer("segment_set::advance m_lastalloc");
-		boost::interprocess::scoped_lock<typename boost::interprocess::interprocess_upgradable_mutex>
+		boost::interprocess::scoped_lock<boost::interprocess::interprocess_upgradable_mutex>
 			  guard(m_mutex);
 
 		void *result = NULL;
@@ -272,7 +272,7 @@ public:
 		// find the specific segment_manager which is likely to
 		if (!m_segments)
 			init_segments();
-		boost::interprocess::sharable_lock<typename boost::interprocess::interprocess_upgradable_mutex>
+		boost::interprocess::sharable_lock<boost::interprocess::interprocess_upgradable_mutex>
 			  shared_guard(m_segments->m_mutex);
 		SegmentManager *sm = m_segments->segment_containing(p);
 		if ( sm )
@@ -301,7 +301,7 @@ public:
 	{
 		if (!m_segments)
 			init_segments();
-		boost::interprocess::sharable_lock<typename boost::interprocess::interprocess_upgradable_mutex>
+		boost::interprocess::sharable_lock<boost::interprocess::interprocess_upgradable_mutex>
 			shared_guard(m_segments->m_mutex);
 		void *ptr = get_pointer(p);
 		SegmentManager *sm = m_segments->segment_containing(ptr);
