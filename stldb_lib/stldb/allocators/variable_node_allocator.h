@@ -18,7 +18,7 @@
 #include <boost/interprocess/sync/interprocess_upgradable_mutex.hpp>
 #include <boost/interprocess/sync/sharable_lock.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
-
+#include <stldb/timing/timer.h>
 
 namespace stldb {
 
@@ -100,6 +100,7 @@ public:
 
 		// release shared lock and get exclusive, for insertion.
 		shared_guard.unlock();
+		stldb::timer("segment_set::advance m_lastalloc");
 		boost::interprocess::scoped_lock<typename boost::interprocess::interprocess_upgradable_mutex>
 			  guard(m_mutex);
 
@@ -150,6 +151,8 @@ private:
 	// can throw bad_alloc if host segment is out of memory.
 	segment_t* new_segment(SegmentManager *host) 
 	{
+		stldb::timer("segment_set::new_segment");
+
 		// Safety Check if there is enough space
 		assert(BytesPerChunk > SegmentManager::get_min_size());
 
@@ -214,15 +217,16 @@ public:
 	};
 
 	// Construct a variable_node_allocator from a segment manager
+	// lazy initialization is used with m_segments
 	variable_node_allocator(SegmentManager *sm)
 		: m_segment_manager( sm )
-		, m_segments( init(sm) )
+		, m_segments( NULL )
 		{ }
 
 	//!Constructor from other allocator.
 	//!Never throws
 	variable_node_allocator(const variable_node_allocator &other)
-		: m_segment_manager(other.get_segment_manager())
+		: m_segment_manager(other.m_segment_manager)
 		, m_segments(other.m_segments)
 		{ }
 
@@ -230,12 +234,10 @@ public:
 	//!Never throws
 	template<class T2>
 	variable_node_allocator(const variable_node_allocator<T2, SegmentManager, BytesPerChunk> &other)
-	    : m_segment_manager(other.get_segment_manager())
+	    : m_segment_manager(other.m_segment_manager)
 	    , m_segments(other.m_segments)
 	    { }
 
-	~variable_node_allocator()
-		{ }
 
 	//!Returns the segment manager.
 	//!Never throws
@@ -246,11 +248,14 @@ public:
 	//!Throws boost::interprocess::bad_alloc if there is no enough memory
 	pointer allocate(size_type count, const_void_pointer hint = 0)
 	{
+		stldb::timer("variable_node_allocator::allocate");
 		  (void)hint; // not used
 		  if(count*sizeof(T) > this->max_size())
 			 throw boost::interprocess::bad_alloc();
 		  if (count*sizeof(T) > BytesPerChunk)
 			  return pointer(static_cast<value_type*>(m_segment_manager->allocate(count*sizeof(T))));
+		if (!m_segments)
+			init_segments();
 		  return pointer(static_cast<value_type*>(m_segments->allocate(count*sizeof(T), get_pointer(m_segment_manager))));
 	}
 
@@ -258,12 +263,15 @@ public:
 	//!Never throws
 	void deallocate(const pointer &ptr, size_type count)
 	{
+		stldb::timer("variable_node_allocator::deallocate");
 		void *p = get_pointer(ptr);
 		if (count*sizeof(T) > BytesPerChunk) {
 			m_segment_manager->deallocate(p);
 			return;
 		}
 		// find the specific segment_manager which is likely to
+		if (!m_segments)
+			init_segments();
 		boost::interprocess::sharable_lock<typename boost::interprocess::interprocess_upgradable_mutex>
 			  shared_guard(m_segments->m_mutex);
 		SegmentManager *sm = m_segments->segment_containing(p);
@@ -291,13 +299,15 @@ public:
 	//!allocate, allocation_command and allocate_many.
 	size_type size(const pointer &p) const
 	{
-		  boost::interprocess::sharable_lock<typename boost::interprocess::interprocess_upgradable_mutex>
-			  shared_guard(m_segments->m_mutex);
-		  void *ptr = get_pointer(p);
-		  SegmentManager *sm = m_segments->segment_containing(ptr);
-		  if ( sm )
-			  return (size_type)sm->size(ptr)/sizeof(T);
-		  return (size_type)m_segment_manager->size(ptr)/sizeof(T);
+		if (!m_segments)
+			init_segments();
+		boost::interprocess::sharable_lock<typename boost::interprocess::interprocess_upgradable_mutex>
+			shared_guard(m_segments->m_mutex);
+		void *ptr = get_pointer(p);
+		SegmentManager *sm = m_segments->segment_containing(ptr);
+		if ( sm )
+			return (size_type)sm->size(ptr)/sizeof(T);
+		return (size_type)m_segment_manager->size(ptr)/sizeof(T);
 	}
 
 	//!Returns address of mutable object.
@@ -338,11 +348,12 @@ private:
 	segment_manager_ptr_t m_segment_manager;
 	segment_set_ptr_t m_segments;
 
-	segment_set_t* init(SegmentManager *sm) {
+	inline void init_segments() {
+		stldb::timer("variable_node_allocator::init_segments");
 		// find_or_construct the unique instance of segment_set_t
-		return sm ?  sm->template find_or_construct<segment_set_t >
-					 	(boost::interprocess::unique_instance)()
-				  : NULL;
+		m_segments = m_segment_manager->
+			template find_or_construct<segment_set_t >
+			(boost::interprocess::unique_instance)();
 	}
 };
 

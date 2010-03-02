@@ -77,7 +77,7 @@ public:
 	//!Constructor from other region_or_heap_allocator.
 	//!Never throws
 	region_or_heap_allocator(const region_or_heap_allocator &other)
-	    : WrappedAllocator(other.get_segment_manager())
+	    : WrappedAllocator( static_cast<const WrappedAllocator&>(other) )
 	    , heap_alloc() { }
 
 	//!Constructor from related region_or_heap_allocator.

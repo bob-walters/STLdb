@@ -65,12 +65,12 @@ public:
 	//!Constructor from other allocator.
 	//!Never throws
 	gnu_adapter(const gnu_adapter &other)
-	    : WrappedAllocator(other.get_segment_manager()) { }
+	    : WrappedAllocator( static_cast<const WrappedAllocator&>(other) ) { }
 
 	//!Constructor from WrappedAllocator
 	//!Never throws
 	gnu_adapter(const WrappedAllocator &other)
-    : WrappedAllocator(other.get_segment_manager()) { }
+    	: WrappedAllocator(other) { }
 
 	//!Constructor from any allocator with same segment manager type
 	//!Never throws
