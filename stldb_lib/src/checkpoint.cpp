@@ -4,6 +4,7 @@
  *  Created on: Jan 12, 2010
  *      Author: bobw
  */
+#define BOOST_STLDB_SOURCE
 
 #include <iomanip>
 #include <boost/filesystem.hpp>

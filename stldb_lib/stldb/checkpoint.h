@@ -16,6 +16,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/serialization/map.hpp>
 
+#include <stldb/stldb.hpp>
 #include <stldb/cachetypes.h>
 #include <stldb/trace.h>
 #include <stldb/detail/os_file_functions_ext.h>
@@ -40,7 +41,7 @@ namespace stldb {
 typedef std::pair<boost::interprocess::offset_t, std::size_t> checkpoint_loc_t;
 
 
-class checkpoint_fstream_base {
+class BOOST_STLDB_DECL checkpoint_fstream_base {
 public:
 	// construct from the contents of the specific metafile passed.
 	checkpoint_fstream_base(const boost::filesystem::path &metafile);
@@ -73,7 +74,7 @@ private:
 };
 
 
-class checkpoint_ofstream : protected checkpoint_fstream_base
+class BOOST_STLDB_DECL checkpoint_ofstream : protected checkpoint_fstream_base
 {
 public:
 	// construct from the contents of the specific metafile passed.
@@ -164,7 +165,7 @@ private:
 
 template <class T> class checkpoint_iterator;
 
-class checkpoint_ifstream : protected checkpoint_fstream_base {
+class BOOST_STLDB_DECL checkpoint_ifstream : protected checkpoint_fstream_base {
 public:
 	// construct from the contents of the specific metafile passed.
 	checkpoint_ifstream(const boost::filesystem::path &metafile)
