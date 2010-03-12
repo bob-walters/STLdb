@@ -13,6 +13,7 @@
 #include <boost/interprocess/indexes/flat_map_index.hpp>
 #include <boost/interprocess/managed_mapped_file.hpp>
 
+#include <stldb/stldb.hpp>
 #include <stldb/Database.h>
 #include <stldb/sync/bounded_interprocess_mutex.h>
 
