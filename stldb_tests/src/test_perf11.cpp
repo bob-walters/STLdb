@@ -12,12 +12,15 @@
 #include "properties.h"
 #include <stldb/timing/time_tracked.h>
 #include <stldb/allocators/region_or_heap_allocator.h>
+#include <stldb/allocators/variable_node_allocator.h>
 #include <boost/interprocess/allocators/cached_adaptive_pool.hpp>
 
 using stldb::Transaction;
 using namespace std;
 
 // String in shared memory, ref counted, copy-on-write qualities based on GNU basic_string
+static const std::size_t clump_size = 16*1024*1024;
+
 #ifdef __GNUC__
 // String in shared memory, ref counted, copy-on-write qualities based on GNU basic_string
 #	include <stldb/containers/gnu/basic_string.h>
@@ -27,7 +30,16 @@ using namespace std;
 		stldb::gnu_adapter<
 			boost::interprocess::allocator<
 				char, managed_mapped_file::segment_manager> > > shm_char_allocator_t;
+
 	typedef stldb::basic_string<char, std::char_traits<char>, shm_char_allocator_t>  shm_string;
+
+    typedef stldb::region_or_heap_allocator<
+		stldb::gnu_adapter<
+			stldb::variable_node_allocator<
+				char, managed_mapped_file::segment_manager, clump_size> > > clustered_char_allocator_t;
+
+	typedef stldb::basic_string<char, std::char_traits<char>, clustered_char_allocator_t>  clustered_shm_string;
+
 #else
 // String in shared memory, based on boost::interprocess::basic_string
 #	include <boost/interprocess/containers/string.hpp>
@@ -38,23 +50,30 @@ using namespace std;
 			char, managed_mapped_file::segment_manager> > shm_char_allocator_t;
 
 	typedef boost::interprocess::basic_string<char, std::char_traits<char>, shm_char_allocator_t> shm_string;
+
+	typedef stldb::region_or_heap_allocator<
+		stldb::variable_node_allocator<
+			char, managed_mapped_file::segment_manager, clump_size> > clustered_char_allocator_t;
+
+	typedef boost::interprocess::basic_string<char, std::char_traits<char>, clustered_char_allocator_t> clustered_shm_string;
+
 #endif
 
 // A node allocator for the map, which uses the bulk allocation mechanism of boost::interprocess
-typedef boost::interprocess::cached_adaptive_pool<std::pair<const shm_string, shm_string>,
+typedef boost::interprocess::cached_adaptive_pool<std::pair<const clustered_shm_string, shm_string>,
 	managed_mapped_file::segment_manager>  trans_map_allocator;
 
 // A transactional map, using ref counted strings, and a cached node allocator.
-typedef stldb::trans_map<shm_string, shm_string, std::less<shm_string>,
-	trans_map_allocator>  MapType;
+typedef stldb::trans_map<clustered_shm_string, shm_string, 
+	std::less<clustered_shm_string>, trans_map_allocator>  MapType;
 
 static char buffer[1024];
 
 struct entry_maker_11t {
-	shm_string make_key(int keyno) {
+	clustered_shm_string make_key(int keyno) {
 		char temp[64];
 		sprintf(temp, "Key%08d", keyno);
-		return shm_string(temp, 12);
+		return clustered_shm_string(temp, 12);
 	}
 
 	shm_string make_value(int keyno) {
