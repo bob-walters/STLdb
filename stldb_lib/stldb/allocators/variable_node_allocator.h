@@ -166,8 +166,7 @@ private:
 
 		// debug: double check that the address of the SegmentManager is
 		// aligned according to requirements.
-		SegmentManager *segman = static_cast<SegmentManager*>(new_sm);
-		assert((0 == (((std::size_t)segman) & (SegmentManager::memory_algorithm::Alignment - std::size_t(1u)))));
+		assert((0 == (((std::size_t)static_cast<SegmentManager*>(new_sm)) & (SegmentManager::memory_algorithm::Alignment - std::size_t(1u)))));
 
 		return new_sm;
 	}

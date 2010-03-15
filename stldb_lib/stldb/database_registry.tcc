@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <stldb/database_registry.h>
+#include <stldb/exceptions.h>
 #include <stldb/trace.h>
 
 namespace stldb {

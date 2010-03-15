@@ -8,6 +8,7 @@
 #ifndef STLDB_OS_FILE_FUNCTIONS_EXT_H
 #define STLDB_OS_FILE_FUNCTIONS_EXT_H
 
+#include <iostream>
 #include <string.h> // strerror on Solaris
 #include <boost/interprocess/detail/os_file_functions.hpp>
 
@@ -19,6 +20,9 @@
 namespace stldb {
 namespace io {
 
+using std::cerr;
+using std::endl;
+
 
 #if (defined BOOST_INTERPROCESS_WINDOWS)
 
@@ -29,6 +33,10 @@ typedef struct iovec {
 	void       *iov_base;
 	std::size_t iov_len;
 } write_region_t;
+
+// actually arbitrary on Windows, since gathered_write() currently uses
+// several calls to write().
+static const ssize_t max_write_region_per_call = 32;
 
 namespace winapi {
 
@@ -71,6 +79,7 @@ inline int sync(file_handle_t f) {
 // write method.
 typedef boost::interprocess::file_handle_t file_handle_t;
 typedef struct iovec write_region_t;
+static const ssize_t max_write_region_per_call = IOV_MAX;
 
 /**
  * Read up to nbyte bytes of data from file f, into the buffer
@@ -134,6 +143,17 @@ inline bool gathered_write_file(file_handle_t f, struct iovec *buffs, int buf_co
 		if (written == -1) {
 			if (errno == EINTR)
 				continue;  // just try again...
+#if 0
+			else if (errno == EINVAL) {
+				cerr << "EINVAL on writev() call" << endl;
+				cerr << "total_written: " << total_written << endl;
+				cerr << "bytes_remaining: " << bytes_remaining << endl;
+				cerr << "buff_count == " << buf_count << endl;
+				for (int i=0; i<buf_count; i++) {
+					cerr << "buff[ " << i << "].iov_len == " << buffs[i].iov_len << endl;
+	            }
+			}
+#endif
 			return false;
 		}
 		// set buffs and buf_count to the amount which remains to write.

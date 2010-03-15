@@ -204,7 +204,7 @@ public:
 
 			// get a set of commit buffers up the the limits allowed,
 			// and write them all to disk.
-			int txn_count = 0;
+			size_t txn_count = 0;
 			transaction_id_t max_lsn = _shm_info->_last_write_txn_id;
 			boost::interprocess::offset_t new_file_len = _shm_info->log_len;
 
@@ -405,12 +405,14 @@ private:
 		}
 	}
 
-
-	static const int max_txn_per_write = 64;
+	// hard-coded approach needed due to gcc-3.4.3 bug.  Corresponds
+	// to IOV_MAX=16 (Solaris)
+	//static const size_t max_txn_per_write = (io::max_write_region_per_call-1)/2;
+	static const size_t max_txn_per_write = 7;
 	static const size_t optimum_write_alignment = 512;
 
 	// Used to hold structures used with writev()
-	io::write_region_t iov[2+ max_txn_per_write*2];
+	io::write_region_t iov[2*(max_txn_per_write+1)];
 
 	// used to provide padding of writes.
 	log_header padding_header;
