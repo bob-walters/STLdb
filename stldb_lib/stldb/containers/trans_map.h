@@ -452,9 +452,10 @@ public:
 				break;
 		}
 	}
-
-	virtual void initializeCommit(Transaction &trans)
+	void initializeTxn(Transaction &trans)
 	{
+		// to start a commit or rollback, we need an exclusive lock on the
+		// container.
 		while (true) {
 			try {
 				_container->mutex().lock();
@@ -463,25 +464,35 @@ public:
 			catch (lock_timeout_exception &ex) { }
 		}
 	}
-	virtual void completeCommit(Transaction &trans)
+	void completeTxn(Transaction &trans)
 	{
-		_container->condition().notify_all(); // wake up anyone waiting on a row lock
+		// we release our exclusive lock, and also signal any threads
+		// waiting on row-level locks that they may now be able to proceed.
+		{
+			// the mutex must be held before calling notify_all() on the
+			// condition variable, because there otherwise is a race condition
+			// with the waiting convention where a thread could miss a notify,
+			// and end up waiting an extra commit before unlocking.
+			scoped_lock<mutex_type>  lock(_container->_row_level_lock);
+			_container->_row_level_lock_released.notify_all(); // wake up anyone waiting on a row lock
+		}
 		_container->mutex().unlock();
+	}
+	virtual void initializeCommit(Transaction &trans)
+	{
+		initializeTxn(trans);
 	}
 	virtual void initializeRollback(Transaction &trans)
 	{
-		while (true) {
-			try {
-				_container->mutex().lock();
-				break;
-			}
-			catch (lock_timeout_exception &ex) { }
-		}
+		initializeTxn(trans);
+	}
+	virtual void completeCommit(Transaction &trans)
+	{
+		completeTxn(trans);
 	}
 	virtual void completeRollback(Transaction &trans)
 	{
-		_container->condition().notify_all(); // wake up anyone waiting on a row lock
-		_container->mutex().unlock();
+		completeTxn(trans);
 	}
     virtual void save_checkpoint(Database<ManagedRegionType> &db,
     		checkpoint_ofstream &checkpoint,
