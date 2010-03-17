@@ -467,10 +467,36 @@ public:
 		_registry->set_invalid(value);
 	}
 
-
-	stldb::file_lock& checkpoint_lock() {
-		return _checkpoint_lock;
+	/**
+	 * Returns a file lock which a process can use to gain exclusive access to the
+	 * Database's checkpoint data for a period of time.  This is intended to permit
+	 * dedicated backup process to lock out any checkpoint() threads while making copies
+	 * of the checkpoint files.  The use of this lock must not be a thread within the
+	 * same process which may be doing checkpoints.  For that scenario use the non-static
+	 * version of checkpoint_lock().
+	 */
+	static std::auto_ptr<stldb::file_lock> checkpoint_lock(const char *database_directory, const char *database_name)
+	{
+		return new stldb::file_lock(ManagedRegionNamer<ManagedRegionType>
+			::getFullName(database_directory, database_name).append(".ckptlock").c_str());
 	}
+
+	/**
+	 * Returns the lock pair which has to be acquired in order to gain exclusive access
+	 * to the Database's checkpoint data for a period of time.  This method is for processes
+	 * which have an open Database, and have other threads which might call the checkpoint
+	 * method on this same Database.  The caller should acquire locks on first and then
+	 * second (and always in that order) at which point the checkpoint filesystem can be
+	 * considered secured for use.
+	 */
+	std::pair<boost::mutex*, stldb::file_lock*> checkpoint_lock() {
+		return std::make_pair( &_checkpoint_mutex, &_checkpoint_lock );
+	}
+
+	// TODO - the above pair should be canned in favor of more full-featured methods which
+	// make a backup of the current checkpoint file set and associated logs, so that it isn't
+	// a client responsibility.  The combination of boost::filesystem and io can be used
+	// to do that in an OS agnostic manner.
 
 	/**
 	 * Fast check to see if the _registry->_database_invalid flag has been set, and if it is

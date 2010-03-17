@@ -11,6 +11,7 @@
 #include <ios>
 #include <fstream>
 #include <cstdlib>
+#include <stdlib.h>
 
 #include <boost/interprocess/creation_tags.hpp>
 #include <boost/interprocess/segment_manager.hpp>
@@ -586,6 +587,14 @@ bool Database<ManagedRegionType>::remove_container(const char *name)
 template <class ManagedRegionType>
 Transaction* Database<ManagedRegionType>::beginTransaction(Transaction *reusable_t)
 {
+	if (timer::config.enabled_percent > 0.0) {
+		// enable or disable timing for this thread according to the percentage
+		double prob = double(::rand()) / (double)RAND_MAX;
+		timer::enable( prob <= timer::enabled_percent );
+		// print out a report if it's time to do so (per timer::config)
+		timer::report(std::cout);
+	}
+
 	stldb::timer t("Database::beginTransaction");
 	safety_check();
 	Transaction *result = reusable_t;
