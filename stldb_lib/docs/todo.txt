@@ -19,13 +19,13 @@ X assign commit ids at the moment of enqueue for logging, not at the start of co
 
 X trans_map: proper lock for acquiring row-level lock for lock & update operations.
 
-* fix transactional operations of map to account for multi-ops on a common row in one transaction.
+X fix transactional operations of map to account for multi-ops on a common row in one transaction.
 
 * trans_map : make reverse iterators work properly.
 
-* trans_map : use heap-based bulk allocator for transactional operation allocation (to save time/memory)
+X trans_map : use heap-based bulk allocator for transactional operation allocation (to save time/memory)
 
-* transaction : double check that clearing the intrusive transactional_op list does deallocate the members.
+X transaction : double check that clearing the intrusive transactional_op list does deallocate the members.
 
 X make scope_aware_allocator inherit from another boost::interprocess::allocator type and reuse it,
    adding support for a default constructor.
@@ -33,18 +33,18 @@ X make scope_aware_allocator inherit from another boost::interprocess::allocator
 X make gnu allocator inherit from another boost::interprocess::allocator type and reuse it, altering the
    stored pointer type accordingly.
 
-* make changes to gnu basic_string to allow allocator::pointer type to be defined for it.
+X make changes to gnu basic_string to allow allocator::pointer type to be defined for it.
   
 X actual file removal op when deleting/recreating memory region mmap file. 
 
-* map checkpoint algorithm:
-        * add tracking to trans_map:  last full checkpoint txn_id, and # of rows with modifications since that txn_id.
-        * full checkpoint algorithm:  traverse the map getting 'N' values at a time and writing those N values.
-        * incremental checkpoint - write out only rows with txn_id > last full txn_id.
+X map checkpoint algorithm:
+        X add tracking to trans_map:  last full checkpoint txn_id, and # of rows with modifications since that txn_id.
+        X full checkpoint algorithm:  traverse the map getting 'N' values at a time and writing those N values.
+        X incremental checkpoint - write out only rows with txn_id > last full txn_id.
     
 X Factory in trans_map to reconstitute trans_ops from serialized form
 
-* Algorithm to re-apply log records to a container with attention to the container's loaded data(?)
+X Algorithm to re-apply log records to a container with attention to the container's loaded data(?)
 
 *  Add specialization so that trans_map<K*,V*> will not compile.
    Specialize the transactional ops of trans_map to account for cases where K or V are pointers.  Or
