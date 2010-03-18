@@ -473,8 +473,10 @@ public:
 			// condition variable, because there otherwise is a race condition
 			// with the waiting convention where a thread could miss a notify,
 			// and end up waiting an extra commit before unlocking.
-			scoped_lock<mutex_type>  lock(_container->_row_level_lock);
-			_container->_row_level_lock_released.notify_all(); // wake up anyone waiting on a row lock
+			scoped_lock<typename container_type::mutex_type>  lock(
+				_container->_row_level_lock);
+			// wake up anyone waiting on a row lock
+			_container->_row_level_lock_released.notify_all(); 
 		}
 		_container->mutex().unlock();
 	}

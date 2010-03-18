@@ -475,11 +475,8 @@ public:
 	 * same process which may be doing checkpoints.  For that scenario use the non-static
 	 * version of checkpoint_lock().
 	 */
-	static std::auto_ptr<stldb::file_lock> checkpoint_lock(const char *database_directory, const char *database_name)
-	{
-		return new stldb::file_lock(ManagedRegionNamer<ManagedRegionType>
-			::getFullName(database_directory, database_name).append(".ckptlock").c_str());
-	}
+	static std::auto_ptr<stldb::file_lock> checkpoint_lock(
+		const char *database_directory, const char *database_name);
 
 	/**
 	 * Returns the lock pair which has to be acquired in order to gain exclusive access

@@ -19,18 +19,24 @@ namespace stldb
 {
 
 // A structure representing the configuration of the timers in the STLdb code.
-struct BOOST_STLDB_DECL timer_configuration {
+struct BOOST_STLDB_DECL timer_configuration 
+{
 	// The percentage of transactions which should turn on time tracking.
 	// as a value between 0 and 1.
 	double enabled_percent;
 
 	// The frequency with which reported stats should be dumped to stdout.
-	static long report_interval_seconds;
+	long report_interval_seconds;
 
 	// an indication of whether or not the report should reset all stat values
 	// after it is reported.  (Causes each report to show only the data for the
 	// report interval instead of a running total.
-	static bool reset_after_print;
+	bool reset_after_print;
+
+	timer_configuration() : enabled_percent(0.0)
+						  , report_interval_seconds(10)
+	                      , reset_after_print(false) 
+	{ }
 };
 
 
@@ -73,6 +79,26 @@ public:
 	}
 
 	// enable or disable tracking for the current thread
+	// Configure timing per the configuration in cfg.
+	static inline void configure(const timer_configuration &cfg) {
+		config = cfg;
+	}
+
+	// return the current configuration
+	static inline timer_configuration configuration() {
+		return config;
+	}
+
+	// enables or disabling timing for the current thread.
+	// timing is enabled config.enabled_percent of the time,
+	// otherwise it is disabled.
+	static inline void enable() {
+		if (config.enabled_percent > 0.0) {
+			double prob = double(::rand()) / (double)RAND_MAX;
+			enable( prob <= config.enabled_percent );
+		}
+	}
+
 	static inline void enable(bool value) {
 		bool *flag = thr_enabled.get();
 		if (!flag) {
@@ -83,10 +109,6 @@ public:
 		}
 	}
 
-	static inline void configure(const timer_configuration &cfg)
-	{
-		config = cfg;
-	}
 
 	template <class stream>
 	static inline void report(stream& s) {

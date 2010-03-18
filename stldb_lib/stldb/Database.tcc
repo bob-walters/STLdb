@@ -587,16 +587,14 @@ bool Database<ManagedRegionType>::remove_container(const char *name)
 template <class ManagedRegionType>
 Transaction* Database<ManagedRegionType>::beginTransaction(Transaction *reusable_t)
 {
-	if (timer::config.enabled_percent > 0.0) {
-		// enable or disable timing for this thread according to the percentage
-		double prob = double(::rand()) / (double)RAND_MAX;
-		timer::enable( prob <= timer::enabled_percent );
-		// print out a report if it's time to do so (per timer::config)
-		timer::report(std::cout);
+	safety_check();
+
+	if (timer::configuration().enabled_percent > 0.0) {
+		// randomly enable timing for this thread.
+		timer::enable();
 	}
 
 	stldb::timer t("Database::beginTransaction");
-	safety_check();
 	Transaction *result = reusable_t;
 	if (!result)
 		result = new Transaction();
@@ -619,8 +617,14 @@ Transaction* Database<ManagedRegionType>::beginTransaction(Transaction *reusable
 template <class ManagedRegionType>
 exclusive_transaction *Database<ManagedRegionType>::begin_exclusive_transaction(exclusive_transaction *reusable_t)
 {
-	stldb::timer t("Database::begin_exclusive_transaction");
 	safety_check();
+
+	if (timer::configuration().enabled_percent > 0.0) {
+		// randomly enable timing for this thread.
+		timer::enable();
+	}
+
+	stldb::timer t("Database::begin_exclusive_transaction");
 	exclusive_transaction *result = reusable_t;
 	if (!result)
 		result = new exclusive_transaction();
@@ -686,6 +690,12 @@ int Database<ManagedRegionType>::commit(Transaction *transaction, bool diskless)
 
 	// release the shared or exclusive lock implied on this database.
 	transaction->unlock_database();
+
+	t1.end();
+	if (timer::configuration().enabled_percent > 0.0) {
+		// print out a report if it's time to do so.
+		timer::report(std::cout);
+	}
 	return 0;
 }
 
@@ -705,6 +715,11 @@ int Database<ManagedRegionType>::rollback(Transaction *transaction)
 		// If any exception is throw, still release the _dbinfo->transaction_mutex
 		transaction->unlock_database();
 		throw;
+	}
+
+	if (timer::configuration().enabled_percent > 0.0) {
+		// print out a report if it's time to do so.
+		timer::report(std::cout);
 	}
 	return 0;
 }
@@ -830,6 +845,16 @@ std::map<std::string,checkpoint_file_info> Database<ManagedRegionType>::get_curr
 
 
 template <class ManagedRegionType>
+std::auto_ptr<stldb::file_lock> Database<ManagedRegionType>::checkpoint_lock(
+	const char *database_directory, const char *database_name)
+{
+	return new stldb::file_lock(
+		ManagedRegionNamer<ManagedRegionType>::getFullName(
+			database_directory, database_name).append(".ckptlock").c_str());
+}
+
+
+template <class ManagedRegionType>
 	template <class Archive>
 void Database<ManagedRegionType>::dump_metadata(Archive &ar
 		, const char* database_name // the name of this database (used for region name)
@@ -874,6 +899,7 @@ void Database<ManagedRegionType>::dump_metadata(Archive &ar
 		ar & BOOST_SERIALIZATION_NVP(dbinfo);
 	}
 }
+
 
 } // namespace stldb;
 
