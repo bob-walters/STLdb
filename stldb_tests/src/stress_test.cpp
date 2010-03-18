@@ -643,7 +643,11 @@ int main(int argc, const char* argv[])
 {
 	properties.parse_args(argc, argv);
 
-	stldb::timer::enabled = properties.getProperty("timing", true);
+	stldb::timer_configuration config;
+	config.enabled_percent = properties.getProperty("timing_percent", 0.0);
+	config.report_interval_seconds = properties.getProperty("report_freq", 60);
+	config.reset_after_print = properties.getProperty("report_reset", true);
+	stldb::timer::configure( config );
 	stldb::tracing::set_trace_level(stldb::fine_e);
 
 	const int thread_count = properties.getProperty("threads", 4);
@@ -692,8 +696,8 @@ int main(int argc, const char* argv[])
 		closeDatabase(i);
 	}
 
-	// print timing stats (if requested)
-	if (stldb::timer::enabled)
+	// final print timing stats (if requested)
+	if (config.enabled_percent > 0.0)
 		stldb::time_tracked::print(std::cout, true);
 
 	return 0;

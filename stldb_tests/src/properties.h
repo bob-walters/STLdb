@@ -65,6 +65,19 @@ public:
 
 	}
 
+	double getProperty(const char *name, double default_val) {
+		std::map<std::string, std::string>::iterator i = _props.find(name);
+		if (i != _props.end() ) {
+			double val;
+			std::istringstream str(i->second);
+			str >> val;
+			return val;
+		}
+		else
+			return default_val;
+
+	}
+
 	bool getProperty(const char *name, bool default_val) {
 		std::map<std::string, std::string>::iterator i = _props.find(name);
 		if (i != _props.end() ) {
