@@ -36,7 +36,7 @@ typedef struct iovec {
 
 // actually arbitrary on Windows, since gathered_write() currently uses
 // several calls to write().
-static const ssize_t max_write_region_per_call = 32;
+static const std::size_t max_write_region_per_call = 32;
 
 namespace winapi {
 
@@ -79,7 +79,7 @@ inline int sync(file_handle_t f) {
 // write method.
 typedef boost::interprocess::file_handle_t file_handle_t;
 typedef struct iovec write_region_t;
-static const ssize_t max_write_region_per_call = IOV_MAX;
+static const std::size_t max_write_region_per_call = IOV_MAX;
 
 /**
  * Read up to nbyte bytes of data from file f, into the buffer
