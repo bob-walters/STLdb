@@ -21,7 +21,8 @@ timer_configuration BOOST_STLDB_DECL timer::config;
 boost::thread_specific_ptr<bool> BOOST_STLDB_DECL timer::thr_enabled;
 
 // date/time of the last dump of accumulated timer data.
-boost::posix_time::ptime BOOST_STLDB_DECL timer::last_report_time;
+boost::posix_time::ptime BOOST_STLDB_DECL timer::last_report_time
+		= boost::posix_time::microsec_clock::universal_time();
 
 
 }
