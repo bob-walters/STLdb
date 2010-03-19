@@ -304,7 +304,8 @@ public:
 
 		// First things first: randomly determine an environment which we will use:
 		// randomly pick one operation, and execute it.
-		int db_no = static_cast<int>(::rand() * (((double)g_num_db) / (double)RAND_MAX));
+		int db_no = static_cast<int>((::rand() * (double)g_num_db) / RAND_MAX);
+		db_no = (db_no >= g_num_db) ? g_num_db-1 : db_no ;
 
 		shared_lock<boost::shared_mutex> lock;
 		PartitionedTestDatabase<managed_mapped_file,MapType>* db = getDatabase(db_no, lock);
@@ -321,14 +322,14 @@ public:
 			{
 				// Now randomly determine a map within the database to get.  Every map
 				// can contain every potential key value.
-				int map_no = static_cast<int>(::rand() * (((double)g_maps_per_db) / (double)RAND_MAX));
+				int map_no = static_cast<int>((::rand() * (double)g_maps_per_db) / RAND_MAX);
 				MapType* map = db->getMap(map_no);
 
 				// We're going to do some random op, on a random key, within
 				// one of the maps within this database.  Normally, I would try to sort the
 				// changes to avoid deadlocks.  But I'm not doing that here.  Instead, I'll
 				// watch for LockTimoutExceptions, and handle them by aborting the transaction.
-				int key_no = static_cast<int>(::rand() * (((double)g_max_key) / (double)RAND_MAX));
+				int key_no = static_cast<int>((::rand() * (double)g_max_key) / RAND_MAX);
 				ostringstream keystream;
 				keystream << "TestKey" << key_no;
 				shm_string key( keystream.str().c_str() );
@@ -390,7 +391,7 @@ public:
 
 						// With the found row, let's do one of 3 things. a) nothing, b) update it,
 						// c) delete it. (33.3% chance of each.)
-						int operation = static_cast<int>(::rand() * (((double)3.0) / (double)RAND_MAX));
+						int operation = static_cast<int>((::rand() * (double)3.0) / RAND_MAX);
 
 						stldb::bounded_wait_policy<sharable_lock<boost::interprocess::interprocess_upgradable_mutex> >
 							wait_with_timeout(lock_holder, g_max_wait);
@@ -569,7 +570,8 @@ public:
 			sleep(interval);
 #endif
 
-			int db_no = static_cast<int>(::rand() * (((double)g_num_db) / (double)RAND_MAX));
+			int db_no = static_cast<int>((::rand() * (double)g_num_db) / RAND_MAX);
+			db_no = (db_no >= g_num_db) ? g_num_db-1 : db_no ;
 
 			PartitionedTestDatabase<managed_mapped_file,MapType> *db, *db2;
 			{
@@ -624,7 +626,7 @@ public:
 			// slower loop, randomly pick work to do.
 			for (int i=0; i<loop_size; i++) {
 				// randomly pick one operation, and execute it.
-				int r = static_cast<int>(::rand() * (((double)_max_freq) / (double)RAND_MAX));
+				int r = static_cast<int>((::rand() * (double)_max_freq) / RAND_MAX);
 				(*_ops.lower_bound(r)->second)();
 			}
 		}
