@@ -44,7 +44,7 @@ class timer
 {
 public:
 	inline timer(const char *scopename)
-		: _enabled(thr_enabled.get() ? *thr_enabled.get() : false)
+		: _enabled(config.enabled_percent != 0.0 ? (thr_enabled.get() ? *thr_enabled.get() : false) : false)
 		, _end(boost::posix_time::not_a_date_time)
 	{
 		if (_enabled) {
