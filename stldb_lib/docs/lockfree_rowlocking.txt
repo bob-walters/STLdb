@@ -1,0 +1,53 @@
+
+Currently, within trans_map, row level lock is acquired by locking a mutex, then adjusting the lock value
+and associated transaction_id to a new value.  When the row is locked, waiting is accomplshed by blocking on
+a condition variable - this is the real motivation for needing the mutex for lock acquisition.
+
+The op_code and transaction_id of TransEntry<> occupy 64 bits precisely.  Consider making it a single 64bit
+int, properly aligned for use with __compare_and_swap().
+
+The intel __compare_and_swap routine, (incorporated into gcc 4.1.2 (@http://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Atomic-Builtins.html))
+allows an atomic conditional update of a value, providing the basic ability to get the row-level locks without
+the overhead of a mutex, or potential for pointless contention on the mutex.
+
+Basic algorithm:
+
+bool entry::atomic_lock( txn_id new_txn, op_code new_op )
+{
+	uint64_t txn_and_op = entry.txn_and_op;
+	if ( op_code(txn_and_op) != No_op && txn_id(txn_and_op) != new_txn ) {
+		// another transaction has the row locked already
+		return false;
+	}
+	uint64_t new_val = make_txn_and_op( new_txn, new_op );
+	return __compare_and_swap( txn_and_op, new_val );
+}
+
+// locks a row for new_op.  Succeeds, blocking as needed, or ends up throwing
+// an isolation exception (entry_deleted_exception)
+lock_row( map_lock_held, entry, txn_id, new_op )
+{
+	// unprotected read
+	if ( entry.op_code() == No_op ) {
+		bool succeeded = entry.atomicSetOp( txn_id, Update_op );
+		if (!succeed) {
+			// was close contention getting the lock on this entry
+			map.row_level_mutex.lock();
+			while ( !( entry.op_code() == No_op && entry.atomicLock( txn_id, new_op ) ) {
+				release map's main upgradable mutex
+				cond_wait();
+				re-acquire map's main upgradable mutex
+				re-acquire iterator to entry (if needed)
+			}
+		}
+	}
+	return true;
+}
+
+commit() {
+	// get exclusive lock on map
+	// get row_level_mutex
+	// cond_signal_all
+}
+
+	

@@ -16,16 +16,19 @@ get read lock
 release shared lock
 
 // insert (non-blocking) / commit (exclusive ops)
-get write lock
+get write lock on container
 release write lock
 
 // insert (blocking form)
-get write lock
+get write lock on container
 try insert, when row-level contention found,
-get mutex for row-level operation  // get mutex while holding write lock (DEADLOCK)
-release write lock
+get mutex for row-level operation  // get mutex while holding write lock
+release write lock on container
 cond wait (mutex)
-release mutex.
+// note - the lock-free period between the above 2 requires that the thread
+// calling cond notify must hold the mutex itself when it does that.  Otherwise
+// there is a race where notifications can be missed.
+release row-level mutex.
 get write lock                                      // get write lock (no mutex)
     // note - interval above with no lock held.  Safe anyway because
     // we can invalidate the hint iterator if there have been any deletes committed,
@@ -66,6 +69,8 @@ release mutex
 
 
 Conclusion:
+Order of locking is ALWAYS: get either shared or exclusive lock on container first,
+                            then can acquire mutex.  Never reverse.
 No chance of lock deadlocks.  
 No chance of missed cond_notify when a transaction completes.
 * find, update, erase just acquire shared read lock.
