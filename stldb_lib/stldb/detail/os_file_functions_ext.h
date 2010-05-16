@@ -8,6 +8,8 @@
 #ifndef STLDB_OS_FILE_FUNCTIONS_EXT_H
 #define STLDB_OS_FILE_FUNCTIONS_EXT_H
 
+#include <iostream>
+#include <string.h> // strerror on Solaris
 #include <boost/interprocess/detail/os_file_functions.hpp>
 
 #if (!defined BOOST_INTERPROCESS_WINDOWS)
@@ -17,6 +19,9 @@
 
 namespace stldb {
 namespace io {
+
+using std::cerr;
+using std::endl;
 
 
 #if (defined BOOST_INTERPROCESS_WINDOWS)
@@ -28,6 +33,10 @@ typedef struct iovec {
 	void       *iov_base;
 	std::size_t iov_len;
 } write_region_t;
+
+// actually arbitrary on Windows, since gathered_write() currently uses
+// several calls to write().
+static const std::size_t max_write_region_per_call = 32;
 
 namespace winapi {
 
@@ -70,16 +79,32 @@ inline int sync(file_handle_t f) {
 // write method.
 typedef boost::interprocess::file_handle_t file_handle_t;
 typedef struct iovec write_region_t;
+static const std::size_t max_write_region_per_call = IOV_MAX;
 
 /**
  * Read up to nbyte bytes of data from file f, into the buffer
  * pointed to by buf.  Return the # of bytes read.  0 indicates
  * EOF, a negative value indicates some class of error which is OS specific.
+ * (see errno)
  */
 inline std::size_t read_file(file_handle_t f, void *buf, std::size_t nbyte) {
-	std::size_t result;
-	while ((result = ::read(f, buf, nbyte)) == EINTR) { ; }
-	return result;
+	ssize_t read;
+	std::size_t total = 0;
+	while ((read = ::read(f, buf, nbyte)) < (ssize_t)nbyte) {
+		if (read == -1) {
+			if (errno == EINTR)
+				continue;
+			throw std::ios_base::failure( strerror(errno) );
+		}
+		if (read == 0) { // EOF
+			return total;
+		}
+		buf = reinterpret_cast<char*>(buf) + read;
+		nbyte -= read;
+		total += read;
+	}
+	total += read;
+	return total;
 }
 
 /**
@@ -118,6 +143,17 @@ inline bool gathered_write_file(file_handle_t f, struct iovec *buffs, int buf_co
 		if (written == -1) {
 			if (errno == EINTR)
 				continue;  // just try again...
+#if 0
+			else if (errno == EINVAL) {
+				cerr << "EINVAL on writev() call" << endl;
+				cerr << "total_written: " << total_written << endl;
+				cerr << "bytes_remaining: " << bytes_remaining << endl;
+				cerr << "buff_count == " << buf_count << endl;
+				for (int i=0; i<buf_count; i++) {
+					cerr << "buff[ " << i << "].iov_len == " << buffs[i].iov_len << endl;
+	            }
+			}
+#endif
 			return false;
 		}
 		// set buffs and buf_count to the amount which remains to write.

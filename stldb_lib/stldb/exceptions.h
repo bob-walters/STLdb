@@ -9,6 +9,7 @@
 #define STLDB_EXCEPTIONS_H_
 
 #include <exception>
+#include <boost/cstdint.hpp>
 #include <boost/interprocess/exceptions.hpp>
 #include <stldb/cachetypes.h>
 

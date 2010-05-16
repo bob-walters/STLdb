@@ -20,24 +20,28 @@ namespace stldb
 {
 
 /**
- * A transaction is given a unique ID number which
+ * A transaction is given a unique ID number representing the transaction.
  *
- * A transaction which has been committed is given a unique integer transaction_id, which in turn can be
- * used to mark the tables to indicate the last committed transaction.  This value is used in snapshots
- * and logs, and effectively indicates the total number of transactions which have been committed against
- * a particular database.  This number can't loop around safely, so a 64-bit int is used.
- *
- * A transaction which is in progress is identified by an integer which I've decided to call
- * a lock_id.  This is because it is most typically used to mark rows in shared data which the
- * transaction has locked.  The "lock_id" is an id assigned to a transaction when it is started,
- * and a 'transaction_id' is an id which is assigned when the transaction commits.  The reason for the
- * two identifiers is because transactions can start and commit in different orders, and it would
- * complicate the tracking of committed transactions if one one ID was used.
+ * transaction_ids are typically used to mark rows which have been locked
+ * by a transaction, and thereby to identify the lock owner.
  */
 typedef int64_t transaction_id_t;
+
+/**
+ * During the commit of a transaction, the transaction is assigned a
+ * logging sequence number (LSN) which corresponds to the order in which the
+ * transactions have been serialized to the log.  LSNs on transaction
+ * in the log are always in order of ascending LSNs.
+ *
+ * The last committed LSN value can be stored on entries in containers
+ * and used to determine changes during checkpoints.
+ * This number can't loop around safely, so a 64-bit int is used.
+ */
+typedef int64_t log_seq_num_t;
 
 static const transaction_id_t no_transaction = transaction_id_t(-1);
 
 }
 
 #endif /* CACHETYPES_H_ */
+

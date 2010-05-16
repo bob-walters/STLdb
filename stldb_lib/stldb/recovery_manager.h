@@ -58,6 +58,9 @@ private:
 	// Stats about how much we've recovered from log files.
 	std::size_t _txn_count;
 	std::size_t _op_count;
+
+	// a stream based on a stored vector which is used during recovery
+	boost::interprocess::basic_ivectorstream< std::vector<char> > vbuffer;
 };
 
 template <class ManagedRegionType>
@@ -66,6 +69,9 @@ recovery_manager<ManagedRegionType>::recovery_manager(
 	: container_lsn(container_lsn)
 	, starting_lsn(starting_lsn)
 	, db(database)
+	, _txn_count(0)
+	, _op_count(0)
+	, vbuffer()
 {
 }
 
@@ -83,7 +89,7 @@ transaction_id_t recovery_manager<ManagedRegionType>::recover()
 	std::map<transaction_id_t, boost::filesystem::path>::iterator i = log_files.lower_bound(starting_lsn);
 	if ( i != log_files.begin() && (i == log_files.end() || i->first > starting_lsn ))
 		i --; // we will need the log file previous as well.
-	STLDB_TRACE(info_e, "determined first log file needed for recovery: " << (i==log_files.end() ? "None" : i->second.string()));
+	STLDB_TRACEDB(info_e, db.get_database_name(), "determined first log file needed for recovery: " << (i==log_files.end() ? "None" : i->second.string()));
 
 	if (i->first > starting_lsn) {
 		// hmmm, the operator deleted some log files which are needed to perform
@@ -97,7 +103,7 @@ transaction_id_t recovery_manager<ManagedRegionType>::recover()
 
 	// It is reasonable to assume that when operations are being recovered, objects
 	// might get constructed initially using a default constructor, and then deserialized
-	// from bstream.  Etablish that for the remainder of this function, this thread
+	// from bstream.  Establish that for the remainder of this function, this thread
 	// should default all allocator's to using db's region.
 	stldb::scoped_allocation<typename ManagedRegionType::segment_manager> a(db.getRegion().get_segment_manager());
 
@@ -107,14 +113,15 @@ transaction_id_t recovery_manager<ManagedRegionType>::recover()
 		// move forward to the starting point (starting_lsn) in this first file.
 		log_reader reader(i->second.string().c_str());
 		lsn = reader.seek_transaction(starting_lsn);
+		max_lsn = lsn;
 
 		// and then recover everything through EOF for that file.
-		while (lsn != no_transaction) {
+		while (lsn >= starting_lsn && lsn != no_transaction) {
 			this->recover_txn( reader.get_transaction() );
 			max_lsn = lsn;
 			lsn = reader.next_transaction();
 		}
-		STLDB_TRACE(info_e, "Completed recovery of logfile, " << _txn_count << " transactions, " << _op_count << " operations recovered thus far");
+		STLDB_TRACEDB(info_e, db.get_database_name(), "Completed recovery of logfile, " << _txn_count << " transactions, " << _op_count << " operations recovered thus far");
 		reader.close();
 
 		// and now recover the transactions from every additional log file after the first.
@@ -124,18 +131,20 @@ transaction_id_t recovery_manager<ManagedRegionType>::recover()
 				this->recover_txn( nextLog.get_transaction() );
 				max_lsn = lsn;
 			}
+			STLDB_TRACEDB(info_e, db.get_database_name(), "Completed recovery of logfile, " << _txn_count << " transactions, " << _op_count << " operations recovered thus far");
 		}
 
 		// At the conclusion of this process, we know the maximum LSN recovered
-		STLDB_TRACE(fine_e, "recovery complete, recovered transactions through LSN: " << max_lsn);
+		STLDB_TRACEDB(info_e, db.get_database_name(), "recovery complete, recovered transactions through LSN: " << max_lsn);
 	}
 	catch(recover_from_log_failed &ex) {
 		// Note how far we got before the error occurred.  It may still be
 		// possible to complete recovery with lost transactions.
-		STLDB_TRACE(severe_e, ex.what());
+		STLDB_TRACEDB(severe_e, db.get_database_name(), "Aborting recovery: " << ex.what() << "at txn: " << max_lsn << ", at offset:"
+				<< ex.offset_in_file() << " of " << ex.filename() );
 	}
 	catch (std::ios_base::failure &ex) {
-		STLDB_TRACE(severe_e, ex.what());
+		STLDB_TRACEDB(severe_e, db.get_database_name(), "Aborting recovery: " << ex.what());
 	}
 	return max_lsn;
 }
@@ -152,9 +161,11 @@ transaction_id_t recovery_manager<ManagedRegionType>::recover_txn( std::pair<log
 
 	try {
 		// Wrap the vector of bytes directly in streams.
-		boost::interprocess::basic_ivectorstream< std::vector<char> > vbuffer(buffer.get_allocator());
 		vbuffer.swap_vector(buffer);
 		boost_iarchive_t bstream(vbuffer);
+
+		container_proxy_base<ManagedRegionType>* proxy = NULL;
+		std::string last_container;
 
 		for (; i<header.op_count; i++)
 		{
@@ -162,13 +173,15 @@ transaction_id_t recovery_manager<ManagedRegionType>::recover_txn( std::pair<log
 			std::pair<std::string,int> op_header = TransactionalOperation::deserialize_header(bstream);
 
 			// Get the container proxy for the container that this record refers to
-			container_proxy_base<ManagedRegionType>* proxy = db.getContainerProxy(op_header.first.c_str());
+			// optimize for scenario where same container name repeats from op to op.
+			proxy = (op_header.first == last_container ? proxy : db.getContainerProxy(op_header.first.c_str()));
+			last_container = op_header.first;
 
 			// Conceivably proxy could be null if a table was removed, and then the database crashed
 			// before a subsequent checkpoint could be completed.  In that case the log could still
 			// contain records pertaining to the deleted table.
 			if (proxy != NULL) {
-				proxy->recoverOp(op_header.second, bstream);
+				proxy->recoverOp(op_header.second, bstream, header.lsn);
 				_op_count++;
 			}
 		}
@@ -180,11 +193,11 @@ transaction_id_t recovery_manager<ManagedRegionType>::recover_txn( std::pair<log
 	catch (boost::archive::archive_exception &ex) {
 		std::ostringstream msg;
 		msg << "Log Recovery: boost::archive::archive_exception: " << ex.what();
-		msg << ".  Processing txn_id: " << header.txn_id << ", operation " << i << " of " << header.op_count;
-		STLDB_TRACE(severe_e, msg.str());
-		throw recover_from_log_failed(msg.str().c_str(), header.txn_id, -1, "");
+		msg << ".  Processing lsn: " << header.lsn << ", operation " << i << " of " << header.op_count;
+		STLDB_TRACEDB(severe_e, db.get_database_name(), msg.str());
+		throw recover_from_log_failed(msg.str().c_str(), header.lsn, -1, "");
 	}
-	return header.txn_id;
+	return header.lsn;
 }
 
 } // namespace

@@ -7,47 +7,44 @@
  *
  */
 
-#ifndef STLDB_CONCURRENT_TRANS_MAP_H
-#define STLDB_CONCURRENT_TRANS_MAP_H 1
+#ifndef STLDB_TRANS_MAP_H
+#define STLDB_TRANS_MAP_H 1
 
 #include <iterator>
+#include <string>
 #include <map>
 #include <vector>
 #include <utility>   // std::pair
 #include <functional>
 
 #include <boost/pool/pool_alloc.hpp>
-#include <boost/interprocess/managed_mapped_file.hpp>
+#include <boost/interprocess/managed_mapped_file.hpp>  // for detail arg
 #include <boost/interprocess/allocators/allocator.hpp>
 #include <boost/interprocess/containers/map.hpp>
+#include <boost/interprocess/sync/sharable_lock.hpp>
 #include <boost/interprocess/containers/string.hpp>
+
+#include <boost/intrusive/rbtree.h>
 
 #include <stldb/exceptions.h>
 #include <stldb/container_proxy.h>
 #include <stldb/containers/trans_map_entry.h>
-#include <stldb/containers/concurrent_trans_assoc_iterator.h>
+#include <stldb/containers/trans_assoc_iterator.h>
 #include <stldb/containers/iter_less.h>
 #include <stldb/containers/detail/map_ops.h>
-#include <stldb/sync/bounded_interprocess_mutex.h>
-#include <stldb/sync/picket_lock_set.h>
 #include <stldb/transaction.h>
 #include <stldb/checkpoint.h>
-
+#include <stldb/trace.h>
 
 #ifndef BOOST_ARCHIVE_TEXT
 #include <boost/archive/binary_iarchive.hpp>
 typedef boost::archive::binary_iarchive boost_iarchive_t;
 #else
-#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 typedef boost::archive::text_iarchive boost_iarchive_t;
 #endif
 
 namespace stldb {
-
-// Forward declaraton
-class Transaction;
-
-namespace concurrent {
 
 
 /**
@@ -88,7 +85,7 @@ namespace concurrent {
  * where a change was made.  So the normal map API is extended
  * to include an update() method which makes a change to an entries value under a
  * transaction.  TODO - might want a method on the iterator which allows you to explicitly
- * prep a value for update, then provide direct access to the updated value, avoiding copy construction.
+ * prep a value for update, then provide direct access to the updated value.
  *
  * Other methods of the
  * normal map<> class are also extended to include transaction parameters.  The transaction which
@@ -99,7 +96,11 @@ namespace concurrent {
  */
 
 using namespace std;
-using boost::interprocess::map;
+using boost::intrusive::set_base_hook;
+using boost::intrusive::set_base_hook;
+using boost::intrusive::void_pointer;
+using boost::intrusive::constant_time_size;
+using boost::intrusive::size_type;
 
 //!Parameters:
 // K, V, Comparator, and Allocator are as per std::map.
@@ -119,29 +120,38 @@ using boost::interprocess::map;
 template <class K, class V, class Comparator = std::less<K>,
           class Allocator = boost::interprocess::allocator<std::pair<const K, V>,
 						    typename boost::interprocess::managed_mapped_file::segment_manager>,
-		  class mutex_family = stldb::bounded_mutex_family,
-		  int picket_lock_size = 31>
-  class trans_map
-	: public boost::interprocess::map<K,TransEntry<V>,Comparator, typename Allocator::template rebind< std::pair<K,TransEntry<V> > >::other >
+	      class mutex_family = stldb::bounded_mutex_family>
+class trans_map
 {
   public:
-	// overloads of some typedefs.
-	typedef typename Allocator::template rebind<std::pair<K,TransEntry<V> > >::other  base_alloc;
-
-	typedef boost::interprocess::map<K,TransEntry<V>,Comparator,base_alloc>  baseclass;
-
+	// std::map typedefs.
 	typedef K key_type;
-	typedef TransEntry<V> mapped_type;
+	typedef V mapped_type;
+
 	typedef std::pair<const K, TransEntry<V> > value_type;
 	typedef Comparator key_compare;
 	typedef Allocator  allocator_type;
+
+	typedef typename Allocator::template rebind<std::pair<K,TransEntry<V> > >::other  base_alloc;
+	typedef typename Allocator::template rebind<void>::other  void_alloc;
+
+	// The NodeType which will be used with the intrusive set.
+	class NodeType : public std::pair<K, TransEntry<V> >
+	               , public set_base_hook< void_pointer< typename void_alloc::pointer > >
+	{
+		bool operator<(const NodeType &rarg) {
+			Comparator c;
+			return c(this->first,rarg.first);
+		}
+	};
+
+	// The actual map, as an intrusive set<pair<K,V> >
+	typedef boost::intrusive::set< constant_time_size<true>, size_type<typename Allocator::size_type> >  base_t;
 
 	// mutex and condition types used within map.
 	typedef typename mutex_family::upgradable_mutex_type upgradable_mutex_type;
 	typedef typename mutex_family::mutex_type            mutex_type;
 	typedef typename mutex_family::condition_type        condition_type;
-
-	typedef picket_lock_set<value_type, mutex_type, picket_lock_size>  picket_lock_t;
 
 	typedef value_type&        reference;
 	typedef const value_type&  const_reference;
@@ -151,50 +161,24 @@ template <class K, class V, class Comparator = std::less<K>,
 	typedef typename Allocator::size_type size_type;
 	typedef typename Allocator::difference_type difference_type;
 
-	friend class trans_assoc_iterator<trans_map, typename baseclass::iterator
-		, boost::interprocess::scoped_lock<mutex_type> >;
-	friend class trans_assoc_iterator<trans_map, typename baseclass::const_iterator
-		, boost::interprocess::scoped_lock<mutex_type> >;
+	friend class trans_assoc_iterator<trans_map, typename baseclass::iterator>;
+	friend class trans_assoc_iterator<trans_map, typename baseclass::const_iterator>;
 
-	typedef trans_assoc_iterator<trans_map, typename baseclass::iterator
-		, boost::interprocess::scoped_lock<mutex_type> >        iterator;
-	typedef trans_assoc_iterator<trans_map, typename baseclass::const_iterator
-		, boost::interprocess::scoped_lock<mutex_type> >  const_iterator;
+	typedef trans_assoc_iterator<trans_map, typename baseclass::iterator>        iterator;
+	typedef trans_assoc_iterator<trans_map, typename baseclass::const_iterator>  const_iterator;
 
 	typedef std::reverse_iterator< iterator >        reverse_iterator;
 	typedef std::reverse_iterator< const_iterator >  const_reverse_iterator;
 
-	// container-specific data put onto any transaction which is used to modify the
-	// container.  This is a map used to holding uncommitted changes as part of MVCC.
-	// The reason std::less is not used for comparison is that it isn't guaranteed to work
+	// The type of a map used to holding uncommitted changes as part of MVCC
+	// The reason std::less is not used for comparison is that it isn't required to work
 	// for std::iterators.  It doesn't work for boost::interprocess::map<>::iterator.
-	// In addition to holding pending changes, it also stores whether or not commit and
-	// rollback operations can be done with only a shared lock on the container,
-	// and finally also holds a vector of rows which need to be locked in that case.
-	struct pending_change_map_t : public std::map<typename baseclass::iterator, value_type,
-								  iter_less<typename baseclass::iterator> >
-	{
-		bool exclusive_commit;
-		bool exclusive_rollback;
-
-		// A list of all entries changed (insert, update, lock or erase) during the transaction
-		// which will therefore require.  Note: Not using value_type or pointer typedefs of
-		// containing class because inheriting from map hides those typedefs.
-		std::vector< typename trans_map::pointer > _modified_entries;
-
-		// Once locks are acquired on rows in _modified, they are tracked in locks_held during
-		// the phases of commit or rollback processing.
-		std::vector<mutex_type*> _locks_held;
-
-		pending_change_map_t()
-			: exclusive_commit(false), exclusive_rollback(false)
-			, _modified_entries(), _locks_held()
-			{ }
-	};
+	typedef std::map<typename baseclass::iterator, value_type,
+	                 iter_less<typename baseclass::iterator> > pending_change_map_t;
 
 	// constructors.
 	// Note that constructors are not transactional.
-	explicit trans_map(const Comparator& comp, const Allocator& alloc, const char *name);
+	explicit trans_map(const Comparator& comp, const Allocator&, const char *name);
 
 	template <class InputIterator>
 	trans_map(InputIterator first, InputIterator last,
@@ -313,25 +297,14 @@ template <class K, class V, class Comparator = std::less<K>,
 	// conventions with the map.
 	upgradable_mutex_type& mutex() { return _lock; }
 
-	// Returns the mutex that governs the entry at the indicated iterator position
-	mutex_type& mutexForRow( const typename baseclass::iterator &i ) {
-		return _row_level_locks.mutex(&*i);
-	}
-
-	// Declare the proxy as a friend, it has priveledged access to some private methods
-//	template <class ManagedRegionType, class K, class V, class Pred, class Allocator, class mutex_family, int picket_lock_size>
-//	friend class stldb::container_proxy<ManagedRegionType, trans_map<K, V, Pred, Allocator, mutex_family, picket_lock_size> >;
-	template <class ManagedRegionType, class MapType> friend class stldb::container_proxy;
-
-	void print_stats() {
-		std::cout << "concurrent::trans_map<> entries: " << this->size();
-		_row_level_locks.print_stats();
-	}
+	// Returns the condition variable used to signal when row-level locks are released.
+	// (Called in the course of commit by Transaction class.)
+	condition_type& condition() { return _row_level_lock_released; }
 
 	// Returns the name of this container, as it is known by within the database
 	const char *get_name() { return _container_name.c_str(); }
 
-  private:
+private:
 
 	// while_row_locked generalizes the retry behavior needed to allow a bocking function to
 	// be composed by iteratively calling the non-blocking one, and then handling any thrown
@@ -343,17 +316,17 @@ template <class K, class V, class Comparator = std::less<K>,
 	// control exactly how that wait is done.  (i.e. indefinite blocking, block for a maximum duration, etc.)
 	template <class bound_method_t, class wait_policy_t>
 	typename bound_method_t::result_type  while_row_locked( const bound_method_t &bound_method,
-			iterator &i, Transaction &trans, wait_policy_t &wait_policy );
+			  iterator &i, Transaction &trans, wait_policy_t &wait_policy );
 
 	// the container's lock.  insert, swap, clear, and commit processing must use
 	// a scoped(exclusive) lock, but all others can use a shared lock.
 	upgradable_mutex_type _lock;
 
-	// mutexes & condition used for row-level locking.  This lock needs to be acquired
+	// mutex & condition used for row-level locking.  This only needs to be acquired
 	// when seeking to acquire/release a row level lock, and only for the duration of
-	// the primitive being invoked.  Not expected to be used externally, except by the Proxy.
-	picket_lock_t  _row_level_locks;
-	condition_type  _row_level_lock_released;
+	// the internal operation, so they are exclusively internal
+	mutex_type            _row_level_lock;
+    condition_type        _row_level_lock_released;
 
     // implementation methods. must be called with the _row_level_lock mutex held.
     // represent commonality across the various public forms of these operations.
@@ -366,7 +339,6 @@ template <class K, class V, class Comparator = std::less<K>,
 	/**
 	 * Support for MVCC
 	 */
-
 	// Return the pending update (newVal) which corresponds to the current value.
 	// This method is only called when a transaction rereads an entry in the map
 	// which it already has locked for Update_op.  Otherwise, there is never a need
@@ -376,7 +348,7 @@ template <class K, class V, class Comparator = std::less<K>,
 	}
 
 	// Record the fact that there is a update of newValue which is to replace
-	// the current value at location.
+	// the current value at currVal.
 	inline value_type addPendingUpdate( Transaction &trans, typename baseclass::iterator location,
 			const V& newVal )
 	{
@@ -387,48 +359,17 @@ template <class K, class V, class Comparator = std::less<K>,
 		if (result.second==false) {
 			result.first->second.second = newVal;
 		}
-		changes->_modified_entries.push_back( reinterpret_cast<typename trans_map::pointer>(&*location) );
 		return result.first->second;
 	}
 
-	// Record the fact that the entry at the indicated address will need to be relocked during
-	// commit or rollback processing to avoid race conditions
-	inline void addPendingInsert(Transaction &trans, typename baseclass::iterator location)
-	{
-		pending_change_map_t *changes = trans.getContainerSpecificData<pending_change_map_t>(this);
-		changes->_modified_entries.push_back( reinterpret_cast<typename trans_map::pointer>(&*location) );
-		changes->exclusive_rollback = true;
-	}
-
-	// Record the fact that the entry at the indicated address will need to be relocked during
-	// commit or rollback processing to avoid race conditions
-	inline void addPendingErase(Transaction &trans, typename baseclass::iterator location)
-	{
-		pending_change_map_t *changes = trans.getContainerSpecificData<pending_change_map_t>(this);
-		changes->_modified_entries.push_back( reinterpret_cast<typename trans_map::pointer>(&*location) );
-		changes->exclusive_commit = true;
-	}
-
-	// Record the fact that the entry at the indicated address will need to be relocked during
-	// commit or rollback processing to avoid race conditions
-	inline void addPendingUnlock(Transaction &trans, typename baseclass::iterator location)
-	{
-		pending_change_map_t *changes = trans.getContainerSpecificData<pending_change_map_t>(this);
-		changes->_modified_entries.push_back( reinterpret_cast<typename trans_map::pointer>(&*location) );
-	}
-
-	/**
-	 * Support for TransactionalOperations
-	 */
-
 	// The following is in support of the transaction system.
-	typename boost::interprocess::basic_string<char, typename std::char_traits<char>,
+	typename boost::interprocess::basic_string<char, typename std::char_traits<char>, 
 		typename Allocator::template rebind<char>::other>  _container_name;
 
 	// _ver_num is used to determine when iterators might have gone invalid after a cond_wait.
 	// when iterators are created, they are stamped with the _ver_num on the container at that
 	// time.  Thereafter, the iterators can compare their value to the containers current value
-	// to determine if they might be invalid.  For methods of trans_map which block waiting
+	// to determine if they might be invalid.  For methods of trans_map which block waiting on
 	// a row lock, this is used to help optimize out the need to refresh the iterators after
 	// re-acquiring the mutex.
 	uint64_t _ver_num;
@@ -449,35 +390,33 @@ template <class K, class V, class Comparator = std::less<K>,
 	// load checkpoint
 	void load_checkpoint(checkpoint_ifstream &checkpoint);
 
+	template <class ManagedRegionType, class MapType> friend class stldb::container_proxy;
 
 	friend struct detail::assoc_transactional_operation<trans_map>;
 	friend struct detail::map_insert_operation<trans_map>;
 	friend struct detail::map_update_operation<trans_map>;
 	friend struct detail::map_delete_operation<trans_map>;
+	friend struct detail::map_deleted_insert_operation<trans_map>;
 	friend struct detail::map_lock_operation<trans_map>;
 	friend struct detail::map_clear_operation<trans_map>;
 	friend struct detail::map_swap_operation<trans_map>;
 };
 
 
-} // namespace concurrent
-
-
 //!Specialization of container_proxy for trans_map, to deal with
 //!map's 2 arg constructor.
-template <class ManagedRegionType, class K, class V, class Pred, class Allocator, class mutex_family, int picket_lock_size>
-class container_proxy<ManagedRegionType, concurrent::trans_map<K, V, Pred, Allocator, mutex_family, picket_lock_size> >
+template <class ManagedRegionType, class K, class V, class Pred, class Allocator, class mutex_family>
+class container_proxy<ManagedRegionType, trans_map<K, V, Pred, Allocator, mutex_family> >
 	: public container_proxy_base<ManagedRegionType>
 {
 public:
-	typedef concurrent::trans_map<K,V,Pred,Allocator,mutex_family,picket_lock_size> container_type;
-	typedef typename container_type::pending_change_map_t  pending_change_map_t;
-	typedef typename mutex_family::mutex_type  mutex_type;
+	typedef trans_map<K,V,Pred,Allocator,mutex_family> container_type;
 	typedef container_proxy_base<ManagedRegionType>  base;
 	typedef Allocator  allocator_type;
 
 	container_proxy(const char *name)
 		: container_proxy_base<ManagedRegionType>(name)
+		, _container(NULL), _db(NULL)
 		{ }
 
 	virtual ~container_proxy() { }
@@ -532,87 +471,50 @@ public:
 				break;
 		}
 	}
-
-	virtual void initializeCommit(Transaction &trans)
+	void initializeTxn(Transaction &trans)
 	{
-		pending_change_map_t *data = trans.getContainerSpecificData<pending_change_map_t>(_container);
-		bool exclusive_commit = data==NULL ? false : data->exclusive_commit;
-		if (exclusive_commit)
-			_container->mutex().lock(); // exclusive lock
-		else {
-			if (data) {
-				// determine and record locks to be held in data->_locks_held
-				_container->_row_level_locks.mutexes( data->_modified_entries.begin(), data->_modified_entries.end(), data->_locks_held);
-				// container shared lock first
-				_container->mutex().lock_sharable();
-				// then get the row-level locks
-				for (typename std::vector<mutex_type*>::iterator i = data->_locks_held.begin(); i != data->_locks_held.end(); i++) {
-					(*i)->lock();
-				}
+		// to start a commit or rollback, we need an exclusive lock on the
+		// container.
+		while (true) {
+			try {
+				_container->mutex().lock();
+				break;
 			}
-			else
-				_container->mutex().lock_sharable();
+			catch (lock_timeout_exception &ex) { }
 		}
 	}
-
-	virtual void completeCommit(Transaction &trans)
+	void completeTxn(Transaction &trans)
 	{
-		pending_change_map_t *data = trans.getContainerSpecificData<pending_change_map_t>(_container);
-		bool exclusive_commit = data==NULL ? false : data->exclusive_commit;
-		if (exclusive_commit) {
-			_container->_row_level_lock_released.notify_all();
-			_container->mutex().unlock();
+		// we release our exclusive lock, and also signal any threads
+		// waiting on row-level locks that they may now be able to proceed.
+		{
+			// the mutex must be held before calling notify_all() on the
+			// condition variable, because there otherwise is a race condition
+			// with the waiting convention where a thread could miss a notify,
+			// and end up waiting an extra commit before unlocking.
+			scoped_lock<typename container_type::mutex_type>  lock(
+				_container->_row_level_lock);
+			// wake up anyone waiting on a row lock
+			_container->_row_level_lock_released.notify_all(); 
 		}
-		else {
-			pending_change_map_t *data = trans.getContainerSpecificData<pending_change_map_t>(_container);
-			if (data) {
-				_container->_row_level_lock_released.notify_all();
-				for (typename std::vector<mutex_type*>::iterator i = data->_locks_held.begin(); i != data->_locks_held.end(); i++) {
-					(*i)->unlock();
-				}
-			}
-			_container->mutex().unlock_sharable();
-		}
+		_container->mutex().unlock();
+	}
+	virtual void initializeCommit(Transaction &trans)
+	{
+		initializeTxn(trans);
 	}
 	virtual void initializeRollback(Transaction &trans)
 	{
-		pending_change_map_t *data = trans.getContainerSpecificData<pending_change_map_t>(_container);
-		bool exclusive_rollback = data==NULL ? false : data->exclusive_rollback;
-		if (exclusive_rollback)
-			_container->mutex().lock();
-		else {
-			if (data) {
-				_container->_row_level_locks.mutexes( data->_modified_entries.begin(), data->_modified_entries.end(), data->_locks_held);
-				_container->mutex().lock_sharable();
-				for (typename std::vector<mutex_type*>::iterator i = data->_locks_held.begin(); i != data->_locks_held.end(); i++) {
-					(*i)->lock();
-				}
-			}
-			else
-				_container->mutex().lock_sharable();
-		}
+		initializeTxn(trans);
 	}
-
+	virtual void completeCommit(Transaction &trans)
+	{
+		completeTxn(trans);
+	}
 	virtual void completeRollback(Transaction &trans)
 	{
-		pending_change_map_t *data = trans.getContainerSpecificData<pending_change_map_t>(_container);
-		bool exclusive_rollback = data==NULL ? false : data->exclusive_rollback;
-		if (exclusive_rollback) {
-			_container->_row_level_lock_released.notify_all();
-			_container->mutex().unlock();
-		}
-		else {
-			pending_change_map_t *data = trans.getContainerSpecificData<pending_change_map_t>(_container);
-			if (data) {
-				_container->_row_level_lock_released.notify_all();
-				for (typename std::vector<mutex_type*>::iterator i = data->_locks_held.begin(); i != data->_locks_held.end(); i++) {
-					(*i)->unlock();
-				}
-			}
-			_container->mutex().unlock_sharable();
-		}
+		completeTxn(trans);
 	}
-
     virtual void save_checkpoint(Database<ManagedRegionType> &db,
     		checkpoint_ofstream &checkpoint,
             transaction_id_t last_checkpoint_lsn )
@@ -629,10 +531,11 @@ private:
 	Database<ManagedRegionType> *_db;
 };
 
-} // namespace stldb
+
+} // namespace
 
 #ifndef AUTO_TEMPLATE
-#include <stldb/containers/concurrent_trans_map.tcc>
+#include <stldb/containers/trans_map.tcc>
 #endif
 
 #endif

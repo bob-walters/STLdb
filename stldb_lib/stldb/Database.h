@@ -19,9 +19,13 @@
 #include <boost/interprocess/containers/set.hpp>
 #include <boost/interprocess/containers/vector.hpp>
 #include <boost/interprocess/containers/string.hpp>
+#include <boost/interprocess/sync/interprocess_condition.hpp>
 #include <boost/interprocess/streams/vectorstream.hpp>
 #include <boost/intrusive/slist.hpp>
 #include <boost/filesystem/path.hpp>
+
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/map.hpp>
 
 using boost::interprocess::detail::OS_process_id_t;
 using boost::intrusive::optimize_size;
@@ -41,6 +45,7 @@ using boost::intrusive::slist;
 #include <stldb/sync/file_lock.h>
 #include <stldb/statistics.h>
 #include <stldb/detail/db_file_util.h>
+#include <stldb/containers/string_serialize.h>
 
 using boost::interprocess::set;
 using boost::interprocess::vector;
@@ -128,6 +133,21 @@ struct DatabaseInfo {
 //		, _containers(std::less<shm_string>(), shm_map2_allocator_t(alloc))
 	{ }
 
+	// provide for serialization of an XML-based form of DatabaseInfo contents
+	template <class Archive>
+	void serialize(Archive &ar, const unsigned int version)
+	{
+		std::map<shm_string, transaction_id_t> ckpt_history( ckpt_history_map.begin(), ckpt_history_map.end() );
+
+		ar & BOOST_SERIALIZATION_NVP(database_name)
+		   & BOOST_SERIALIZATION_NVP(database_directory)
+		   & BOOST_SERIALIZATION_NVP(checkpoint_directory)
+		   & BOOST_SERIALIZATION_NVP(next_txn_id)
+		   & BOOST_SERIALIZATION_NVP(logInfo)
+		   & BOOST_SERIALIZATION_NVP(ckpt_history)
+		   & BOOST_SERIALIZATION_NVP(max_incremental_percent);
+	}
+
 private:
 	// Not allowed
 	DatabaseInfo(void);
@@ -150,7 +170,7 @@ class Database {
 	// These define the types of locks to use for the Database.
 	typedef typename ManagedRegionType::mutex_family mutex_family;
 	typedef typename mutex_family::mutex_type mutex_type;
-	typedef typename boost::interprocess::interprocess_condition condition_type;
+	typedef boost::interprocess::interprocess_condition condition_type;
 
 	typedef container_proxy_base<ManagedRegionType> container_proxy_type;
 
@@ -290,7 +310,15 @@ public:
 	exclusive_transaction *begin_exclusive_transaction(exclusive_transaction *reusable_t = NULL);
 
 	/**
-	 * Commit the transaction (or exclusive transaction) passed.
+	 * Commit the transaction (or exclusive transaction) passed.  Returns 0 on success.
+	 * On failure, an exception is thrown.  If the exception is not a needs_recovery
+	 * exception, then the commit has had no effect on the transaction, and it still can,
+	 * and must be resolved, via a call to commit or rollback.  If there is a problem (e.g. I/O problem)
+	 * while attempting to commit the transaction, the exception is automatically escalated
+	 * to a needs_recovery exception.  Under those circumstances, the application should
+	 * disconnect and perform database recovery.  The needs_recovery exception is thrown to indicate
+	 * that the transaction was partially completed (e.g. in memory, but then could not complete
+	 * the disk logging required to make it permanent.)
 	 */
 	int commit(Transaction *t, bool diskless = false);
 
@@ -314,12 +342,6 @@ public:
 	 * checkpoint_directory and logging_directory, and does not require an open database.
 	 */
 	std::vector<boost::filesystem::path> get_archivable_logs();
-
-	/**
-	 * Get the set of obsolete checkpoint files in the directory passed.
-	 * @returns a vector of checkpoint files no longer needed for recovery processing.
-	 */
-	std::vector<checkpoint_file_info> get_archivable_checkpoints();
 
 	/**
 	 * Get the set of log files which contain transactions that are not yet reflected in
@@ -445,7 +467,62 @@ public:
 		_registry->set_invalid(value);
 	}
 
+	/**
+	 * Returns a file lock which a process can use to gain exclusive access to the
+	 * Database's checkpoint data for a period of time.  This is intended to permit
+	 * dedicated backup process to lock out any checkpoint() threads while making copies
+	 * of the checkpoint files.  The use of this lock must not be a thread within the
+	 * same process which may be doing checkpoints.  For that scenario use the non-static
+	 * version of checkpoint_lock().
+	 */
+	static std::auto_ptr<stldb::file_lock> checkpoint_lock(
+		const char *database_directory, const char *database_name);
+
+	/**
+	 * Returns the lock pair which has to be acquired in order to gain exclusive access
+	 * to the Database's checkpoint data for a period of time.  This method is for processes
+	 * which have an open Database, and have other threads which might call the checkpoint
+	 * method on this same Database.  The caller should acquire locks on first and then
+	 * second (and always in that order) at which point the checkpoint filesystem can be
+	 * considered secured for use.
+	 */
+	std::pair<boost::mutex*, stldb::file_lock*> checkpoint_lock() {
+		return std::make_pair( &_checkpoint_mutex, &_checkpoint_lock );
+	}
+
+	// TODO - the above pair should be canned in favor of more full-featured methods which
+	// make a backup of the current checkpoint file set and associated logs, so that it isn't
+	// a client responsibility.  The combination of boost::filesystem and io can be used
+	// to do that in an OS agnostic manner.
+
+	/**
+	 * Fast check to see if the _registry->_database_invalid flag has been set, and if it is
+	 * throw a recovery_needed exception.  This is used internally by other methods
+	 * of Database to protect the app from using a region which may have hung locks or
+	 * other forms of corruption.
+	 */
+	void safety_check() throw (recovery_needed) {
+		// This is done very frequently, so I omit the lock.  This should be
+		// safe since _register->is_valid only goes from false back to true via
+		// recovery & reconstruction of the region.
+		if (!_registry->is_valid())
+			throw recovery_needed();
+	}
+
+	/**
+	 * Utility method which connects to the region of a database and then dumps
+	 * information from the contents of the shared region, including DatabaseInfo,
+	 * the current registry contents, Logging info, checkpointing info, etc.
+	 */
+	template <class Archive>
+	static void dump_metadata(Archive &ar
+			, const char* database_name // the name of this database (used for region name)
+			, const char* database_directory // the location of metadata & lock files
+			, void* fixed_mapping_addr // fixed mapping address (optional)
+	);
+
 private:
+
 	// method to find or construct the shared _dbinfo structure.
 	void find_or_construct_databaseinfo(
 			std::list<container_proxy_type*>& containers,
@@ -466,19 +543,6 @@ private:
 	// Caller must hold file lock on the database.
 	static void remove_region_impl(const char *database_name, const char*database_directory);
 
-	/**
-	 * Check to see if the _registry->_database_invalid flag has been set, and if it
-	 * throw a recovery_needed exception.  This is used internally by other methods
-	 * of Database to protect the app from using a region which may have hung locks or
-	 * other forms of corruption.
-	 */
-	void safety_check() throw (recovery_needed) {
-		// This is done very frequently, so I omit the lock.  This should be
-		// safe since _register->is_valid only goes from false back to true via
-		// recovery & reconstruction of the region.
-		if (!_registry->is_valid())
-			throw recovery_needed();
-	}
 
 	// The attached managed region, holding all structures.
 	ManagedRegionType *_region;
@@ -514,6 +578,12 @@ private:
 
 	// The "dbname.reglock" file lock which guards the registry itself
 	stldb::file_lock _registry_lock;
+
+	// The file lock that a process holds when a checkpoint is in progress.  Can also
+	// be seized by an otherwise non-attached process that wants to prevent shapshots
+	// for a period of time in order to make a hot backup of a database
+	stldb::file_lock _checkpoint_lock;
+	boost::mutex  _checkpoint_mutex;
 
 	// The file lock that our process holds on our "database_name.pid.XXXXX" file to signal our
 	// processes health.

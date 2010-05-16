@@ -16,7 +16,7 @@
 
 /// The code has scattered STLDB_TRACE macros, which can be disabled.
 #ifdef STLDB_TRACING
-// I deliberately compressed this onto one line so __LINE__ will be right.
+
 #define STLDB_TRACE(lvl,msg) \
 	if(::stldb::tracing::get_trace_level() >= lvl) { \
 		std::ostringstream smsg; \
@@ -24,8 +24,20 @@
 		std::string msgs(smsg.str()); \
 		::stldb::tracing::get_tracer()->log(lvl, __FILE__ , __LINE__ , msgs.c_str()); \
 	}
+
+#define STLDB_TRACEDB(lvl,dbname,msg) \
+	if(::stldb::tracing::get_trace_level() >= lvl) { \
+		std::ostringstream smsg; \
+		smsg << "[" << dbname << "] " << msg ; \
+		std::string msgs(smsg.str()); \
+		::stldb::tracing::get_tracer()->log(lvl, __FILE__ , __LINE__ , msgs.c_str()); \
+	}
+
 #else
+
 #define STLDB_TRACE(lvl,msg)
+#define STLDB_TRACEDB(lvl,dbname,msg)
+
 #endif
 
 namespace stldb {

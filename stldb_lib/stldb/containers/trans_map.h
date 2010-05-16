@@ -31,6 +31,7 @@
 #include <stldb/containers/iter_less.h>
 #include <stldb/containers/detail/map_ops.h>
 #include <stldb/transaction.h>
+#include <stldb/checkpoint.h>
 #include <stldb/trace.h>
 
 #ifndef BOOST_ARCHIVE_TEXT
@@ -113,7 +114,7 @@ using boost::interprocess::map;
 template <class K, class V, class Comparator = std::less<K>,
           class Allocator = boost::interprocess::allocator<std::pair<const K, V>,
 						    typename boost::interprocess::managed_mapped_file::segment_manager>,
-		  class mutex_family = stldb::bounded_mutex_family>
+	  class mutex_family = stldb::bounded_mutex_family>
   class trans_map
 	: public boost::interprocess::map<K,TransEntry<V>,Comparator, typename Allocator::template rebind< std::pair<K,TransEntry<V> > >::other >
 {
@@ -286,8 +287,6 @@ template <class K, class V, class Comparator = std::less<K>,
 
 private:
 
-	template <class ManagedRegionType, class MapType> friend class stldb::container_proxy;
-
 	// while_row_locked generalizes the retry behavior needed to allow a bocking function to
 	// be composed by iteratively calling the non-blocking one, and then handling any thrown
 	// row_level_lock_contention exception by waiting on the condition variable for transactions
@@ -321,7 +320,6 @@ private:
 	/**
 	 * Support for MVCC
 	 */
-
 	// Return the pending update (newVal) which corresponds to the current value.
 	// This method is only called when a transaction rereads an entry in the map
 	// which it already has locked for Update_op.  Otherwise, there is never a need
@@ -357,123 +355,32 @@ private:
 	// re-acquiring the mutex.
 	uint64_t _ver_num;
 
+	// a record of space in the last checkpoint which has been freed because of
+	// erased objects.
+	boost::interprocess::map<boost::interprocess::offset_t, std::size_t,
+		std::less<boost::interprocess::offset_t>,
+		typename Allocator::template rebind<checkpoint_loc_t >::other>
+		_freed_checkpoint_space;
+	bool _uncheckpointed_clear;
+
+	// save checkpoint
+	template <class Database_t>
+	void save_checkpoint(Database_t &db, checkpoint_ofstream &checkpoint,
+	         transaction_id_t last_checkpoint_lsn );
+
+	// load checkpoint
+	void load_checkpoint(checkpoint_ifstream &checkpoint);
+
+	template <class ManagedRegionType, class MapType> friend class stldb::container_proxy;
 
 	friend struct detail::assoc_transactional_operation<trans_map>;
 	friend struct detail::map_insert_operation<trans_map>;
 	friend struct detail::map_update_operation<trans_map>;
 	friend struct detail::map_delete_operation<trans_map>;
+	friend struct detail::map_deleted_insert_operation<trans_map>;
 	friend struct detail::map_lock_operation<trans_map>;
 	friend struct detail::map_clear_operation<trans_map>;
 	friend struct detail::map_swap_operation<trans_map>;
-
-	/**
-	 * Private class used as a factory with the transaction infrastructure when previously logged
-	 * records are being used to perform Database recovery.
-	 */
-	struct trans_map_op_factory
-	{
-		TransactionalOperation* create( TransactionalOperations op_code,
-				                        trans_map &map ) {
-			switch (op_code) {
-			// Note: Lock_op is missing from this list because they are never written to logs.
-			case Lock_op:
-				return new detail::map_lock_operation<trans_map>(map);
-			case Insert_op:
-				return new detail::map_insert_operation<trans_map>(map);
-			case Update_op:
-				return new detail::map_update_operation<trans_map>(map);
-			case Delete_op:
-				return new detail::map_delete_operation<trans_map>(map);
-			case Clear_op:
-				return new detail::map_clear_operation<trans_map>(map);
-			case Swap_op:
-				return new detail::map_swap_operation<trans_map>(map);
-			default:
-				return NULL; // Will indicate a problem with this code.
-			}
-		}
-	};
-
-	// trans_map contains an instance of this factory.
-	trans_map_op_factory  _factory;
-
-	// save checkpoint of map
-	void save_checkpoint(std::ostream &out)
-	{
-		int count = 0, total=0;
-		static const int entries_per_segment = 10;
-		std::pair<key_type,mapped_type> values[entries_per_segment];
-		boost_oarchive_t archive(out);
-
-		STLDB_TRACE(info_e, "Starting checkpoint of Map with " << this->size() << " entries.");
-
-		boost::interprocess::sharable_lock<upgradable_mutex_type> lock(mutex());
-		iterator i = begin();
-		while (i != end())
-		{
-			while (i != end() && count < entries_per_segment) {
-				values[count++] = *(i++);
-			}
-			lock.unlock();
-			// The serialization to the output can be done without holding 
-			// any lock.
-			for (int j=0; j<count; j++) {
-				// When writing out the committed data for a row which has an 
-				// existing transaction in progress, the txn_id written out for
-				// that row needs to be 0, because on load, that becomes the 
-				// committed LSN of that row, and we need to make sure
-				// that log processing will apply all LSNs found for that row. 
-				// (In case I try to optimize
-				// recovery so that ops are not unnecessarily re-applied.)
-				if ( values[j].second.getOperation() != No_op ) {
-					values[j].second.unlock(0); // sets LSN ==0, op = No_op
-				}
-				archive & values[j];
-			}
-			// set i to next entry.
-			lock.lock();
-			i = iterator( baseclass::upper_bound(values[count-1].first), this );
-			total += count;
-			count = 0;
-		}
-		STLDB_TRACE(info_e, "Checkpointed Map contains " << this->size() << "entries.");
-		STLDB_TRACE(info_e, "Wrote " << total << "entries to checkpoint.");
-	}
-
-	// load a checkpoint.
-	void load_checkpoint(std::istream &in)
-	{
-		boost_iarchive_t archive(in);
-		int count=0;
-		std::pair<key_type,mapped_type> entry;
-		// loading a checkpoint is done as an exclusive operation.  There's no reason for it not to be.
-		// Strictly speaking the lock is not required.
-		boost::interprocess::scoped_lock<upgradable_mutex_type> lock(mutex());
-		while (in) {
-			try {
-				archive & entry;
-				value_type val( entry.first, entry.second );
-
-				this->baseclass::insert( val );
-
-				count++;
-			}
-			// Boost::Serialization archives signal eof with an exception.
-		    catch (boost::archive::archive_exception& error) {
-		        // Make sure that this due to EOF.  Annoyingly, when
-		    	// this type of exception is thrown, the eof() bit on 'in'
-		    	// won't be set.  We need to try reading one more byte to
-		    	// make sure it is set.
-		        char tmp;
-		        in >> tmp;
-		        if (!in.eof())
-		          throw error;
-		    }
-		}
-		STLDB_TRACE(info_e, "Read " << count << "entries from checkpoint.");
-		STLDB_TRACE(info_e, "Map now contains " << this->size() << " entries.");
-	}
-
 };
 
 
@@ -503,50 +410,101 @@ public:
 	    return _container;
 	}
 
-	virtual void recoverOp(int opcode, boost_iarchive_t &stream) {
-		auto_ptr<TransactionalOperation> operation( _container->_factory.create(
-				static_cast<TransactionalOperations>(opcode), *_container) );
-		// Special form of recover exists for swap(), because the operation is multi-container in nature.
-		detail::map_swap_operation<container_type> *swap_op = dynamic_cast<detail::map_swap_operation<container_type>*>(operation.get());
-		if (swap_op) {
-			typename boost::interprocess::basic_string<char, typename std::char_traits<char>, typename Allocator::template rebind<char>::other>
-				other_container_name(_db->getRegion().get_segment_manager());
-			stream & other_container_name;
-			container_type *other = _db->template getContainer<container_type>(
-					other_container_name.c_str());
-			swap_op->recover(*other);
-		}
-		else {
-			// All other operations use the std recovery interface
-			operation->recover(stream);
+	virtual void recoverOp(int opcode, boost_iarchive_t &stream, transaction_id_t lsn) {
+		switch (opcode) {
+			// Note: Lock_op is missing from this list because they are never written to logs.
+			case Insert_op: {
+				detail::map_insert_operation<container_type> op(*_container);
+				op.recover(stream, lsn);
+				break;
+			}
+			case Update_op: {
+				detail::map_update_operation<container_type> op(*_container);
+				op.recover(stream, lsn);
+				break;
+			}
+			case Delete_op: {
+				detail::map_delete_operation<container_type> op(*_container);
+				op.recover(stream, lsn);
+				break;
+			}
+			case Deleted_Insert_op: {
+				detail::map_deleted_insert_operation<container_type> op(*_container);
+				op.recover(stream, lsn);
+				break;
+			}
+			case Clear_op: {
+				detail::map_clear_operation<container_type> op(*_container);
+				op.recover(stream, lsn);
+				break;
+			}
+			case Swap_op: {
+				detail::map_swap_operation<container_type> op(*_container);
+				typename boost::interprocess::basic_string<char, typename std::char_traits<char>, typename Allocator::template rebind<char>::other>
+						other_container_name(_db->getRegion().get_segment_manager() );
+				stream & other_container_name;
+				container_type *other = _db->template getContainer<container_type>(
+							other_container_name.c_str());
+				op.recover(*other, lsn);
+				break;
+			}
+			default:
+				break;
 		}
 	}
-
+	void initializeTxn(Transaction &trans)
+	{
+		// to start a commit or rollback, we need an exclusive lock on the
+		// container.
+		while (true) {
+			try {
+				_container->mutex().lock();
+				break;
+			}
+			catch (lock_timeout_exception &ex) { }
+		}
+	}
+	void completeTxn(Transaction &trans)
+	{
+		// we release our exclusive lock, and also signal any threads
+		// waiting on row-level locks that they may now be able to proceed.
+		{
+			// the mutex must be held before calling notify_all() on the
+			// condition variable, because there otherwise is a race condition
+			// with the waiting convention where a thread could miss a notify,
+			// and end up waiting an extra commit before unlocking.
+			scoped_lock<typename container_type::mutex_type>  lock(
+				_container->_row_level_lock);
+			// wake up anyone waiting on a row lock
+			_container->_row_level_lock_released.notify_all(); 
+		}
+		_container->mutex().unlock();
+	}
 	virtual void initializeCommit(Transaction &trans)
 	{
-		_container->mutex().lock();
-	}
-	virtual void completeCommit(Transaction &trans)
-	{
-		_container->condition().notify_all(); // wake up anyone waiting on a row lock
-		_container->mutex().unlock();
+		initializeTxn(trans);
 	}
 	virtual void initializeRollback(Transaction &trans)
 	{
-		_container->mutex().lock();
+		initializeTxn(trans);
+	}
+	virtual void completeCommit(Transaction &trans)
+	{
+		completeTxn(trans);
 	}
 	virtual void completeRollback(Transaction &trans)
 	{
-		_container->condition().notify_all(); // wake up anyone waiting on a row lock
-		_container->mutex().unlock();
+		completeTxn(trans);
 	}
-	virtual void save_checkpoint(std::ostream &out)
-	{
-		_container->save_checkpoint(out);
+    virtual void save_checkpoint(Database<ManagedRegionType> &db,
+    		checkpoint_ofstream &checkpoint,
+            transaction_id_t last_checkpoint_lsn )
+    {
+		_container->save_checkpoint(db, checkpoint, last_checkpoint_lsn);
 	}
-	virtual void load_checkpoint(std::istream &in)
+	virtual void load_checkpoint(checkpoint_ifstream &checkpoint)
 	{
-		_container->load_checkpoint(in);
+		_container->load_checkpoint(checkpoint);
 	}
 
 private:

@@ -5,18 +5,19 @@
  *      Author: bobw
  */
 
-#ifndef FILE_LOCK_H_
-#define FILE_LOCK_H_
+#ifndef STLDB_FILE_LOCK_H_
+#define STLDB_FILE_LOCK_H_
 
 #include <cstdio>
 #include <ios>
 #include <fstream>
 
+#include <boost/interprocess/detail/os_file_functions.hpp>
+
 #include <stldb/sync/detail/os_file_functions_ext.hpp>
 #include <stldb/sync/detail/file_lock.hpp>
 
 using std::ofstream;
-using boost::interprocess::offset_t;
 
 namespace stldb {
 
@@ -43,7 +44,8 @@ public:
 	   //!Opens a file lock.  The lock is based on a portion of the file beginning
 	   //!at offset bytes from the start of the file, and extending from there
 	   //!for size bytes.
-	   file_lock(const char *name, offset_t offset, size_t size);
+	   file_lock(const char *name, boost::interprocess::offset_t offset, 
+				 size_t size);
 
 	   //!Closes a file lock. Does not throw.
 	   ~file_lock();
@@ -65,7 +67,8 @@ inline file_lock::file_lock(const char *name)
 //!Opens a file lock.  The lock is based on a portion of the file beginning
 //!at offset bytes from the start of the file, and extending from there
 //!for size bytes.
-inline file_lock::file_lock(const char *name, offset_t offset, size_t size)
+inline file_lock::file_lock(const char *name, 
+							boost::interprocess::offset_t offset, size_t size)
 	: ofstream(name, std::ios_base::out)
 	, boost::interprocess::ext::file_lock(name, offset, size)
 	, _filename(name)
