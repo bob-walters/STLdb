@@ -185,6 +185,7 @@ Database<ManagedRegionType>::Database(
 	// At this point, I can register.
 	STLDB_TRACEDB(fine_e, database_name, "registering this process");
 	_registry_pid_lock = _registry->register_pid();
+	RegionSync<ManagedRegionType>::flush(_region);
 	reglock.unlock();
 
 	// find or construct all of the internal database structures, including

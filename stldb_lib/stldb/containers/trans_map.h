@@ -22,6 +22,7 @@
 #include <boost/interprocess/allocators/allocator.hpp>
 #include <boost/interprocess/containers/map.hpp>
 #include <boost/interprocess/sync/sharable_lock.hpp>
+#include <boost/interprocess/sync/scoped_lock.hpp>
 #include <boost/interprocess/containers/string.hpp>
 
 #include <stldb/exceptions.h>
@@ -44,6 +45,7 @@ typedef boost::archive::text_iarchive boost_iarchive_t;
 
 namespace stldb {
 
+using boost::interprocess::scoped_lock;
 
 /**
  * Concurrent ACID-compliant transactional map implementation.
@@ -114,7 +116,7 @@ using boost::interprocess::map;
 template <class K, class V, class Comparator = std::less<K>,
           class Allocator = boost::interprocess::allocator<std::pair<const K, V>,
 						    typename boost::interprocess::managed_mapped_file::segment_manager>,
-	  class mutex_family = stldb::bounded_mutex_family>
+		  class mutex_family = stldb::bounded_mutex_family>
   class trans_map
 	: public boost::interprocess::map<K,TransEntry<V>,Comparator, typename Allocator::template rebind< std::pair<K,TransEntry<V> > >::other >
 {
