@@ -117,9 +117,9 @@ struct RegionSync
 };
 
 template<class C, class M, template<class IndexConfig> class I>
-struct RegionSync<boost::interprocess::basic_managed_shared_memory<C, M, I> >
+struct RegionSync<boost::interprocess::basic_managed_mapped_file<C, M, I> >
 {
-	static void flush(boost::interprocess::basic_managed_shared_memory<C, M, I> *region) {
+	static void flush(boost::interprocess::basic_managed_mapped_file<C, M, I> *region) {
 		region->flush();
 	}
 };
