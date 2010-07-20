@@ -499,7 +499,7 @@ private:
 	int recovery_needed_exceptions;
 };
 
-
+		
 // One of the possible transactional operations which is invoked.
 // Does some standard read/writes to a couple of maps within an
 // environment, and then commits.
@@ -687,6 +687,17 @@ int main(int argc, const char* argv[])
 		invalidator = new boost::thread( set_invalid_operation(g_invalidation_interval.seconds()) );
 	}
 
+	// Support the option of writing to an indicator file once all databses have been opened,
+	// confirming to watching processes/scripts that database open/recovery has finished.
+	std::string indicator_filename = properties.getProperty<std::string>("indicator_filename", std::string());
+	if (!indicator_filename.empty()) {
+		for (int i=0; i<g_num_db; i++) {
+			shared_lock<boost::shared_mutex> lock;
+			getDatabase(i, lock);
+		}
+		std::ofstream indf(indicator_filename.c_str());
+	}
+	
 	// now await their completion
 	for (int i=0; i<thread_count; i++) {
 		workers[i]->join();
