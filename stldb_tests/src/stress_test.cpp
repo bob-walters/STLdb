@@ -27,6 +27,7 @@
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread.hpp>
+#include <boost/assert.hpp>
 
 using stldb::Transaction;
 using stldb::scoped_allocation;
@@ -87,45 +88,38 @@ static boost::posix_time::time_duration  g_invalidation_interval;
 static boost::shared_mutex  g_db_mutex[100];
 static PartitionedTestDatabase<managed_mapped_file,MapType> *g_databases[100];
 
+// fwd decl
+bool checkValue( int key_no, shm_string value );
+
 // validates the memory allocation of the key/values within map, making sure that they
 // are all pointing to addresses allocated within the db shared region.
 static void validate( PartitionedTestDatabase<managed_mapped_file,MapType> *db )
 {
 	void *start = db->getRegion().get_address();
 	void *end = (char*)start + db->getRegion().get_size();
-	cout << "Region start: " << start << endl << "Region end: " << end << endl;
-	int errors = 0;
 
 	for (int i=0; i<g_maps_per_db; i++) {
-		cout << "Scanning map " << i << endl;
+		cout << "Scanning map " << i << "for errors" << endl;
 		MapType* map = db->getMap(i);
 
 		MapType::iterator iter = map->begin();
 		unsigned int count = 0;
 		while (iter != map->end()) {
+
 			const char *keybuff = iter->first.c_str();
+			BOOST_ASSERT( keybuff >= start && keybuff < end );
+
 			const char *valbuff = iter->second.c_str();
-			if (keybuff < start || keybuff > end) {
-				//cout << "Error: found key " << i->first << " with buffer address " << (void*)keybuff << endl;
-				errors++;
-			}
-			if (valbuff < start || keybuff > end) {
-				//cout << "Error: found value with buffer address " << (void*)valbuff << endl;
-				errors++;
-			}
+			BOOST_ASSERT( valbuff >= start && valbuff < end );
+
+			int key_no = atoi(keybuff + strlen("TestKey"));
+			BOOST_ASSERT( checkValue( key_no, iter->second ) );
+
 			count++;
 			iter++;
 		}
-		if (count != map->size()) {
-			cout << "size discrepancy noted.  read " << count << " rows.  map->size()==" << map->size() << endl;
-			errors++;
-		}
-		if (errors==0) {
-			cout << "No errors detected" << endl;
-		}
-		else {
-			cout << errors << " errors detected" << endl;
-		}
+		BOOST_ASSERT( count == map->size() );
+		cout << "Map " << i <<  "No errors found" << endl;
 	}
 }
 
@@ -367,7 +361,9 @@ public:
 							stldb::bounded_wait_policy<scoped_lock<boost::interprocess::interprocess_upgradable_mutex> >
 								wait_with_timeout(ex_lock_holder, g_max_wait);
 
-							result = map->insert( std::make_pair<shm_string,shm_string>( key_in_shm, value), *txn, wait_with_timeout );
+							MapType::value_type entry( key_in_shm, value );
+							BOOST_ASSERT(entry.second.checkpointLocation().first == 0 && entry.second.checkpointLocation().second == 0);
+							result = map->insert( entry, *txn, wait_with_timeout );
 						}
 						catch (stldb::lock_timeout_exception &) {
 							// The only exception possible from a blocking insert.
@@ -435,7 +431,6 @@ public:
 			} // end of for loop
 
 			db->commit( txn );
-
 		}
 		catch( stldb::lock_timeout_exception & ) {
 			// probably means I have deadlocked with another thread.
@@ -638,6 +633,23 @@ private:
 	int _max_freq;
 };
 
+
+class open_database {
+public:
+	open_database(int db_num)
+		: db_no(db_num)
+		{ }
+
+	void operator()() {
+		shared_lock<boost::shared_mutex> lock;
+		PartitionedTestDatabase<managed_mapped_file,MapType>* db = getDatabase(db_no, lock);
+		validate(db);
+	}
+
+private:
+	int db_no;
+};
+
 // run-time configuration in the form of name/value pairs.
 properties_t properties;
 
@@ -667,6 +679,27 @@ int main(int argc, const char* argv[])
 	g_checkpoint_interval = boost::posix_time::millisec(properties.getProperty("checkpoint_interval", 0));
 	g_invalidation_interval = boost::posix_time::millisec(properties.getProperty("invalidation_interval", 0));
 
+    // Open (optionally recover) the databases.  This can be done in parallel.
+	// Support the option of writing to an indicator file once all databses 
+	// have been opened, confirming to watching processes/scripts that 
+	// database open/recovery has finished.
+	boost::thread **openers = new boost::thread *[g_num_db];
+	for (int i=0; i<g_num_db; i++) {
+		openers[i] = new boost::thread( open_database(i) );
+	}
+	for (int i=0; i<g_num_db; i++) {
+		openers[i]->join();
+		delete openers[i];
+	}
+	delete [] openers;
+
+	// Support the option of writing an indicator file once all
+	// databases have been opened.
+	std::string indicator_filename = properties.getProperty<std::string>("indicator_filename", std::string());
+	if (!indicator_filename.empty()) {
+		std::ofstream indf(indicator_filename.c_str());
+	}
+
 	// The loop that the running threads will execute
 	test_loop loop(loopsize);
 	CRUD_transaction main_op(ops_per_txn);
@@ -687,17 +720,6 @@ int main(int argc, const char* argv[])
 		invalidator = new boost::thread( set_invalid_operation(g_invalidation_interval.seconds()) );
 	}
 
-	// Support the option of writing to an indicator file once all databses have been opened,
-	// confirming to watching processes/scripts that database open/recovery has finished.
-	std::string indicator_filename = properties.getProperty<std::string>("indicator_filename", std::string());
-	if (!indicator_filename.empty()) {
-		for (int i=0; i<g_num_db; i++) {
-			shared_lock<boost::shared_mutex> lock;
-			getDatabase(i, lock);
-		}
-		std::ofstream indf(indicator_filename.c_str());
-	}
-	
 	// now await their completion
 	for (int i=0; i<thread_count; i++) {
 		workers[i]->join();

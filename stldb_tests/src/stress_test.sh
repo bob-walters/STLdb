@@ -17,7 +17,7 @@ do
     fi
 
     echo "Running: $CMD"
-    $CMD $ind_filename &
+    $CMD indicator_filename=$ind_filename &
 
     echo "Started child pid: $!"
     sleep $3
@@ -30,10 +30,15 @@ do
         echo "Process $! terminated with kill -9"
         rm $ind_filename
 		sleep 3
+	else
+		echo "!!! Indicator filename not observed.  Stopping loop"
+		wait $!
+        echo "Process $! has exited/died"
+		break
     fi
     export now=`date '+%Y-%m-%d:%H:%M:%S'`
 done
-echo "End-time has been reached."
+echo "Exit condition has been reached."
 
 if [ -f $ind_filename ]
 then
