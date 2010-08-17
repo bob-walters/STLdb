@@ -33,7 +33,7 @@ int dump(int argc, const char *argv[])
 	if (argc == 4)
 		addr = reinterpret_cast<void*>( atol(argv[3]) );
 
-//	stldb::tracing::set_trace_level( stldb::finest_e );
+	stldb::tracing::set_trace_level( stldb::finest_e );
 	STLDB_TRACE(stldb::fine_e, "db_dir: " << db_dir);
 	STLDB_TRACE(stldb::fine_e, "db_name: " << db_name);
 	STLDB_TRACE(stldb::fine_e, "mapping_addr: " << addr);

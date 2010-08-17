@@ -597,7 +597,6 @@ void trans_map<K,V,Comparator,Allocator,mutex_family>::save_checkpoint(
 
     db.safety_check();
 
-    // Get the freed space from the map, and reset the maps freed space to empty
 	{
 	  boost::interprocess::scoped_lock<upgradable_mutex_type> lock(mutex());
 
@@ -605,30 +604,19 @@ void trans_map<K,V,Comparator,Allocator,mutex_family>::save_checkpoint(
 		  // clear() was called since last checkpoint.  _freed_checkpoint_space should
 		  // be all space not already free in the checkpoint file.
 		  checkpoint.clear( );
-		  this->_uncheckpointed_clear = false;
-	  }
-	  else {
-		  if (!this->_freed_checkpoint_space.empty() && tracing::get_trace_level() >= finer_e) {
-			  STLDB_TRACE(fine_e, "Checkpoint space freed by map erase() calls [offset,size]: ");
-			  typedef typename boost::interprocess::map<boost::interprocess::offset_t, std::size_t,
-					std::less<boost::interprocess::offset_t>,
-					typename Allocator::template rebind<checkpoint_loc_t >::other>::iterator iterator_t;
-			  for (iterator_t i=this->_freed_checkpoint_space.begin(); i != _freed_checkpoint_space.end(); i++)
-			  {
-				  STLDB_TRACE(fine_e, "[" << i->first << "," << i->second << "]");
-			  }
-		  }
-		  // different allocator types prevent use of swap() here.
-		  checkpoint.add_free_space(_freed_checkpoint_space.begin(), _freed_checkpoint_space.end());
 		  _freed_checkpoint_space.clear();
+		  this->_uncheckpointed_clear = false;
 	  }
 	}
 
-	STLDB_TRACE(info_e, "Starting checkpoint of Map with " << this->size() << " entries.");
+	STLDB_TRACE(fine_e, "Starting checkpoint of Map with " << this->size() << " entries.");
 
 	std::pair<key_type,mapped_type> values[entries_per_segment];
+	checkpoint_loc_t prev_locs[entries_per_segment];
 
+	//boost::interprocess::sharable_lock<upgradable_mutex_type> lock(mutex());
 	boost::interprocess::sharable_lock<upgradable_mutex_type> lock(mutex());
+
 	key_type next_loop_key;
 	bool done = false;
 
@@ -636,21 +624,60 @@ void trans_map<K,V,Comparator,Allocator,mutex_family>::save_checkpoint(
 	while (i != end())
 	{
 	    db.safety_check();  // abort if db goes invalid at any point.
+		count = 0;
+		scanned = 0;
 
-		while (i != end() && count < entries_per_segment && scanned < entries_per_scan) {
-            // we have to write out all in-progress changes with each checkpoint,
+		while (i != end() && count < entries_per_segment &&
+		       scanned < entries_per_scan) 
+		{
+            // we have to write out all entries with in-progress changes 
+			// during each checkpoint,
             // because we can't be sure if the committed value has been written out.
 			// this is a side effect of the fact that I'm not storing both the
 			// last commited lsn and the inprog txn_id at the same time on TransEntry<>
 			transaction_id_t last_commit_lsn = i->second.getLockId();
-		    if ( (last_commit_lsn > last_checkpoint_lsn && i->second.getOperation() == No_op)
-		       || i->second.getOperation() == Lock_op || i->second.getOperation() == Update_op
+		    if ( (last_commit_lsn > last_checkpoint_lsn 
+			      && i->second.getOperation() == No_op)
+		       || i->second.getOperation() == Lock_op 
+			   || i->second.getOperation() == Update_op
 		       || i->second.getOperation() == Delete_op )
 		    {
-		    	values[count++] = *i;
+#if defined(BOOST_ENABLE_ASSERT_HANDLER) || !defined(NDEBUG)
+				// this set is to avoid tripping an assert in trans_map_entry
+				values[count].second.setCheckpointLocation( std::make_pair(0,0) );
+#endif
+		    	values[count] = *i;
+
+#ifdef STLDB_TROUBLESHOOT
+				typename std::map<K,std::pair<boost::interprocess::offset_t,std::size_t> >::const_iterator iter( entry_locs.find(values[count].first) );
+				std::pair<boost::interprocess::offset_t, std::size_t> loc = values[count].second.checkpointLocation();
+				if (loc.second != 0) {
+					// the row should be in enty_loc
+				    if (iter == entry_locs.end()) {
+						std::cerr << "Suspect row missing from entry_locs, For Entry " << values[count].first << std::endl;
+						std::cerr << "entry_loc.iter == entry_locs.end()" << std::endl;
+						std::cerr << "loc: " << loc.first << ":" << loc.second << std::endl;
+					}
+					// validate the values[count].second.checkpointLocation() hasn't changed since out last load or checkpoint
+					if (iter->second != loc) {
+						std::cerr << "Checkpoint discrepancy for Entry " << values[count].first << std::endl;
+						std::cerr << "entry_loc.iter: " << iter->second.first << ":" << iter->second.second << std::endl;
+						std::cerr << "loc: " << loc.first << ":" << loc.second << std::endl;
+					}
+					BOOST_ASSERT(iter != entry_locs.end() && iter->second == loc);
+				}
+				else {
+					if (iter != entry_locs.end() ) {
+						std::cerr << "Extraneous entry in entry_loc, For Entry " << values[count].first << std::endl;
+						std::cerr << "loc.second==0, entry_loc.iter: " << iter->second.first << ":" << iter->second.second << std::endl;
+					}
+					BOOST_ASSERT(iter == entry_locs.end());
+				}
+#endif
+				++count;
 		    }
-		    scanned++;
-		    i++;
+		    ++scanned;
+		    ++i;
 		}
 		if (i != end()) {
 			next_loop_key = i->first;
@@ -659,14 +686,14 @@ void trans_map<K,V,Comparator,Allocator,mutex_family>::save_checkpoint(
 			done = true;
 		}
 		lock.unlock();
-
+		
 		// The serialization to the output can be done without holding
 		// any lock.  Write the entries found out to the free-space portions of
 		// the checkpoint file.
 		for (int j=0; j<count; j++) {
 			// When writing out the committed data for a row which has an
 			// existing transaction in progress, the txn_id written out for
-			// that row needs to be 0, because on load, that becomes the
+			// that row needs to be set, because on load, that becomes the
 			// committed LSN of that row, and we need to make sure
 			// that log processing will apply all LSNs found for that row.
 			// (In case I try to optimize
@@ -676,15 +703,16 @@ void trans_map<K,V,Comparator,Allocator,mutex_family>::save_checkpoint(
 				values[j].second.unlock(last_checkpoint_lsn+1);
 			}
 
-//			STLDB_TRACE(finer_e, "Write: [" << values[j].first << "," << values[j].second << "] op: "
-//							<< values[j].second.getOperation() << " lsn: " << values[j].second.getLockId()
-//							<< "prior ckpt:{" << values[j].second.checkpointLocation().first << ","
-//							<< values[j].second.checkpointLocation().second << "}" );
+#ifdef STLDB_TROUBLESHOOT
+			STLDB_TRACE(finest_e, "Write: [" << values[j].first << "," << values[j].second << "] op: "
+							<< values[j].second.getOperation() << " lsn: " << values[j].second.getLockId()
+							<< "prior ckpt:{" << values[j].second.checkpointLocation().first << ","
+							<< values[j].second.checkpointLocation().second << "}" );
+#endif
+			prev_locs[j] = values[j].second.checkpointLocation();
 
 			std::pair<boost::interprocess::offset_t,std::size_t> new_location =
-					checkpoint.write( values[j], values[j].second.checkpointLocation() );
-
-			STLDB_TRACE(finer_e, "   new ckpt:{" << new_location.first << "," << new_location.second << "}" );
+					checkpoint.write( values[j] );
 
 	        // remember the value's new checkpoint location
 	        values[j].second.setCheckpointLocation( new_location );
@@ -694,16 +722,35 @@ void trans_map<K,V,Comparator,Allocator,mutex_family>::save_checkpoint(
 		// update the entries in the map to indicate their new checkpoint
 		// locations.  Unfortunately, because we unlocked the map during the I/O
 		// we have not retained the iterators to the values[].  An alternative
-		// to this algorithm would be to serialize the entries to buffers and allocate
+		// to this algorithm would be to serialize the entries to buffers and 
+		// allocate
 		// space for those buffers in a tight loop, with a lock, then update the
 		// entries directly via the still-valid iterators.  I decided not to have
 		// a sharedlock during object serialization, and instead go with this approach.
 		for (int j=0; j<count; j++) {
 			typename baseclass::iterator i( this->baseclass::find( values[j].first ) );
+			// a row could be deleted while the map was unlocked
+			// deleted rows get recovered space added to _freed_checkpoint_space
+			// and doesn't need to be recovered here.
 			if (i != this->baseclass::end() ) {
+				if (prev_locs[j].second > 0) {
+					STLDB_TRACE(finest_e, "Space freed by new copy of previously checkpointed object: [offset,size] : [" << prev_locs[j].first << "," << prev_locs[j].second << "]");
+					checkpoint.add_free_space(prev_locs[j]);
+				}
 				i->second.setCheckpointLocation( values[j].second.checkpointLocation());
+#ifdef STLDB_TROUBLESHOOT
+				entry_locs[values[j].first] = i->second.checkpointLocation();
+#endif
+			}
+			else {
+				// the checkpoint we just wrote is now free.  We have to
+				// release that space here because otherwise it never gets freed.
+				checkpoint.add_free_space( values[j].second.checkpointLocation() );
 			}
 		}
+
+		// update the entries
+		total += count;
 
 		// set i to the starting entry for the next iteration of this loop
 		if (!done) {
@@ -712,14 +759,28 @@ void trans_map<K,V,Comparator,Allocator,mutex_family>::save_checkpoint(
 		else {
 			i = end();
 		}
-
-		// update the entries
-		total += count;
-		count = 0;
-		scanned = 0;
 	}
-	STLDB_TRACE(info_e, "Checkpointed Map contains " << this->size() << "entries.");
-	STLDB_TRACE(info_e, "Wrote " << total << "entries to checkpoint.");
+
+	// lock still held at this point...
+
+	if (!this->_freed_checkpoint_space.empty() && tracing::get_trace_level() >= finer_e) {
+		  STLDB_TRACE(finer_e, "Checkpoint space freed by map erase() calls [offset,size]: ");
+		  typedef typename boost::interprocess::map<boost::interprocess::offset_t, std::size_t,
+				std::less<boost::interprocess::offset_t>,
+				typename Allocator::template rebind<checkpoint_loc_t >::other>::iterator iterator_t;
+		  for (iterator_t i=this->_freed_checkpoint_space.begin(); i != _freed_checkpoint_space.end(); i++)
+		  {
+			  STLDB_TRACE(finer_e, "[" << i->first << "," << i->second << "]");
+		  }
+	}
+
+    // Get the freed space from the map, and reset the maps freed space to empty
+	// different allocator types prevent use of swap() here.
+	checkpoint.add_free_space(_freed_checkpoint_space.begin(), _freed_checkpoint_space.end());
+	_freed_checkpoint_space.clear();
+
+	STLDB_TRACE(fine_e, "Checkpointed Map contains " << this->size() << "entries.");
+	STLDB_TRACE(fine_e, "Wrote " << total << "entries to checkpoint.");
 }
 
 // load a checkpoint.
@@ -736,12 +797,17 @@ void trans_map<K,V,Comparator,Allocator,mutex_family>::load_checkpoint(checkpoin
 	while (i != checkpoint.end<value_type>()) {
 		value_type entry( *i );
 		entry.second.setCheckpointLocation( i.checkpoint_location() );
+		BOOST_ASSERT( baseclass::find(entry.first) == baseclass::end() );
 		pos = baseclass::insert( pos, entry );
-//		STLDB_TRACE(finer_e, "[" << entry.first << "," << entry.second << "] op: "
-//				<< entry.second.getOperation() << " lsn: " << entry.second.getLockId()
-//				<< "ckpt:{" << entry.second.checkpointLocation().first << ","
-//				<< entry.second.checkpointLocation().second << "}" );
-//		assert( this->baseclass::find( entry.first )->second.checkpointLocation().second != 0);
+
+#ifdef STLDB_TROUBLESHOOT
+		BOOST_VERIFY( entry_locs.insert( std::make_pair( entry.first, entry.second.checkpointLocation())).second );
+#endif
+		STLDB_TRACE(finer_e, "[" << entry.first << "," << entry.second << "] op: "
+				<< entry.second.getOperation() << " lsn: " << entry.second.getLockId()
+				<< "ckpt:{" << entry.second.checkpointLocation().first << ","
+				<< entry.second.checkpointLocation().second << "}" );
+
 		i++;
 	}
 	STLDB_TRACE(info_e, "Load_checkpoint done, map contains " << this->size() << " entries.");

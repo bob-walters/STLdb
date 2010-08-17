@@ -11,6 +11,7 @@
 #define STLDB_TRANSENTRY_H 1
 
 #include <stldb/cachetypes.h>
+#include <stldb/logging.h>
 #include <stldb/transaction.h>
 #include <boost/serialization/base_object.hpp>
 
@@ -29,6 +30,14 @@ enum TransactionalOperations
 	Swap_op
 };
 
+#ifdef STLDB_TROUBLESHOOT
+#define SET_CHECKSUM()  _checksum = _checkpoint_location.first*19 + (_checkpoint_location.second * 131);
+#define CHECK_CHECKSUM()  BOOST_ASSERT( _checksum == _checkpoint_location.first*19 + (_checkpoint_location.second * 131) );
+#else
+#define SET_CHECKSUM()
+#define CHECK_CHECKSUM()
+#endif
+
 /**
  * @brief Helper class for representing a value of type T in a transactional STL container.
  * TransEntry<T> is a public T.  It adds a txn_id, and operation members that represent
@@ -45,18 +54,24 @@ public:
 	TransEntry() :
 		T(), _op(No_op), _txn_id(0), _checkpoint_location(0,0)
 	{
+		SET_CHECKSUM();
 	}
 
 	// Well formed copy constructor
 	TransEntry(const TransEntry<T> &rarg) :
 		T(rarg), _op(rarg._op), _txn_id(rarg._txn_id), _checkpoint_location(rarg._checkpoint_location)
 	{
+		SET_CHECKSUM();
+#ifdef STLDB_TROUBLESHOOT
+		BOOST_ASSERT(rarg._checksum == _checksum);
+#endif
 	}
 
 	// Copy from T.
 	TransEntry(const T& rarg) :
 		T(rarg), _op(No_op), _txn_id(0), _checkpoint_location(0,0)
 	{
+		SET_CHECKSUM();
 	}
 
 	~TransEntry()
@@ -69,14 +84,22 @@ public:
 		T::operator=(value);
 		_op = value._op;
 		_txn_id = value._txn_id;
+		// protect against loss of checkpoint info via assignment
+		BOOST_ASSERT(!(_checkpoint_location.first != 0 && value._checkpoint_location.first==0));
 		_checkpoint_location = value._checkpoint_location;
+		SET_CHECKSUM();
+#ifdef STLDB_TROUBLESHOOT
+		BOOST_ASSERT(value._checksum == _checksum);
+#endif
 		return *this;
 	}
 
+	// update to new value without changing checkpoint, _op, etc.
 	TransEntry<T>&
 	operator=(const T& value)
 	{
 		T::operator=(value);
+		CHECK_CHECKSUM();
 		return *this;
 	}
 
@@ -122,12 +145,14 @@ public:
 
 	std::pair<boost::interprocess::offset_t,std::size_t> checkpointLocation() const
 	{
+		CHECK_CHECKSUM();
 		return _checkpoint_location;
 	}
 
 	void setCheckpointLocation(std::pair<boost::interprocess::offset_t,std::size_t> loc)
 	{
 		_checkpoint_location = loc;
+		SET_CHECKSUM();
 	}
 
 	// Boost::serialization
@@ -160,6 +185,12 @@ private:
 
 	// the location and size of this entry in the checkpoint file. (0,0 = not in checkpoint)
 	std::pair<boost::interprocess::offset_t, std::size_t> _checkpoint_location;
+
+#ifdef STLDB_TROUBLESHOOT
+	// for testing...
+	uint32_t _checksum;
+#endif
+
 };
 
 } // namespace
