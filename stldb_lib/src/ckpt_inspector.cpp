@@ -14,6 +14,9 @@
 #include <stldb/containers/trans_map_entry.h>
 #include <stldb/containers/string_serialize.h>
 
+namespace stldb {
+namespace util {
+
 using namespace std;
 using boost::interprocess::offset_t;
 using boost::interprocess::managed_mapped_file;
@@ -51,12 +54,10 @@ struct adjacent_regions {
 
 typedef std::pair<offset_t,size_t> checkpoint_loc_t;
 
-int main(int argc, const char *argv[])
+int verify_checkpoint( boost::filesystem::path &tempfilepath, 
+                       offset_t loc, size_t sz )
 {
-	// write the metafile initially to a temp filename.
-	boost::filesystem::path tempfilepath( argv[1] );
 	stldb::checkpoint_file_info meta;
-
 	stldb::detail::get_checkpoint_file_info( tempfilepath, meta );
 
 	// sanity check the free region of the file
@@ -122,40 +123,47 @@ int main(int argc, const char *argv[])
 		++iter;
 	}
 
-	// finally, print either general info, or details about one entry
-	if (argc == 2) {
+	if (loc == -1) {
 		cout << meta << endl;
+		return 0;
+	}
+
+	cout << "Check for entry at offset: " << loc << ", size: " << sz << endl;
+	std::map<offset_t,size_t>::const_iterator before = by_offset.lower_bound(loc);
+	std::map<offset_t,size_t>::const_iterator after = by_offset.upper_bound(loc);
+	if (before->first != loc && before != by_offset.begin())
+		--before;
+	cout << "Free Region before: " << 
+		before->first << ":" << before->second << endl;
+	cout << "Free Region after: " << 
+		(after != by_offset.end() ? after->first : 0 ) << ":" <<
+		(after != by_offset.end() ? after->second : 0 ) << endl;
+	if (before->first + (ssize_t)before->second < loc &&
+		after == by_offset.end() || after->first > loc + (ssize_t)sz) {
+		cout << "Looks like an occupied space" << endl;
 	}
 	else {
-		offset_t loc = atol(argv[2]); 
-		size_t sz = argc>3 ? atol(argv[3]) : 1;
-
-		cout << "Check for entry at offset: " << loc << ", size: " << sz << endl;
-		std::map<offset_t,size_t>::const_iterator before = by_offset.lower_bound(loc);
-		std::map<offset_t,size_t>::const_iterator after = by_offset.upper_bound(loc);
-		if (before->first != loc && before != by_offset.begin())
-			--before;
-		cout << "Free Region before: " << 
-			before->first << ":" << before->second << endl;
-		cout << "Free Region after: " << 
-			(after != by_offset.end() ? after->first : 0 ) << ":" <<
-			(after != by_offset.end() ? after->second : 0 ) << endl;
-		if (before->first + (ssize_t)before->second < loc &&
-			after == by_offset.end() || after->first > loc + (ssize_t)sz) {
-			cout << "Looks like an occupied space" << endl;
-		}
-		else {
-			cout << "Error: Conflicts with free space" << endl;
-			return -1;
-		}
-
-		checkpoint_ifstream ifile( tempfilepath );
-		typedef std::pair<shm_string, TransEntry<shm_string> > value_type;
-		checkpoint_iterator<value_type> iter( ifile.seek<value_type>(loc) );
-		cout << "Key[" << iter->first.length() << "]: " << iter->first << endl;
-		cout << "Value[" << iter->second.length() << "]: " << iter->second << endl;
+		cout << "Error: Conflicts with free space" << endl;
+		return -1;
 	}
+
+	typedef std::pair<shm_string, TransEntry<shm_string> > value_type;
+	checkpoint_iterator<value_type> iter2( ifile.seek<value_type>(loc) );
+	cout << "Key[" << iter2->first.length() << "]: " << iter2->first << endl;
+	cout << "Value[" << iter2->second.length() << "]: " << iter2->second << endl;
 
 	return 0;
 }
 
+} // namespace util
+} // namespace stldb
+
+int main(int argc, const char *argv[])
+{
+	// argv[1] is the name of a checkpoint metafile
+	boost::filesystem::path metafile(argv[1]);
+	boost::interprocess::offset_t loc = argc>2 ? atol(argv[2]) : -1;
+	size_t sz = argc>3 ? atol(argv[3]) : 1;
+
+	return stldb::util::verify_checkpoint( metafile, loc, sz);
+}
