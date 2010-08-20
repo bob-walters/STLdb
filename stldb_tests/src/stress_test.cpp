@@ -675,6 +675,7 @@ int main(int argc, const char* argv[])
 	g_num_db = properties.getProperty("databases", 4);
 	g_maps_per_db = properties.getProperty("maps_per_db", 4);
 	g_max_key = properties.getProperty("max_key", 10000);
+	g_avg_val_length = properties.getProperty("avg_val_length", 1000);
 	g_max_wait = boost::posix_time::millisec(properties.getProperty("max_wait", 10000));
 	g_checkpoint_interval = boost::posix_time::millisec(properties.getProperty("checkpoint_interval", 0));
 	g_invalidation_interval = boost::posix_time::millisec(properties.getProperty("invalidation_interval", 0));
