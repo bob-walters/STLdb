@@ -44,14 +44,12 @@ namespace ext {
 //!process so just use file locks to synchronize threads from different processes.
 class file_lock
 {
-   /// @cond
-   //Non-copyable
-   file_lock(const file_lock &);
-   file_lock &operator=(const file_lock &);
-   /// @endcond
-   public:
-   BOOST_INTERPROCESS_ENABLE_MOVE_EMULATION(file_lock)
+	/// @cond
+	//Non-copyable
+	BOOST_INTERPROCESS_MOVABLE_BUT_NOT_COPYABLE(file_lock)
+	/// @endcond
 
+	public:
    //!Constructs an empty file mapping.
    //!Does not throw
    file_lock()

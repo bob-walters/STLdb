@@ -28,7 +28,7 @@ namespace stldb {
  */
 class file_lock : public ofstream, public boost::interprocess::ext::file_lock
 {
-public:
+private:
 	   /// @cond
 	   //Non-copyable
 	   file_lock();
