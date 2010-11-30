@@ -105,25 +105,44 @@ public:
 	// from entry erasure.
 	template <class InputIterator>
 	void add_free_space( InputIterator begin, InputIterator end ) {
+#ifdef BOOST_ENABLE_ASSERT_HANDLER
+		// Detect possible overlaps with accumulated free
+		for (InputIterator i = begin; i != end; i++ ) {
+			std::map<boost::interprocess::offset_t,std::size_t>::const_iterator loc=new_free_space.lower_bound(i->first);
+			if(loc != new_free_space.end() && i->first + i->second > loc->first) {
+				std::cerr << "passed space overlaps new_free_space: i:[" << i->first << "," << i->second << "], existing:[" << loc->first << "," << loc->second << "]" << std::endl;
+			}
+			BOOST_ASSERT(loc == new_free_space.end() || i->first + i->second <= loc->first);
+
+			loc=free_by_offset.lower_bound(i->first);
+			if(loc != free_by_offset.end() && i->first + i->second > loc->first) {
+				std::cerr << "passed space overlaps free_by_offset: i:[" << i->first << "," << i->second << "], existing:[" << loc->first << "," << loc->second << "]" << std::endl;
+			}
+			BOOST_ASSERT(loc == free_by_offset.end() || i->first + i->second <= loc->first);
+		}
+#endif
 		new_free_space.insert(begin,end);
 	}
 
+	void add_free_space(const checkpoint_loc_t& space) {
+#ifdef BOOST_ENABLE_ASSERT_HANDLER
+		std::map<boost::interprocess::offset_t,std::size_t>::const_iterator loc=new_free_space.lower_bound(space.first);
+		BOOST_ASSERT(loc == new_free_space.end() || space.first + space.second <= loc->first);
+		
+		loc=free_by_offset.lower_bound(space.first);
+		BOOST_ASSERT(loc == free_by_offset.end() || space.first + space.second <= loc->first);
+#endif
+		new_free_space.insert(space);
+	}
+						
 	// allocate space for a new copy of obj from among the committed free space.
 	// return the location that the new copy of the object has been stored in.
 	// add the previous checkpoint_loc_t to the pending free space.  The pending
 	// free space is made permanent when the commit() method is called.
 	template <class T>
 	checkpoint_loc_t
-	write( const T& obj, checkpoint_loc_t prev_loc)
+	write( const T& obj)
 	{
-		// If the value we are saving previously occupied some portion
-		// of the checkpoint file, we can add its previous region to the
-		// new free space.
-		if (prev_loc.second >0) {
-			STLDB_TRACE(finer_e, "Space freed by new copy of previously checkpointed object: [offset,size] : [" << prev_loc.first << "," << prev_loc.second << "]");
-			new_free_space.insert( prev_loc );
-		}
-
 		// serialize the entry into a self-contained serialized image.
 		stringbuff.str(""); // reset buffer contents
 	    boost_oarchive_t archive(stringbuff, boost::archive::no_header);
@@ -199,6 +218,11 @@ public:
 		return checkpoint_iterator<T>(*this, meta.file_length, meta.file_length);
 	}
 
+	template<class T>
+	checkpoint_iterator<T> seek(boost::interprocess::offset_t offset) {
+		return checkpoint_iterator<T>(*this, meta.file_length, offset);
+	}
+
 private:
 	std::ifstream filestream;
 
@@ -267,11 +291,12 @@ private:
 	// advance forward to the next item in the file.
 	void forward() 
 	{
-		std::map<boost::interprocess::offset_t,std::size_t>::const_iterator i(_checkpoint.free_by_offset.find(_offset));
-		while (i != _checkpoint.free_by_offset.end()) {
+		std::map<boost::interprocess::offset_t,std::size_t>::const_iterator i(_checkpoint.free_by_offset.lower_bound(_offset));
+		while (i != _checkpoint.free_by_offset.end() && i->first == _offset) {
 			_offset += i->second;
-			i = _checkpoint.free_by_offset.find(_offset);
+			i = _checkpoint.free_by_offset.lower_bound(_offset);
 		}
+
 		if (std::size_t(_offset) == _length)
 			return;
 
@@ -280,6 +305,7 @@ private:
 		// TODO - should this be in network byte order for portability.?
 		// are binary streams from Boost.Serialization portable to some extent?
 		_checkpoint.filestream.read(reinterpret_cast<char*>(&size), sizeof(size));
+		BOOST_ASSERT(i == _checkpoint.free_by_offset.end() || _offset + (ssize_t)size <= i->first);
 		boost_iarchive_t archive(_checkpoint.filestream, boost::archive::no_header);
         archive & _current;
 		if (!_checkpoint.filestream) {
