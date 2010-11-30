@@ -83,6 +83,7 @@ struct map_insert_operation : public assoc_transactional_operation<map_type>
 		{ }
 
 	virtual void commit(Transaction &t) {
+		BOOST_ASSERT(_entry->second.checkpointLocation().second == 0);
 		if (_entry->second.getOperation() == Insert_op)
 			_entry->second.unlock(t.getLSN());
 	}
@@ -90,6 +91,7 @@ struct map_insert_operation : public assoc_transactional_operation<map_type>
 		// inserts which follow a delete are handled as modifies,
 		// so on rollback, we always erase.
 		typename map_type::baseclass &ref = this->get_container();
+		BOOST_ASSERT(_entry->second.checkpointLocation().second == 0);
 		ref.erase(_entry);
 	}
 	virtual int add_to_log(boost_oarchive_t &buffer) {
@@ -199,6 +201,11 @@ struct map_delete_operation : public assoc_transactional_operation<map_type>
 		if (_entry->second.getOperation() == Delete_op) {
 			typename map_type::baseclass &ref = this->get_container();
 			if (_entry->second.checkpointLocation().second > 0) {
+#ifdef STLDB_TROUBLESHOOT
+				typename std::map<typename map_type::key_type,std::pair<boost::interprocess::offset_t,std::size_t> >::iterator i( this->get_container().entry_locs.find(_entry->first) );
+			    BOOST_ASSERT( i != this->get_container().entry_locs.end() );
+			    this->get_container().entry_locs.erase(i);
+#endif
 				this->get_container()._freed_checkpoint_space.insert( _entry->second.checkpointLocation() );
 			}
 			ref.erase(_entry);
@@ -216,13 +223,19 @@ struct map_delete_operation : public assoc_transactional_operation<map_type>
 	virtual void recover(boost_iarchive_t& stream, transaction_id_t lsn) {
 		typename map_type::key_type key;
 		stream & key;
-		typename map_type::baseclass &ref = this->get_container();
-		typename map_type::baseclass::iterator entry = ref.find(key);
-		if (entry != ref.end()) {
-			if (entry->second.checkpointLocation().second > 0)
+		typename map_type::baseclass &container = this->get_container();
+		typename map_type::baseclass::iterator entry = container.find(key);
+		if (entry != container.end()) {
+			if (entry->second.checkpointLocation().second > 0) {
+#ifdef STLDB_TROUBLESHOOT
+				typename std::map<typename map_type::key_type,std::pair<boost::interprocess::offset_t,std::size_t> >::iterator i( this->get_container().entry_locs.find(key) );
+			    BOOST_ASSERT( i != this->get_container().entry_locs.end() );
+			   	this->get_container().entry_locs.erase(i);
+#endif
 				this->get_container()._freed_checkpoint_space.insert(
 						entry->second.checkpointLocation() );
-			ref.erase( entry );
+			}
+			container.erase( entry );
 		}
 	}
 
@@ -260,6 +273,7 @@ struct map_deleted_insert_operation : public assoc_transactional_operation<map_t
 	virtual void commit(Transaction &t) {
 		if (_entry->second.getOperation() == Deleted_Insert_op) {
 			typename map_type::baseclass &ref = this->get_container();
+			BOOST_ASSERT(_entry->second.checkpointLocation().second == 0);
 			ref.erase(_entry);
 		}
 	}
@@ -275,6 +289,7 @@ struct map_deleted_insert_operation : public assoc_transactional_operation<map_t
 		typename map_type::key_type key;
 		stream & key;
 		typename map_type::baseclass &ref = this->get_container();
+		BOOST_ASSERT(_entry->second.checkpointLocation().second == 0);
 		ref.erase(key); // ignore errors if row not found.
 	}
 
