@@ -97,48 +97,72 @@ Database<ManagedRegionType>::Database(
 			fullname.c_str(), initial_size, fixed_mapping_addr);
 	STLDB_TRACEDB(fine_e, database_name, "region opened.");
 
-	// Now, get the registry data structures within the region.
-	_registry = (_region->template find<database_registry<region_allocator_t> >
+	// Now, get the registry data structures within the region.  We do this
+	// under a try/catch block because exceptions like lock timeouts at this
+	// point signal hung mutexes in the region, and we need to be able to
+	// recover from that.
+	bool recovery_needed = false;
+	try {
+		_registry = (_region->template find<database_registry<region_allocator_t> >
 			(boost::interprocess::unique_instance)).first;
 
-	bool recovery_needed = false;
-	if (_registry == NULL)
-	{
-		STLDB_TRACEDB(fine_e, database_name, "no registry found.  creating region data structures");
-		// This means (since we have the _flock) that we are creating or
-		// recovering the managed memory region from scratch.
-		creating_region = true;
-	}
-	else
-	{
-		STLDB_TRACEDB(fine_e, database_name, "registry found. checking need for recovery");
-		STLDB_TRACEDB(finest_e, database_name, "acquiring registry mutex");
-		scoped_lock<stldb::file_lock> reglock(_registry_lock);
-		STLDB_TRACEDB(finest_e, database_name, "registry mutex acquired.");
-
-		// We have attached to a region with something already in it.
-		// Using just the RegistryInfo structure, let's see if it looks valid.
-		recovery_needed = _registry->check_need_for_recovery();
-		if (!recovery_needed)
-			recovery_needed = !_region->check_sanity();
-		if (recovery_needed)
+		if (_registry == NULL)
 		{
-			STLDB_TRACEDB(warning_e, database_name, "recovery is needed.");
-
-#if (defined BOOST_INTERPROCESS_WINDOWS)
-			// On Unix systems, removing a shared region while other processes
-			// are attached to it is OK.  On some other OSes, it isn't OK.
-			// So for portability, we wait for processes to all detach before
-			// deleting the region.
-			STLDB_TRACEDB(finest_e, database_name, "awaiting disconnect by all process currently using database.");
-			_registry->await_complete_disconnect(reglock);
-			STLDB_TRACEDB(finest_e, database_name, "all other processes have disconnected.");
-#endif
+			STLDB_TRACEDB(fine_e, database_name, "no registry found.  creating region data structures");
+			// This means (since we have the _flock) that we are creating or
+			// recovering the managed memory region from scratch.
+			creating_region = true;
 		}
-		else {
-			STLDB_TRACEDB(fine_e, database_name, "no recovery is needed, passed disconnect check and check_sanity()");
+		else
+		{
+			STLDB_TRACEDB(fine_e, database_name, "registry found. checking need for recovery");
+			STLDB_TRACEDB(finest_e, database_name, "acquiring registry mutex");
+			scoped_lock<stldb::file_lock> reglock(_registry_lock);
+			STLDB_TRACEDB(finest_e, database_name, "registry mutex acquired.");
+	
+			// We have attached to a region with something already in it.
+			// Using just the RegistryInfo structure, let's see if it looks valid.
+			recovery_needed = _registry->check_need_for_recovery();
+			if (!recovery_needed)
+				recovery_needed = !_region->check_sanity();
+			if (recovery_needed)
+			{
+				STLDB_TRACEDB(warning_e, database_name, "recovery is needed.");
+	
+	#if (defined BOOST_INTERPROCESS_WINDOWS)
+				// On Unix systems, removing a shared region while other processes
+				// are attached to it is OK.  On some other OSes, it isn't OK.
+				// So for portability, we wait for processes to all detach before
+				// deleting the region.
+				STLDB_TRACEDB(finest_e, database_name, "awaiting disconnect by all process currently using database.");
+				_registry->await_complete_disconnect(reglock);
+				STLDB_TRACEDB(finest_e, database_name, "all other processes have disconnected.");
+	#endif
+			}
+			else {
+				STLDB_TRACEDB(fine_e, database_name, "no recovery is needed, passed disconnect check and check_sanity()");
+			}
 		}
 	}
+	catch ( stldb::lock_timeout_exception &x ) {
+		std::cerr << "Caught a lock_timeout_exception while checking the registry.  Proceeding with database recovery." << std::endl;
+		recovery_needed = true;
+	}
+	catch( boost::interprocess::interprocess_exception &x )
+	{
+		std::cerr << "Caught an interprocess_exception (from boost::interprocess library) while checking registry.  Proceeding with database recovery: " ;
+		std::cerr << x.what() << ", ";
+		std::cerr << x.get_error_code() << ", ";
+		std::cerr << x.get_native_error() << std::endl;
+		recovery_needed = true;
+	}
+	catch( std::exception &x )
+	{
+		std::cerr << "Caught a std::exception while checking registry.  Proceeding with database recovery: " ;
+		std::cerr << x.what() << std::endl;
+		recovery_needed = true;
+	}
+
 	if (recovery_needed)
 	{
 		STLDB_TRACEDB(warning_e, database_name, "performing recovery");
@@ -172,7 +196,8 @@ Database<ManagedRegionType>::Database(
 	// At this point, there is a registry.  We can check at this point to see
 	// if there's any need to resize the region based on a config change
 	scoped_lock<stldb::file_lock> reglock(_registry_lock);
-	if (_registry->connected_pids()==0 && initial_size != _region->get_size()) {
+	if (_registry->connected_pids()==0 && initial_size != _region->get_size()) 
+	{
 		_region = RegionResizer<ManagedRegionType>::resize( _region, fullname.c_str(), initial_size, fixed_mapping_addr);
 
 		STLDB_TRACEDB(info_e, database_name, "Region resized to " << _region->get_size() << " bytes");
