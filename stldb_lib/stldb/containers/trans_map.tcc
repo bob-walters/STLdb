@@ -635,6 +635,13 @@ void trans_map<K,V,Comparator,Allocator,mutex_family>::save_checkpoint(
             // because we can't be sure if the committed value has been written out.
 			// this is a side effect of the fact that I'm not storing both the
 			// last commited lsn and the inprog txn_id at the same time on TransEntry<>
+
+			// Note that we are doing an unprotected read of the row while
+			// holding a shared lock on the map.  This means Operation() might
+			// be stale, but checkpoint location should be current (no change
+			// possible since shared lock acquired).  This is ok because our
+			// use of Operation only has to be as current as the last commit
+			// before we acquired the shared lock.  We won't miss any rows.
 			transaction_id_t last_commit_lsn = i->second.getLockId();
 		    if ( (last_commit_lsn > last_checkpoint_lsn 
 			      && i->second.getOperation() == No_op)
@@ -718,7 +725,8 @@ void trans_map<K,V,Comparator,Allocator,mutex_family>::save_checkpoint(
 	        values[j].second.setCheckpointLocation( new_location );
 		}
 
-		lock.lock();
+		lock.lock(); // shared lock on map
+
 		// update the entries in the map to indicate their new checkpoint
 		// locations.  Unfortunately, because we unlocked the map during the I/O
 		// we have not retained the iterators to the values[].  An alternative
@@ -727,12 +735,28 @@ void trans_map<K,V,Comparator,Allocator,mutex_family>::save_checkpoint(
 		// space for those buffers in a tight loop, with a lock, then update the
 		// entries directly via the still-valid iterators.  I decided not to have
 		// a sharedlock during object serialization, and instead go with this approach.
+
+		// I have re-acquired a shared lock on this map (above), so no rows
+		// will be inserted/removed while in this next loop.  Further, the
+		// lock provides a memory fence that guarantees that I see all rows
+		// data from at least that moment in time.  If there are pending inserts
+		// I will see them correctly when looking at the rows below, because
+		// they can't change from Insert_op to any other state while I have
+		// this shared lock on the map.  Deletes and Updates to the rows can
+		// be in-progress by other threads also with the shared lock, but it is
+		// safe to check for what I am checking for below.
 		for (int j=0; j<count; j++) {
 			typename baseclass::iterator i( this->baseclass::find( values[j].first ) );
+
 			// a row could be deleted while the map was unlocked
 			// deleted rows get recovered space added to _freed_checkpoint_space
 			// and doesn't need to be recovered here.
-			if (i != this->baseclass::end() ) {
+			// a row could be deleted and reinserted while the map was 
+			// unlocked also, in which case we have written a stale copy
+			if (i != this->baseclass::end() && 
+			    i->second.checkpointLocation() == prev_locs[j] && 
+				i->second.getOperation() != Insert_op ) 
+			{
 				if (prev_locs[j].second > 0) {
 					STLDB_TRACE(finest_e, "Space freed by new copy of previously checkpointed object: [offset,size] : [" << prev_locs[j].first << "," << prev_locs[j].second << "]");
 					checkpoint.add_free_space(prev_locs[j]);
@@ -743,8 +767,9 @@ void trans_map<K,V,Comparator,Allocator,mutex_family>::save_checkpoint(
 #endif
 			}
 			else {
-				// the checkpoint we just wrote is now free.  We have to
-				// release that space here because otherwise it never gets freed.
+				// the checkpoint we just wrote is for a row which has been
+				// deleted, or deleted and subsequently re-inserted, so the 
+				// entry we wrote is no longer any good - return it to free
 				checkpoint.add_free_space( values[j].second.checkpointLocation() );
 			}
 		}
