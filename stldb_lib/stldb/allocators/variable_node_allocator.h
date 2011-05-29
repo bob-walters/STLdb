@@ -31,16 +31,18 @@ using boost::intrusive::void_pointer;
 
 // Note: The alignment of the SegmentManager base class is important.
 // it must be aligned on SegmentManager::memory_algorithm::Alignment
-// bytes.  TODO - make the satisfaction of this requirement assured.
-// right now I'm just getting lucky with meeting the requirement.
+// bytes.  Note: SegmentManager must be the second subclass, because it is
+// allocated within a space.
 template<class SegmentManager>
 class segment_within_set
 	: public set_base_hook<void_pointer<typename SegmentManager::void_pointer> >
 	, public SegmentManager
 {
 public:
+	// Size is the # of bytes allocated from SegmentManager address to the end
+	// of the region it is being given.
 	segment_within_set(std::size_t size)
-		: SegmentManager(size - (sizeof(segment_within_set) - sizeof(SegmentManager)))
+		: SegmentManager(size - sizeof(SegmentManager))
 		{ }
 
 	// as intrusive node elements, all comparisons can be based on location
@@ -53,7 +55,7 @@ public:
 /**
  * segment_set is a boost::interprocess::set of pointers to SegmentManagers
  * which are each BytesPerChunk bytes in size, and allocated from parts of
- * a larger manageemnt space under the control of SegmentManager.
+ * a larger managed space under the control of SegmentManager.
  */
 template<class SegmentManager, std::size_t BytesPerChunk>
 class segment_set
@@ -82,7 +84,7 @@ public:
 	// can throw bad_alloc if host segment is out of memory.
 	void * allocate(std::size_t size, SegmentManager *host) 
 	{
-		  boost::interprocess::sharable_lock<boost::interprocess::interprocess_upgradable_mutex>
+		boost::interprocess::sharable_lock<boost::interprocess::interprocess_upgradable_mutex>
 			  shared_guard(m_mutex);
 
 		if (size > BytesPerChunk)
@@ -122,7 +124,7 @@ public:
 		}
 		catch(boost::interprocess::bad_alloc &ex) {
 			std::cerr << "Unexpected bad_alloc on new segment " << size << ex.what() << std::endl;
-			abort();
+			throw;
 		}
 
 		base_t::insert( *sm );
@@ -158,15 +160,33 @@ private:
 
 		segment_t* new_sm = NULL;
 
-		//Let's construct the allocator in memory
-		void *addr = host->allocate(BytesPerChunk);
+		// Figure out the bytes between segment_t* and its contained SegMgr
+		static const segment_t *fictitous= (segment_t*)0x1000;
+		static const int offset = reinterpret_cast<const char*>(static_cast<const SegmentManager*>(fictitous)) - reinterpret_cast<const char*>(fictitous);
+		// Compute the padding at the front of a unit of memory, allocated on
+		// SegmentManager::memory_algorithm::Alignment bytes, which is required
+		// to ensure that the SegmentManager element of segment_t is on that
+		// alignment boundary.
+		static const int padding = (SegmentManager::memory_algorithm::Alignment - (offset % SegmentManager::memory_algorithm::Alignment)) % SegmentManager::memory_algorithm::Alignment;
+
+		// Let's construct the allocator in memory.  SegmentManagers must be
+		// aligned to SegmentManager::memory_algorithm::Alignment byts in all
+		// cases.  So we pad the allocation with a header to ensure that
+		void *addr = host->allocate_aligned(
+			BytesPerChunk+padding, SegmentManager::memory_algorithm::Alignment);
+
+		// addr is now aligned so that the SegmentManager portion will be
+		// constructed on an alignment boundary.
+		addr = reinterpret_cast<char*>(addr) + padding;
 		new_sm = new(addr) segment_t(BytesPerChunk);
 		//assert(new_sm == addr);
 		//assert(new_sm->check_sanity());
 
 		// debug: double check that the address of the SegmentManager is
 		// aligned according to requirements.
-		assert((0 == (((std::size_t)static_cast<SegmentManager*>(new_sm)) & (SegmentManager::memory_algorithm::Alignment - std::size_t(1u)))));
+		if (0 != (((std::size_t)static_cast<SegmentManager*>(new_sm)) & (SegmentManager::memory_algorithm::Alignment - std::size_t(1u)))) {
+			abort();
+		}
 
 		return new_sm;
 	}
