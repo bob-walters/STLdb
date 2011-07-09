@@ -1,0 +1,114 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1038\cocoasubrtf290
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs20 \cf0 \
+Checkpoint Algorithms\
+\
+The basic point of the write-ahead log is to provide a way to atomically write the results of a transaction to disk as a single unit.  It can also be exploited to delay the writes of modified database pages back to disk until opportune times, permitting changes to the same page to be aggregated, and allowing the order of such writes to be optimized for the disk and independent of the order of transaction commits.  The write ahead log, and ultimately the writes back to the databse files also become capable of exploting the advantages of sequential vs. random access disk I/O, thus maxmizing transaction throughput given the hardware available.\
+\
+The basic idea, and best possible performance, is that the transaction log writes out a single record per commit.  The writing of database changes back to disk is postponed until the next checkpoint.  Checkpoints write all changes that have occurred since the last checkpoint out to disk, thereby allowing log records to be archived.\
+\
+Let T = # of transactions per second.\
+Let O = # of operations per transaction.\
+Let L = % of locality within a checkpoint interval.  i.e. The percentage of operations which occur on an entry which has been changed previously within the same checkpoint window.\
+Let CI = checkpoint interval in seconds.\
+\
+The ideal scenario is that, every CI seconds:\
+\
+Logging would log T * O * CI operations.\
+A checkpoint would run and write out T * O * CI * L operations\
+\
+The greater L, the more I/O is saved on checkpoints.  Based on the principle of locality, L is likely to be larger the more time there is between checkpoints.  As checkpoint intervals approach 0, L approaches 1.0 (no operations updating the same data within a checkpoint.)\
+\
+Checkpoints must be done periodically to ensure recovery time.  Recovery time is a function of checkpoint time.  The shorter the checkpoints, the shorter the recovery time.\
+\
+\
+\
+\
+\
+\
+\
+Existing Approach:\
+~~~~~~~~~~~~~~~~~~\
+Checkpoint file is a seperate file which is written to iteratively, with each checkpoint \
+traversing localized memory and writing out only those entries which actually have changed.\
+Every object must track it's checkpoint offset and size to permit this.  Every checkpoint\
+write only writes what has changed since the last checkpoint.\
+\
+Let T = # of transactions per second.\
+Let O = # of operations per transaction.\
+Let CI = checkpoint interval in seconds.\
+\
+Let N = # of objects in total within the cache\
+\
+Each checkpoint writes\
+T * O * CI objects out to file.\
+\
+Recovery involves reconstructing a map with\
+N + (T * O * CI)/2  objects.\
+\
+\
+Alternative 1:\
+~~~~~~~~~~~~~~\
+Checkpoint file is a memory copy of the region file which is essentially ready to\
+use for recovery processing.  Checkpointing involves creating a file\
+\
+Recovery involves copying the checkpoint, block by block, back into memory, as the\
+data is in a ready-to-use form.  After that raw disk I/O is done (sequential read),\
+the system then applies logged operations equal to (T*O*CI)/2 operations.\
+\
+Each checkpoint writes \
+N objects to a secondary file.\
+\
+Recovery involves reading the raw data of the file into the working memory map,\
+and then applying (T*O*CI)/2 objects from the logs.\
+\
+\
+Alternative 2:\
+~~~~~~~~~~~~~~\
+An incremental approach for alternative #1.\
+\
+The first time the copy is created, it is the same as the existing approach, everything\
+is new, so a complete copy is made.\
+\
+The second time the checkpoint is copied out, it is done incrementally.  The existing\
+file is mapped in with 'PRIVATE' mode, which means that the memory changes are not\
+paged out.  It isn't all read into memory, however.  The existing checkpoint is traversed\
+for entries which have changed since the last checkpoint.  As such entries are found,\
+their value is copied into the backup, which causes appropriate paging in there into the\
+private segment.  At the conclusion of this, an appropriate portion of the backup will\
+be in core memory, and will have been modified, but none of those changes has been paged out\
+because it's private memory.  \
+\
+Now at this point what remains is a controlled page-out of the modified pages from the \
+region that has been mapped in privately.  It would be great is the memory map itself\
+could tell us what has been modified in private memory.\
+\
+To determine which pages have changed, the only approach which seems possible currently\
+is to us mprotect() to set the entire region to READONLY, but then install a SIGBUS/SIGSEGV handler\
+to catch the signals raised when some process attempts to write to a page which is protected\
+that signal handler would unprotect that page, note that it has been modified, and then\
+return, building up, in the process a list of all pages which have been modified - which have\
+had a private copy created.\
+\
+Once this is known, it allows all modified pages to be written to disk as a\
+two-phase process. 1) write all changes to an intermediate file (which can be used to recover and complete step 2 if it fails)\
+then write them again to the actual mapped file, and then delete the intermediate file.\
+\
+The only issue with this approach is the potential expense of lots of mprotect calls and\
+signal handling.  mincore() doesn't seem to be a reliable way to detect which pages have\
+been modified, however.  It does write twice the data of the existig approach, but can exploit\
+linear I/O.\
+\
+Perf Notes:\
+~~~~~~~~~~~\
+1M iterations over a page which has read-only protection trying to do a write, invoking a signal handler: 13-15 seconds.  Or ~13 microseconds per trap.\
+\
+1M iterations over a page which has read-only protection, each time invoking a signal handler, setting the protection to write and back to read-only until the millionth time: 17-19 seconds or ~ 17-19 microseconds per trap + 2 mprotects.\
+\
+The same 1M iterations, with the initial protection set to read+write so that the signal handler never gets invoked, takes on the order of 0.02 to 0.6 seconds to execute.  So above times reflect the relative costs of those elements of the design fairly well.\
+\
+I then repeated the 1M iterations over 65k pages.  Total of 1M signals and 1M unprotects.  Itnow took 40-45 seconds over 2 runs.  Not sure how much of that was disk I/O, however.  Redid a few runs with no memory protection in effect, and saw it take 2-3 seconds.  There may be an O(logN) or O(N) characteristic to this with N being related to the # of pages which have independent protection settings.\
+}
