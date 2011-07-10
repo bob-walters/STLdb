@@ -1,3 +1,13 @@
-#Wed Sep 23 21:57:32 EDT 2009
+#Thu May 19 15:59:45 EDT 2011
 eclipse.preferences.version=1
-environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.478659119=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?>\r\n<environment append\="true" appendContributed\="true">\r\n<variable delimiter\=";" name\="BOOST_ROOT" operation\="replace" value\="C\:\\C++\\boost_1_39_0"/>\r\n</environment>\r\n
+environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.478659119=
+environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.478659119/BOOST_ROOT/delimiter=;
+environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.478659119/BOOST_ROOT/operation=replace
+environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.478659119/BOOST_ROOT/value=/Developer/boost_1_45_0
+environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.478659119/append=true
+environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.478659119/appendContributed=true
+environment/project/cdt.managedbuild.config.macosx.exe.release.740186819/BOOST_ROOT/delimiter=\:
+environment/project/cdt.managedbuild.config.macosx.exe.release.740186819/BOOST_ROOT/operation=append
+environment/project/cdt.managedbuild.config.macosx.exe.release.740186819/BOOST_ROOT/value=/Developer/boost_1_45_0
+environment/project/cdt.managedbuild.config.macosx.exe.release.740186819/append=true
+environment/project/cdt.managedbuild.config.macosx.exe.release.740186819/appendContributed=true
