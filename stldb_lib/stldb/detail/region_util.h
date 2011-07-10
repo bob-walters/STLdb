@@ -98,6 +98,33 @@ struct ManagedRegionNamer<boost::interprocess::basic_managed_mapped_file<C, M, I
 	}
 };
 
+
+/**
+ * The region flush is used with memory mapped file regions immediately 
+ * after process registration to ensure that the file on disk contains
+ * a record of the processes presence.  Managed files have the unique
+ * ability to be retained on disk but have stale information after
+ * power-based failures, this being distinct from the other types which
+ * are simply completely lost.  So the goal here is to ensure proper
+ * recreation in all cases.
+ */	 
+template<class ManagedRegionType>
+struct RegionSync
+{
+	static void flush(ManagedRegionType *region) {
+		// Most region types don't require any flush operation.
+	}
+};
+
+template<class C, class M, template<class IndexConfig> class I>
+struct RegionSync<boost::interprocess::basic_managed_mapped_file<C, M, I> >
+{
+	static void flush(boost::interprocess::basic_managed_mapped_file<C, M, I> *region) {
+		region->flush();
+	}
+};
+	
+
 /**
  * Through support of static methods like grow and shrink_to_fit, regions can be
  * resized.
