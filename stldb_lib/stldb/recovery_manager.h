@@ -162,7 +162,7 @@ transaction_id_t recovery_manager<ManagedRegionType>::recover_txn( std::pair<log
 	try {
 		// Wrap the vector of bytes directly in streams.
 		vbuffer.swap_vector(buffer);
-		boost_iarchive_t bstream(vbuffer);
+		boost_iarchive_t bstream((std::istream&)vbuffer);
 
 		container_proxy_base<ManagedRegionType>* proxy = NULL;
 		std::string last_container;
