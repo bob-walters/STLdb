@@ -21,17 +21,10 @@ namespace stldb
 class stldb_exception : public boost::interprocess::interprocess_exception
 {
 public:
-	stldb_exception()
-		: boost::interprocess::interprocess_exception(), _why() { }
-	stldb_exception(const char *why) throw ()
-		: boost::interprocess::interprocess_exception(), _why(why) { }
+	stldb_exception(const char *err) throw ()
+		: boost::interprocess::interprocess_exception(err) { }
 	virtual ~stldb_exception() throw ()
 		{ }
-	virtual const char* what() const throw()
-		{ return _why.c_str(); }
-
-private:
-	std::string _why;
 };
 
 
@@ -47,7 +40,7 @@ private:
 class row_deleted_exception : public stldb_exception
 {
 public:
-	row_deleted_exception() : stldb_exception() { }
+	row_deleted_exception() : stldb_exception("row deleted exception") { }
 	row_deleted_exception(const char *why) : stldb_exception(why) { }
 };
 
@@ -59,7 +52,7 @@ public:
 class row_level_lock_contention : public stldb_exception
 {
 public:
-	row_level_lock_contention() : stldb_exception() { }
+	row_level_lock_contention() : stldb_exception("row level lock contention exception") { }
 	row_level_lock_contention(const char *why) : stldb_exception(why) { }
 };
 
@@ -69,7 +62,7 @@ public:
 class lock_timeout_exception : public stldb_exception
 {
 public:
-	lock_timeout_exception() : stldb_exception() { }
+	lock_timeout_exception() : stldb_exception("lock timeout exception") { }
 	lock_timeout_exception(const char *why) : stldb_exception(why) { }
 };
 
@@ -79,7 +72,7 @@ public:
 class recovery_needed : public stldb_exception
 {
 public:
-	recovery_needed() : stldb_exception() { }
+	recovery_needed() : stldb_exception("recovery needed exception") { }
 	recovery_needed(const char *why) : stldb_exception(why) { }
 };
 
@@ -89,7 +82,7 @@ public:
 class recover_from_log_failed : public stldb_exception
 {
 public:
-	recover_from_log_failed() : stldb_exception() { }
+	recover_from_log_failed() : stldb_exception("recovery failed exception") { }
 	recover_from_log_failed(const char *why, transaction_id_t txn,
 			boost::uintmax_t loc, const char *filename)
 		: stldb_exception(why), _txnid(txn)
