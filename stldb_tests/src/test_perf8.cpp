@@ -41,6 +41,7 @@ struct test8 {
 	}
 private:
 	friend class boost::serialization::access;
+	friend std::ostream& operator<<(std::ostream &s, const test8 &s8);
 
 	template<class Archive>
 	void serialize(Archive & ar, const unsigned int version)
@@ -48,6 +49,13 @@ private:
 	    ar & _counter;
 	}
 };
+
+template <class mutex_t>
+std::ostream& operator<<(std::ostream &s, const test8<mutex_t> &s8)
+{
+	s << s8._counter;
+}
+
 
 // map_type is required to be some instantiation of trans_map<>
 template <class database_type, class struct_type, class lock_type>

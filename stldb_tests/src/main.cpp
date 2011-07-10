@@ -54,7 +54,12 @@ int main(int argc, const char* argv[])
 {
   properties.parse_args(argc, argv);
 
-  stldb::timer::enabled = properties.getProperty("timing", true);
+	stldb::timer_configuration config;
+	config.enabled_percent = properties.getProperty("timing_percent", 0.0);
+	config.report_interval_seconds = properties.getProperty("report_interval",10);
+	config.reset_after_print = properties.getProperty("reset_after_report", true);
+	stldb::timer::configure(config);
+	
   stldb::tracing::set_trace_level(stldb::fine_e);
   std::string testname = properties.getProperty("testname", std::string("all"));
 

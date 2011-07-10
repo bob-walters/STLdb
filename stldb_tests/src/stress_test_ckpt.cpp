@@ -21,62 +21,85 @@
 #include <stldb/allocators/scope_aware_allocator.h>
 #include <stldb/allocators/region_or_heap_allocator.h>
 #include <stldb/allocators/variable_node_allocator.h>
-#include <stldb/allocators/allocator_gnu.h>
+#include <stldb/containers/rbtree.h>
 #include <stldb/timing/timer.h>
 #include <stldb/sync/wait_policy.h>
+#include <stldb/checkpoint_manager.h>
 
+#include <boost/interprocess/indexes/flat_map_index.hpp>
+#include <boost/interprocess/containers/string.hpp>
+#include <boost/interprocess/allocators/cached_node_allocator.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread.hpp>
 
+namespace intrusive = boost::intrusive;
+namespace bi = boost::interprocess;
+
+using boost::thread;
+using boost::shared_lock;
+using boost::unique_lock;
+using boost::lock_guard;
+using bi::sharable_lock;
 using stldb::Transaction;
 using stldb::scoped_allocation;
 
 static const size_t megabyte = 1024*1024;
 static const size_t clump_size = 8*megabyte;
 
-#ifdef __GNUC__
-// String in shared memory, ref counted, copy-on-write qualities based on GNU basic_string
-#	include <stldb/containers/gnu/basic_string.h>
-	// Allocator of char in shared memory, with support for default constructor
-	typedef stldb::region_or_heap_allocator<
-		stldb::gnu_adapter<
-			boost::interprocess::allocator<
-				char, managed_mapped_file::segment_manager> > > shm_char_allocator_t;
+typedef bi::basic_managed_mapped_file<
+	char,
+	bi::rbtree_best_fit<stldb::bounded_mutex_family, bi::offset_ptr<void> >,
+	bi::flat_map_index
+> stldb_managed_mapped_file;
 
-	typedef stldb::region_or_heap_allocator<
-			stldb::gnu_adapter<
-				stldb::variable_node_allocator<
-					char, managed_mapped_file::segment_manager, clump_size> > > clustered_char_allocator_t;
+// Allocator of char in shared memory, with support for default constructor
+typedef stldb::region_or_heap_allocator< bi::allocator<
+		char, stldb_managed_mapped_file::segment_manager> > shm_char_allocator_t;
 
-	typedef stldb::basic_string<char, std::char_traits<char>, shm_char_allocator_t>  shm_string;
-	typedef stldb::basic_string<char, std::char_traits<char>, clustered_char_allocator_t>  clustered_shm_string;
-#else
-// String in shared memory, based on boost::interprocess::basic_string
-#	include <boost/interprocess/containers/string.hpp>
-	// Allocator of char in shared memory, with support for default constructor
-	typedef stldb::region_or_heap_allocator<
-		boost::interprocess::allocator<
-			char, managed_mapped_file::segment_manager> > shm_char_allocator_t;
+typedef stldb::region_or_heap_allocator< stldb::variable_node_allocator<
+		char, stldb_managed_mapped_file::segment_manager, clump_size> > clustered_char_allocator_t;
 
-	typedef boost::interprocess::basic_string<char, std::char_traits<char>, shm_char_allocator_t> shm_string;
-#endif
+// non-reference counted string (minimize copying)
+typedef bi::basic_string<char, std::char_traits<char>, shm_char_allocator_t>		shm_string;
+typedef bi::basic_string<char, std::char_traits<char>, clustered_char_allocator_t>  clustered_shm_string;
 
-// A node allocator for the map, which uses the bulk allocation mechanism of boost::interprocess
-typedef boost::interprocess::cached_node_allocator<std::pair<const clustered_shm_string, shm_string>,
-	managed_mapped_file::segment_manager>  trans_map_allocator;
+typedef intrusive::void_pointer< bi::offset_ptr<void> >  shm_void_pointer;
 
-// A transactional map, using std ref counted strings.
-typedef stldb::trans_map<clustered_shm_string, shm_string, std::less<clustered_shm_string>,
-	trans_map_allocator>  MapType;
+// Data type to be used as T for MapType (rbtree<T>)
+class node_t : public intrusive::set_base_hook< shm_void_pointer >, public stldb::trans_set_hook {
+public:
+	clustered_shm_string first;
+	shm_string second;
+	
+	// compiler generated default constructor, copy constructor, destructor, and operator= used.
+	node_t() : first(), second() { }
+	node_t(const char *s1) : first(s1) { }
+	node_t(const char *s1, const char *s2) : first(s1), second(s2) { }
+	
+	bool operator==(const node_t &rarg) const { return first == rarg.first; }
+	bool operator<(const node_t &rarg) const { return first < rarg.first; }
+	bool operator>(const node_t &rarg) const { return first > rarg.first; }
+};
 
-using boost::interprocess::sharable_lock;
+// A node allocator for node_t, which uses the bulk allocation mechanism of boost::interprocess
+typedef bi::cached_node_allocator<node_t,stldb_managed_mapped_file::segment_manager>  node_allocator_t;
 
-using boost::thread;
-using boost::shared_lock;
-using boost::unique_lock;
-using boost::lock_guard;
+// A Comparator used with rbtree::find() calls, to permit the search for a node_t
+// based on a string (first).
+struct node_key_compare {
+	bool operator()(const clustered_shm_string &key, const node_t &node) const {
+		return (key < node.first);
+	}
+	bool operator()(const node_t &node, const clustered_shm_string &key) const {
+		return (node.first < key);
+	}
+};
 
+// Finally, a transactional rbtree, composed of node_t nodes
+typedef stldb::rbtree<node_t, node_allocator_t> MapType;
+
+typedef PartitionedTestDatabase<stldb_managed_mapped_file,MapType>  ParttionedDbType;
 
 
 // Config parameters (set in stress_test())
@@ -96,11 +119,12 @@ static boost::posix_time::time_duration  g_invalidation_interval;
 // Databases.  We need the shared mutex to coordinate re-opening of the
 // databases in the event one of the starts throwing run_recovery exceptions
 static boost::shared_mutex  g_db_mutex[100];
-static PartitionedTestDatabase<managed_mapped_file,MapType> *g_databases[100];
+static ParttionedDbType *g_databases[100];
+static node_allocator_t *g_allocators[100];
 
 // validates the memory allocation of the key/values within map, making sure that they
 // are all pointing to addresses allocated within the db shared region.
-static void validate( PartitionedTestDatabase<managed_mapped_file,MapType> *db )
+static void validate( ParttionedDbType *db )
 {
 	void *start = db->getRegion().get_address();
 	void *end = (char*)start + db->getRegion().get_size();
@@ -120,7 +144,7 @@ static void validate( PartitionedTestDatabase<managed_mapped_file,MapType> *db )
 				//cout << "Error: found key " << i->first << " with buffer address " << (void*)keybuff << endl;
 				errors++;
 			}
-			if (valbuff < start || keybuff > end) {
+			if (valbuff < start || valbuff > end) {
 				//cout << "Error: found value with buffer address " << (void*)valbuff << endl;
 				errors++;
 			}
@@ -150,7 +174,7 @@ void cleanUp(int db_max)
 		std::string dbname( str.str() );
 
 		// Remove any previous database instance.
-		Database<managed_mapped_file>::remove(dbname.c_str(), g_db_dir.c_str(),
+		Database<stldb_managed_mapped_file>::remove(dbname.c_str(), g_db_dir.c_str(),
 				g_checkpoint_dir.c_str(), g_log_dir.c_str());
 	}
 }
@@ -158,29 +182,44 @@ void cleanUp(int db_max)
 // Returns the specified database, opening it if necessary.
 // A shared_lock is returned with the databases, which determines
 // how long the pointer returned is guaranteed to remain valid.
-PartitionedTestDatabase<managed_mapped_file,MapType>*
+ParttionedDbType*
 getDatabase(int db_num, boost::shared_lock<boost::shared_mutex> &lock )
 {
 	// result holds a lock on d_db_mutex[db_num] after construction
-	PartitionedTestDatabase<managed_mapped_file,MapType>* result = NULL;
-	boost::upgrade_lock<boost::shared_mutex>  ulock( g_db_mutex[db_num] );
+	ParttionedDbType* result = NULL;
+	boost::shared_lock<boost::shared_mutex>  slock(g_db_mutex[db_num]);
 
 	while (g_databases[db_num] == NULL) {
 		// We'll need an exclusive lock to construct the DB.
-		boost::upgrade_to_unique_lock<boost::shared_mutex> exlock(ulock);
+		slock.unlock();
+		boost::unique_lock<boost::shared_mutex> excl_lock(g_db_mutex[db_num]);
 
 		// Double check now that we're exclusive.  It could have been
 		// constructed by another thread while we waited to get 'exholder'
-		ostringstream str;
-		str << "stressDb_" << db_num;
-		std::string dbname( str.str() );
-		if (!g_databases[db_num])
-			g_databases[db_num] = new PartitionedTestDatabase<managed_mapped_file,MapType>(
+		if (g_databases[db_num] == NULL) {
+			
+			ostringstream str;
+			str << "stressDb_" << db_num;
+			std::string dbname( str.str() );
+		
+			ostringstream str2;
+			str << g_checkpoint_dir << "/stressDb_" << db_num << "_ckpt";
+			std::string ckptname( str2.str() );
+		
+			g_databases[db_num] = new ParttionedDbType(
 				dbname.c_str(), g_db_dir.c_str(),
 				g_checkpoint_dir.c_str(), g_log_dir.c_str(), g_maps_per_db );
+			
+//			g_ckpt_managers[db_num] = new stldb::checkpoint_manager<stldb_managed_mapped_file>(
+//				g_databases[db_num]->getDatabase()->getRegion(), ckptname.c_str() );
+			
+			g_allocators[db_num] = new node_allocator_t(g_databases[db_num]->getDatabase()->getRegion().get_segment_manager());
+		}
+		excl_lock.unlock();
+		slock.lock();
 	}
 	// downgrade upgradable lock to shared lock, and return to sender.
-	lock = ulock.move();
+	lock = slock.move();
 	result = g_databases[db_num];
 
 	// move semantics should result in lock going with return value.
@@ -200,19 +239,24 @@ closeDatabase(int db_num)
 		// we now perform recovery processing.
 		validate(g_databases[db_num]);
 
+		delete g_allocators[db_num];
+		g_allocators[db_num] = NULL;
+
 		delete g_databases[db_num];
 		g_databases[db_num] = NULL;
+		//delete g_ckpt_managers[db_num];
+		//g_ckpt_managers[db_num] = NULL;
 	}
 }
 
 // Generate a random value for the indicated key_no.  The value will
 // consist of bytes whose values cover all byte values (0..255), and
 // it is generated with a convention that allows later validation.
-shm_string randomValue(int key_no) {
+void randomValue(int key_no, shm_string& result) {
 	int length = static_cast<int>(::rand() * (((double)g_avg_val_length) / (double)RAND_MAX)) + (g_avg_val_length/2);
 	if (length < 10) length = 10;
 	int sum = 0;
-	shm_string result(length, char(0));
+	result.resize(length, char(0));
 	for (int i=0; i<length-4; i++) {
 		result[i] = (char)(length + key_no + i);
 		sum += result[i];
@@ -221,13 +265,12 @@ shm_string randomValue(int key_no) {
 	result[length-3] = char( key_no / 255 );
 	result[length-2] = char( sum % 255 );
 	result[length-1] = char( sum / 255 );
-	return result;
 }
 
 // verify the value passed as being a valid value for the key_no indicated, as
 // generated previously by randomValue.  This helps to protect us against errors
 // in which the entry seems corrupt.
-bool checkValue( int key_no, shm_string value ) {
+bool checkValue( int key_no, shm_string& value ) {
 	int length = value.size();
 	int sum = 0;
 	for (int i=0; i<length-4; i++) {
@@ -244,7 +287,7 @@ bool checkValue( int key_no, shm_string value ) {
 
 
 void recoverDatabase( int db_num,
-		PartitionedTestDatabase<managed_mapped_file,MapType>* db,
+		ParttionedDbType* db,
 		shared_lock<boost::shared_mutex> &lock )
 {
 	// We still have out shared lock, and db*.  Drop the shared lock,
@@ -258,7 +301,7 @@ void recoverDatabase( int db_num,
 	// constructed by another thread while we waited to get 'exholder'
 	if (g_databases[db_num]==db) {
 		// we now perform recovery processing.
-		PartitionedTestDatabase<managed_mapped_file,MapType> *db = g_databases[db_num];
+		ParttionedDbType *db = g_databases[db_num];
 
 		db->close();
 
@@ -267,9 +310,20 @@ void recoverDatabase( int db_num,
 		std::string dbname( str.str() );
 
 		// During construction, recovery should occur.
-		g_databases[db_num] = new PartitionedTestDatabase<managed_mapped_file,MapType>(
+		g_databases[db_num] = new ParttionedDbType(
 			dbname.c_str(), g_db_dir.c_str(),
 			g_checkpoint_dir.c_str(), g_log_dir.c_str(), g_maps_per_db );
+		
+		ostringstream str2;
+		str << g_checkpoint_dir << "/stressDb_" << db_num << "_ckpt";
+		std::string ckptname( str2.str() );
+		
+//		delete g_ckpt_managers[db_num];
+//		g_ckpt_managers[db_num] = new stldb::checkpoint_manager<stldb_managed_mapped_file>(
+//			g_databases[db_num]->getDatabase()->getRegion(), ckptname.c_str() );
+
+		delete g_allocators[db_num];
+		g_allocators[db_num] = new node_allocator_t(g_databases[db_num]->getDatabase()->getRegion().get_segment_manager());
 
 		delete db;
 	}
@@ -310,6 +364,105 @@ public:
 		this->print_stats();
 	}
 
+	// Allocate an insert an entry into the map.
+	void insert_node(Transaction *txn, MapType *map, node_allocator_t &allocator, 
+					 int key_no, clustered_shm_string &key_in_heap,
+					 bi::sharable_lock<bi::interprocess_upgradable_mutex> &held_lock) 
+	{
+		stldb::timer t("insert_node");
+		
+		// generate a pseudo-random value for key.  3 allocations in shm.
+		node_t *new_node = new(&* allocator.allocate(1)) node_t();
+		new_node->first = key_in_heap;
+		randomValue(key_no, new_node->second );
+		
+		// insert the new node.
+		std::pair<MapType::iterator, bool> result;
+		try {
+			// If we discover an uncommitted insert with the same key, block until that transaction resolves.
+			//stldb::bounded_wait_policy<scoped_lock<bi::interprocess_upgradable_mutex> >
+			//	wait_with_timeout(ex_lock_holder, g_max_wait);
+			
+			// insertion requires a short-lived exclusive lock on the map
+			held_lock.unlock();
+			bi::scoped_lock<bi::interprocess_upgradable_mutex> excl_lock(map->mutex());
+			
+			result = map->insert_unique( *new_node, *txn );
+			
+			held_lock.swap( bi::sharable_lock<bi::interprocess_upgradable_mutex>(bi::move(excl_lock)));
+		}
+		catch (stldb::row_level_lock_contention &) {
+			result.second = false;
+			allocator.destroy(new_node);
+			allocator.deallocate(new_node,1);
+			// continue...
+		}
+		
+		if (result.second)
+			inserts++;
+		else {
+			// this can happen because or race condition with another inserter
+			// i.e. other inserting thread gets exclusive lock first.
+			inserts_dupkey++;
+		}
+	}
+
+	void update_node(Transaction *txn, MapType *map, node_allocator_t &allocator, 
+					 MapType::iterator entry, int key_no)
+	{
+		stldb::timer t("update_node");
+		
+		// generate a pseudo-random value for key.  3 allocations in shm.
+		node_t *new_node = new(&*allocator.allocate(1)) node_t();
+		new_node->first = entry->first;
+		randomValue(key_no, new_node->second );
+		
+		try {
+			// If we discover an uncommitted insert with the same key, block until that transaction resolves.
+			//stldb::bounded_wait_policy<scoped_lock<bi::interprocess_upgradable_mutex> >
+			//	wait_with_timeout(ex_lock_holder, g_max_wait);
+			
+			map->update( entry, *new_node, *txn );
+			updates++;
+			return;
+		}
+		catch (stldb::row_level_lock_contention &) {
+			// another transaction deleted the row while we were trying to
+			// update it.
+			updates_row_removed++;
+		}
+		catch (stldb::row_deleted_exception &) {
+			// another transaction deleted the row while we were trying to
+			// update it.
+			updates_row_removed++;
+		}
+		allocator.destroy(new_node);
+		allocator.deallocate(new_node,1);
+		// continue...		
+	}
+	
+	void erase_node(Transaction *txn, MapType *map, node_allocator_t &allocator, 
+					MapType::iterator entry)
+	{
+		stldb::timer t("erase_node");
+
+		// delete the entry
+		try {
+			map->erase_and_dispose(entry, *txn);
+			deletes++;
+		}
+		catch (stldb::row_level_lock_contention &) {
+			// another transaction deleted the row while we were trying to
+			// update it.
+			deletes_row_removed++;
+		}
+		catch (stldb::row_deleted_exception &) {
+			// another transaction deleted the row while we were trying to
+			// update it.
+			deletes_row_removed++;
+		}
+	}
+	
 	virtual void operator()() {
 		stldb::timer t("std_transactional_operation");
 
@@ -319,9 +472,10 @@ public:
 		db_no = (db_no >= g_num_db) ? g_num_db-1 : db_no ;
 
 		shared_lock<boost::shared_mutex> lock;
-		PartitionedTestDatabase<managed_mapped_file,MapType>* db = getDatabase(db_no, lock);
-
-		typedef PartitionedTestDatabase<managed_mapped_file,MapType>::db_type db_type;
+		ParttionedDbType* db = getDatabase(db_no, lock);
+		node_allocator_t *allocator = g_allocators[db_no];
+		
+		typedef ParttionedDbType::db_type db_type;
 
 		Transaction *txn = NULL;
 		try {
@@ -341,59 +495,30 @@ public:
 				// changes to avoid deadlocks.  But I'm not doing that here.  Instead, I'll
 				// watch for LockTimoutExceptions, and handle them by aborting the transaction.
 				int key_no = static_cast<int>((::rand() * (double)g_max_key) / RAND_MAX);
+				
+				// fabricate an entries key...
 				ostringstream keystream;
 				keystream << "TestKey" << key_no;
 				clustered_shm_string key( keystream.str().c_str() );
 
 				{ // lock scope (shared lock).  I only lock per operation here.
-					sharable_lock<boost::interprocess::interprocess_upgradable_mutex> lock_holder(map->mutex());
+					stldb::timer maptimer("sharable_lock(map->mutex) scope");
+					bi::sharable_lock<bi::interprocess_upgradable_mutex> lock_holder(map->mutex());
 
 					// Now...  for the indicated key, read it to see if it is present in the map.
 					// We always do this, so 50% of all CRUD traffic is reads, although that does include
 					// reads of rows which might not exist yet.
 					// find never blocks (or it isn't supposed to) so I don't handle Lock errors
-					MapType::iterator entry = map->find(key, *txn);
+					MapType::iterator entry = map->find(key, node_key_compare(), *txn);
 					finds++;
 
-					// establish allocation scope against db->getRegion()'s segment manager, or the
-					// remainder of this method.  So while 'key' is in heap for the call to find(),
-					// any other shm_string's allocated hereafter are in the region.
-					stldb::scoped_allocation<db_type::RegionType::segment_manager> alloc_scope(
-							db->getRegion().get_segment_manager());
-
 					if (entry == map->end()) {
-						// row not found, so we'll insert the row with that key.
-						// to do this, we must upgrade our shared lock to an exclusive one.
-						lock_holder.unlock();
-						scoped_lock<boost::interprocess::interprocess_upgradable_mutex> ex_lock_holder(map->mutex());
-
-						// and generate a pseudo-random value for key.
-						clustered_shm_string key_in_shm( key.c_str() );  // permit allocator to change to shm
-						shm_string value( randomValue(key_no) );
-
-						// insert the new key_in_shm, value pair.
-						std::pair<MapType::iterator, bool> result;
-						try {
-							// If we discover an uncommitted insert with the same key, block until that transaction resolves.
-							stldb::bounded_wait_policy<scoped_lock<boost::interprocess::interprocess_upgradable_mutex> >
-								wait_with_timeout(ex_lock_holder, g_max_wait);
-
-							result = map->insert( std::make_pair<clustered_shm_string,shm_string>( key_in_shm, value), *txn, wait_with_timeout );
-						}
-						catch (stldb::lock_timeout_exception &) {
-							// The only exception possible from a blocking insert.
-							// we timed out waiting for another threads lock on a pending
-							// insert or delete for the same key to be resolved.
-							throw;
-						}
-
-						if (result.second)
-							inserts++;
-						else {
-							// this can happen because or race condition with another inserter
-							// i.e. other inserting thread gets exclusive lock first.
-							inserts_dupkey++;
-						}
+						// establish allocation scope against db->getRegion()'s segment manager, for
+						// the sake of default shm_string constructors called within this method.
+						stldb::scoped_allocation<db_type::RegionType::segment_manager> 
+							alloc_scope(db->getRegion().get_segment_manager());
+						
+						insert_node(txn, map, *allocator, key_no, key, lock_holder);
 					}
 					else {
 						// verify that we have read a valid value (find is working)
@@ -404,41 +529,25 @@ public:
 						// c) delete it. (33.3% chance of each.)
 						int operation = static_cast<int>((::rand() * (double)3.0) / RAND_MAX);
 
-						stldb::bounded_wait_policy<sharable_lock<boost::interprocess::interprocess_upgradable_mutex> >
-							wait_with_timeout(lock_holder, g_max_wait);
-
+						// establish allocation scope against db->getRegion()'s segment manager, for
+						// the sake of default shm_string constructors called within this method.
+						stldb::scoped_allocation<db_type::RegionType::segment_manager> 
+							alloc_scope(db->getRegion().get_segment_manager());
+						
+						// stldb::bounded_wait_policy<sharable_lock<boost::interprocess::interprocess_upgradable_mutex> >
+						// wait_with_timeout(lock_holder, g_max_wait);
+						
 						switch (operation) {
 						case 1:
-							{
-								// update the entry
-								try {
-									shm_string newValue( randomValue(key_no) );
-									map->update(entry, newValue, *txn, wait_with_timeout);
-									updates++;
-								}
-								catch (stldb::row_deleted_exception &) {
-									// another transaction deleted the row while we were trying to
-									// update it.
-									updates_row_removed++;
-								}
-							}
+							// update the entry
+							update_node(txn, map, *allocator, entry, key_no); 
 							break;
 						case 2:
-							{
-								// delete the entry
-								try {
-									map->erase(entry, *txn, wait_with_timeout);
-									deletes++;
-								}
-								catch (stldb::row_deleted_exception &) {
-									// another transaction deleted the row while we were trying to
-									// update it.
-									deletes_row_removed++;
-								}
-							}
+							// erase the entry
+							erase_node(txn, map, *allocator, entry);
 							break;
-						default: //0
-							// do nothing - read-only operation.
+						default: // case 0:
+							// do nothing - this was a read-only operation.
 							break;
 						}
 					}
@@ -451,6 +560,7 @@ public:
 		catch( stldb::lock_timeout_exception & ) {
 			// probably means I have deadlocked with another thread.
 			// so rollback to release my locks.
+		        cout << "Received lock_timeout exception" << endl;
 			lock_timeouts++;
 			bool db_ok = false;
 			try {
@@ -533,9 +643,11 @@ public:
 			for (int i=0; i<g_num_db; i++) {
 				try {
 					shared_lock<boost::shared_mutex> lock;
-					PartitionedTestDatabase<managed_mapped_file,MapType>* db = getDatabase(i, lock);
-					db->getDatabase()->checkpoint();
+					ParttionedDbType* db = getDatabase(i, lock);
+					db->getDatabase()->checkpoint_new();
 
+					/*
+					 * TODO - This was SEGVing based on my incomplete checkpoint routine
 					std::vector<boost::filesystem::path> logs = db->getDatabase()->get_archivable_logs();
 					for (std::vector<boost::filesystem::path>::const_iterator i = logs.begin();
 							i != logs.end(); i++ )
@@ -548,6 +660,7 @@ public:
 							cerr << "Warning: can't remove (clean-up) log file: " << *i;
 						}
 					}
+					*/
 				}
 				catch ( stldb::recovery_needed & ) {
 					// We have found ourselves to be using a PartitionedTestDatabase which needs
@@ -584,7 +697,7 @@ public:
 			int db_no = static_cast<int>((::rand() * (double)g_num_db) / RAND_MAX);
 			db_no = (db_no >= g_num_db) ? g_num_db-1 : db_no ;
 
-			PartitionedTestDatabase<managed_mapped_file,MapType> *db, *db2;
+			ParttionedDbType *db, *db2;
 			{
 				shared_lock<boost::shared_mutex> lock;
 				db = getDatabase(db_no, lock);
@@ -602,7 +715,6 @@ public:
 private:
 	int interval;
 };
-
 
 
 
