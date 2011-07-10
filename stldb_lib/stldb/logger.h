@@ -377,8 +377,9 @@ private:
 
 			// now open _shm_info->log_filename
 			STLDB_TRACE(fine_e, "Logger: create_or_open log file: " << _shm_info->log_filename.c_str());
+			boost::interprocess::permissions perm;
 			_logfd = boost::interprocess::detail::create_or_open_file( _shm_info->log_filename.c_str(),
-					boost::interprocess::read_write );
+					boost::interprocess::read_write, perm );
 			if (_logfd < 0) {  /* TODO - Too OS specific */
 				std::ostringstream error;
 				error << "STLdb Logger: create_or_open_file() of log file '" << _shm_info->log_filename.c_str() << "' failed.  errno=" << errno << ": " << strerror(errno);
