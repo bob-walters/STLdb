@@ -223,7 +223,7 @@ inline file_lock::file_lock(const char *name)
     : m_offset(0)
     , m_size(0)
 {
-   m_file_hnd = detail::open_existing_file(name);
+   m_file_hnd = detail::open_existing_file(name, read_write);
 
    if(m_file_hnd == detail::invalid_file()){
       error_info err(system_error_code());
@@ -235,7 +235,7 @@ inline file_lock::file_lock(const char *name, offset_t offset, size_t size)
 	: m_offset(offset)
 	, m_size(size)
 {
-   m_file_hnd = detail::open_existing_file(name);
+   m_file_hnd = detail::open_existing_file(name, read_write);
 
    if(m_file_hnd == detail::invalid_file()){
       error_info err(system_error_code());
