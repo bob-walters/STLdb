@@ -36,6 +36,7 @@
 #include <stldb/trace.h>
 #include <stldb/checkpoint.h>
 #include <stldb/recovery_manager.h>
+#include <stldb/checkpoint_manager.h>
 #include <stldb/detail/db_file_util.h>
 #include <stldb/detail/region_util.h>
 
@@ -185,6 +186,7 @@ Database<ManagedRegionType>::Database(
 	// At this point, I can register.
 	STLDB_TRACEDB(fine_e, database_name, "registering this process");
 	_registry_pid_lock = _registry->register_pid();
+	RegionSync<ManagedRegionType>::flush(_region);
 	reglock.unlock();
 
 	// find or construct all of the internal database structures, including
@@ -198,6 +200,13 @@ Database<ManagedRegionType>::Database(
 	STLDB_TRACEDB(fine_e, database_name, "finding/creating containers");
 	this->open_containers(containers);
 
+	// checkpoint manager	
+	std::string ckpt_filename = database_name;
+	ckpt_filename.append(".ckpt");
+	boost::filesystem::path chkpt_path( checkpoint_directory );
+	chkpt_path /= ckpt_filename;
+	_ckpt_manager = new checkpoint_manager<ManagedRegionType>( *_region, chkpt_path.string().c_str() );
+	
 	if (creating_region)
 	{
 		// whether because it didn't exist, or because we are recreating it
@@ -243,6 +252,7 @@ template<class ManagedRegionType>
 void
 Database<ManagedRegionType>::close(bool final_checkpoint)
 {
+	// Destructor flushes undo and closes files
 	if (_registry_pid_lock != NULL)
 	{
 		// release our registry lock.
@@ -256,7 +266,16 @@ Database<ManagedRegionType>::close(bool final_checkpoint)
 		_registry->unregister_pid(_registry_pid_lock);
 		_registry_pid_lock = NULL;
 	}
+	delete _ckpt_manager;
+	_ckpt_manager=NULL;
+
 	// Destructor closes the region.
+	{
+		// Debugging: making sure the registry lock is not locked.
+		scoped_lock<stldb::file_lock> reglock(_registry_lock);
+	}
+	// Debugging: make sure the database does end up flushed to disk for next open()
+	_region->flush();
 	delete _region;
 	_region = NULL;
 }
@@ -602,7 +621,8 @@ Transaction* Database<ManagedRegionType>::beginTransaction(Transaction *reusable
 	// To begin a normal transaction, we get a shared lock on the database's
 	// transaction lock, which just ensures that no exclusive transaction is
 	// operational while this one is.
-	result->lock_database(_dbinfo->transaction_lock);
+//	result->lock_database(_dbinfo->transaction_lock);
+	result->lock_database(_ckpt_manager->transaction_lock());
 
 	// Now assign it a transaction_id;
 	{
@@ -632,7 +652,8 @@ exclusive_transaction *Database<ManagedRegionType>::begin_exclusive_transaction(
 	// To begin an exclusive transaction, it must establish an exclusive lock
 	// on the database's transaction lock, thereby guaranteeing that it is the
 	// only transaction running.
-	result->lock_database(_dbinfo->transaction_lock);
+//	result->lock_database(_dbinfo->transaction_lock);
+	result->lock_database(_ckpt_manager->transaction_lock());
 
 	// Now assign a transaction_id.
 	{
@@ -815,6 +836,35 @@ transaction_id_t Database<ManagedRegionType>::checkpoint()
 		}
 		checkpoint.commit( my_start_lsn, end_lsn );
 	}
+
+	return start_lsn;
+}
+
+template <class ManagedRegionType>
+transaction_id_t Database<ManagedRegionType>::checkpoint_new()
+{
+	safety_check();
+	stldb::timer t("Database::checkpoint_new()");
+
+	// This method is required to be both inter-process and inter-thread safe.
+	// This combination lock used here will be released if a process dies.
+	boost::lock_guard<boost::mutex> guard(_checkpoint_mutex);
+	scoped_lock<file_lock> lock(_checkpoint_lock);
+
+	// This declaration of scoped allocation is a precaution...
+	stldb::scoped_allocation<typename ManagedRegionType::segment_manager> default_alloc( _region->get_segment_manager() );
+
+	transaction_id_t start_lsn;
+	{
+		scoped_lock<mutex_type> file_lock_holder(_dbinfo->logInfo._file_mutex);
+		start_lsn = _dbinfo->logInfo._last_write_txn_id;
+		// As an optimization, get the _logger to advance to a new log file at this time.
+		// this will minimize the amount of disk read during recovery (after the next transaction
+		// causes a transaction with that ID to actually be written.
+		_logger.advance_logfile();
+	}
+
+	_ckpt_manager->checkpoint();
 
 	return start_lsn;
 }

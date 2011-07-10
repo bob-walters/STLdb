@@ -61,6 +61,7 @@ namespace stldb {
 // Forward definitions
 class Transaction;
 class exclusive_transaction;
+template<class managed_region_t> class checkpoint_manager;
 template<class void_alloc_t> class database_registry;
 
 
@@ -309,6 +310,10 @@ public:
 	 */
 	exclusive_transaction *begin_exclusive_transaction(exclusive_transaction *reusable_t = NULL);
 
+	boost::interprocess::interprocess_upgradable_mutex& transactional_mutex() {
+		return _dbinfo->transaction_lock;
+	}
+	
 	/**
 	 * Commit the transaction (or exclusive transaction) passed.  Returns 0 on success.
 	 * On failure, an exception is thrown.  If the exception is not a needs_recovery
@@ -335,6 +340,7 @@ public:
 	 * NOTE: This works by calling a checkpoint method on each container in turn.
 	 */
 	transaction_id_t checkpoint();
+	transaction_id_t checkpoint_new();
 
 	/**
 	 * Get archivable logs.  This returns the set of log files which are no longer
@@ -576,6 +582,9 @@ private:
 	// Logging sub-logic.  Uses data in _dbinfo.
 	Logger<region_allocator_t, mutex_type> _logger;
 
+	// Checkpoint sub-logic.  Uses data in a seperate region that is not itself checkpointed.
+	checkpoint_manager<ManagedRegionType> *_ckpt_manager;
+
 	// The "dbname.reglock" file lock which guards the registry itself
 	stldb::file_lock _registry_lock;
 
@@ -588,6 +597,7 @@ private:
 	// The file lock that our process holds on our "database_name.pid.XXXXX" file to signal our
 	// processes health.
 	stldb::file_lock *_registry_pid_lock;
+	
 };
 
 } // namespace stldb;
