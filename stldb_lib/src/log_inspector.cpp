@@ -116,7 +116,7 @@ std::basic_ostream<_CharT,_Traits>& operator<<(std::basic_ostream<_CharT,_Traits
 		// Wrap the vector of bytes directly in streams.
 		boost::interprocess::basic_ivectorstream< std::vector<char> > vbuffer(buffer.get_allocator());
 		vbuffer.swap_vector(buffer);
-		boost_iarchive_t bstream(vbuffer);
+		boost_iarchive_t bstream((std::istream&)vbuffer);
 
 		for (; i<header.op_count; i++)
 		{
