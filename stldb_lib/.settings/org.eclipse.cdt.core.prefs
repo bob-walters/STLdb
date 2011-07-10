@@ -1,4 +1,14 @@
-#Mon Sep 21 12:08:25 EDT 2009
+#Thu May 19 16:00:03 EDT 2011
 eclipse.preferences.version=1
-environment/project/cdt.managedbuild.config.macosx.so.debug.1644363854=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?>\r\n<environment append\="true" appendContributed\="true">\r\n<variable delimiter\=";" name\="BOOST_ROOT" operation\="replace" value\="C\:\\C++\\boost_1_39_0"/>\r\n</environment>\r\n
-environment/project/cdt.managedbuild.config.macosx.so.release.828511461=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?>\r\n<environment append\="true" appendContributed\="true">\r\n<variable delimiter\=";" name\="BOOST_ROOT" operation\="append" value\="C\:\\C++\\boost_1_39_0"/>\r\n</environment>\r\n
+environment/project/cdt.managedbuild.config.macosx.so.debug.1644363854=
+environment/project/cdt.managedbuild.config.macosx.so.debug.1644363854/BOOST_ROOT/delimiter=;
+environment/project/cdt.managedbuild.config.macosx.so.debug.1644363854/BOOST_ROOT/operation=replace
+environment/project/cdt.managedbuild.config.macosx.so.debug.1644363854/BOOST_ROOT/value=/Developer/boost_1_45_0
+environment/project/cdt.managedbuild.config.macosx.so.debug.1644363854/append=true
+environment/project/cdt.managedbuild.config.macosx.so.debug.1644363854/appendContributed=true
+environment/project/cdt.managedbuild.config.macosx.so.release.828511461=
+environment/project/cdt.managedbuild.config.macosx.so.release.828511461/BOOST_ROOT/delimiter=;
+environment/project/cdt.managedbuild.config.macosx.so.release.828511461/BOOST_ROOT/operation=replace
+environment/project/cdt.managedbuild.config.macosx.so.release.828511461/BOOST_ROOT/value=/Developer/boost_1_45_0
+environment/project/cdt.managedbuild.config.macosx.so.release.828511461/append=true
+environment/project/cdt.managedbuild.config.macosx.so.release.828511461/appendContributed=true
