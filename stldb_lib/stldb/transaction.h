@@ -432,7 +432,7 @@ void Transaction::commit( std::map<void*, container_proxy_base<ManagedRegionType
 		boost::interprocess::basic_ovectorstream<commit_buffer_t<void_alloc_t> >
 			vstream(buffer->get_allocator());
 		vstream.swap_vector(*buffer);
-		boost_oarchive_t bstream(vstream);
+		boost_oarchive_t bstream((std::ostream&)vstream);
 
 		buffer->op_count = _outstandingChanges.add_to_log(bstream);
 
