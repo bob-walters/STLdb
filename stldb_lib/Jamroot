@@ -30,6 +30,7 @@ lib stldb
           src/db_file_util.cpp
           src/log_reader.cpp
           src/checkpoint.cpp
+		  src/checkpoint_manager_impl.cpp
           libboost_serialization
           libboost_filesystem
           libboost_thread
