@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef STLDB_TRANS_ITERATOR_H
-#define STLDB_TRANS_ITERATOR_H 1
+#ifndef STLDB_TRANS_ASSOC_ITERATOR_H
+#define STLDB_TRANS_ASSOC_ITERATOR_H 1
 
 #include <map>
 #include <iterator>
@@ -86,19 +86,25 @@ class trans_assoc_iterator : public std::iterator <
 		// to a transaction, and will never show uncomitted data.
 		trans_assoc_iterator ( base_iterator i, container_t *container )
 		// NOTE: Reinterpret cast is due to a bug in value_type for boost.interprocess::map<>::iterator::value_type.
-			: _current_pos(i), _current(reinterpret_cast<pointer>(&(*i)))
+			: _current_pos(i), _current(NULL)
 			, _locker(0), _container(container), _pending_changes(NULL)
 			, _ver_num( _container->_ver_num)
-			{ forward(0); }
+			{ 
+				skip_forward(); 
+				set_current();
+			}
 
 		// Show only committed data, and uncommitted data from the trans passed.  The iterator constructed
 		// points to the first applicable entry at or after i, but not past map_end.
 		trans_assoc_iterator ( base_iterator i, container_t *container, Transaction &trans )
-			: _current_pos(i), _current(reinterpret_cast<pointer>(&(*i)))
+			: _current_pos(i), _current(NULL)
 			, _locker(trans.getLockId()), _container(container)
 			, _pending_changes(trans.getContainerSpecificData<pending_change_map_t>(container))
 			, _ver_num( _container->_ver_num)
-			{ forward(0); }
+			{ 
+				skip_forward();
+				set_current();
+			}
 
 		// Copy constructor
 		trans_assoc_iterator( const trans_assoc_iterator &rarg )
@@ -120,26 +126,26 @@ class trans_assoc_iterator : public std::iterator <
 
 		// Rather than returning a pair<const K,V>&, this is going to return a pair<const K&,const V&>&,
 		// which is only usable as an rvalue.  To update the entry, use the update() method on the map.
-		inline reference operator*() const
+		reference operator*() const
 			{ return *_current; }
 
 		// Rather than returning a pair<const K,V>&, this is going to return a pair<const K&,const V&>&,
 		// which is only usable as an rvalue.  To update the entry, use the update() method on the map.
-		inline pointer operator->() const
+		pointer operator->() const
 			{ return _current; }
 
 		// Overloaded to skip in-progress inserts
 		trans_assoc_iterator& operator++()
-			{ forward(1); return *this; }
+			{ forward(); return *this; }
 
 		trans_assoc_iterator& operator--()
-			{ backward(1); return *this; }
+			{ backward(); return *this; }
 
 		trans_assoc_iterator operator++(int n)
-			{ trans_assoc_iterator temp = *this; this->forward(1); return temp; }
+			{ trans_assoc_iterator temp = *this; this->forward(); return temp; }
 
 		trans_assoc_iterator operator--(int n)
-			{ trans_assoc_iterator temp = *this; this->backward(1); return temp; }
+			{ trans_assoc_iterator temp = *this; this->backward(); return temp; }
 
 		base_iterator& base()
 			{ return _current_pos; }
@@ -147,12 +153,23 @@ class trans_assoc_iterator : public std::iterator <
 		bool valid() const
 			{ return _ver_num == _container._ver_num; }
 
+		base_iterator container_end()
+			{ return _container.end(); }
+	
 	private:
-		// move the iterator forward or backward n entries, skipping uncommitted changes as
+		// move the iterator forward or backward in order to position it on a row which is
+		// visible to the current _locker.
+		inline void skip_forward();
+		inline void skip_backward();
+	
+		// move the iterator forward or backward 1 entries, skipping uncommitted changes as
 		// appropriate given the _locker value.  n=0 is a valid call.
-		void forward( int n );
-		void backward( int n );
+		inline void forward();
+		inline void backward();
 
+		// set _current to the value that should be returned by operator*, operator->
+		inline void set_current();
+	
 		// corrent position in container_t;
 		base_iterator              _current_pos;
 
@@ -233,64 +250,57 @@ inline bool operator!=(const base_iterator& larg,
 }
 
 template <class container_t, class base_iterator>
-void trans_assoc_iterator<container_t, base_iterator>::forward( int n )
-{
-	int i = 0;
+inline void trans_assoc_iterator<container_t, base_iterator>::skip_forward() {
     // skip over rows which are pending inserts from other trans, or deletes done by this tran.
 	while (_current_pos != _container->container_t::baseclass::end() &&
 		  ((_current_pos->second.getOperation() == Insert_op && _current_pos->second.getLockId() != _locker) ||
            (_current_pos->second.getOperation() == Delete_op && _current_pos->second.getLockId() == _locker)))
         {
-                _current_pos++;
+		++ _current_pos;
         }
-	while ( i<n )
-	{
-        _current_pos++; i++;
+}
+	
+template <class container_t, class base_iterator>
+inline void trans_assoc_iterator<container_t, base_iterator>::skip_backward() {
         // skip over rows which are pending inserts from other trans, or deletes done by this tran.
-		while (_current_pos != _container->container_t::baseclass::end() &&
+    while (_current_pos != _container->container_t::baseclass::begin() &&
 			  ((_current_pos->second.getOperation() == Insert_op && _current_pos->second.getLockId() != _locker) ||
 			   (_current_pos->second.getOperation() == Delete_op && _current_pos->second.getLockId() == _locker)))
 		{
-			_current_pos++;
+        -- _current_pos;
 		}
 	}
-	if ( _current_pos->second.getOperation() == Update_op && _current_pos->second.getLockId() == _locker) {
+
+template <class container_t, class base_iterator>
+inline void trans_assoc_iterator<container_t, base_iterator>::set_current() {
+	// if end(), then _current == NULL.  Improper dereferencing of an iterator == end() will SEGV.
+	if ( _current_pos == _container->container_t::baseclass::end() )
+		_current = NULL;
+	else if ( _current_pos->second.getOperation() == Update_op && _current_pos->second.getLockId() == _locker) {
 		// we have landed on a row with a pending update, return references to that.
 		_current = reinterpret_cast<pointer>(&(_pending_changes->find(_current_pos)->second));
 	}
 	else
 		_current = reinterpret_cast<pointer>(&(*_current_pos));
+}
+
+template <class container_t, class base_iterator>
+inline void trans_assoc_iterator<container_t, base_iterator>::forward()
+{
+	skip_forward();
+	++ _current_pos;
+	skip_forward();
+	set_current();
 };
 
 
 template <class container_t, class base_iterator>
-void trans_assoc_iterator<container_t, base_iterator>::backward( int n )
-{
-	int i = 0;
-    // skip over rows which are pending inserts from other trans, or deletes done by this tran.
-    while (_current_pos != _container->container_t::baseclass::begin() &&
-    	  ((_current_pos->second.getOperation() == Insert_op && _current_pos->second.getLockId() != _locker) ||
-           (_current_pos->second.getOperation() == Delete_op && _current_pos->second.getLockId() == _locker)))
-    {
-        _current_pos--;
-    }
-	while ( i<=n )
-	{
-        _current_pos--; i++;
-		// advance over rows which are pending inserts from other trans, or deletes done by this tran.
-		while (_current_pos != _container->container_t::baseclass::begin() &&
-			  ((_current_pos->second.getOperation() == Insert_op && _current_pos->second.getLockId() != _locker) ||
-			   (_current_pos->second.getOperation() == Delete_op && _current_pos->second.getLockId() == _locker)))
+inline void trans_assoc_iterator<container_t, base_iterator>::backward()
 		{
-			_current_pos--;
-		}
-	}
-	if ( _current_pos->second.getOperation() == Update_op && _current_pos->second.getLockId() == _locker) {
-		// we have landed on a row with a pending update, return references to that.
-		_current = reinterpret_cast<pointer>(&(_pending_changes->find(_current_pos)->second));
-	}
-	else
-		_current = reinterpret_cast<pointer>(&(*_current_pos));
+	skip_backward();
+	-- _current_pos;
+	skip_backward();
+	set_current();
 };
 
 } // stldb namespace
