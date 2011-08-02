@@ -649,7 +649,7 @@ void trans_map<K,V,Comparator,Allocator,mutex_family>::save_checkpoint(
 			   || i->second.getOperation() == Update_op
 		       || i->second.getOperation() == Delete_op )
 		    {
-#if defined(BOOST_ENABLE_ASSERT_HANDLER) || !defined(NDEBUG)
+#if !defined(NDEBUG)
 				// this set is to avoid tripping an assert in trans_map_entry
 				values[count].second.setCheckpointLocation( std::make_pair(0,0) );
 #endif
@@ -749,8 +749,7 @@ void trans_map<K,V,Comparator,Allocator,mutex_family>::save_checkpoint(
 			typename baseclass::iterator i( this->baseclass::find( values[j].first ) );
 
 			// a row could be deleted while the map was unlocked
-			// deleted rows get recovered space added to _freed_checkpoint_space
-			// and doesn't need to be recovered here.
+			// deleted rows get recovered space added back to the pending free.
 			// a row could be deleted and reinserted while the map was 
 			// unlocked also, in which case we have written a stale copy
 			if (i != this->baseclass::end() && 
@@ -779,7 +778,7 @@ void trans_map<K,V,Comparator,Allocator,mutex_family>::save_checkpoint(
 
 		// set i to the starting entry for the next iteration of this loop
 		if (!done) {
-			i = iterator( baseclass::lower_bound(next_loop_key), this );
+			i = iterator( baseclass::upper_bound(next_loop_key), this );
 		}
 		else {
 			i = end();

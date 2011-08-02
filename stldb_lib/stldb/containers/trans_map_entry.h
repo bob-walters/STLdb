@@ -84,8 +84,8 @@ public:
 		T::operator=(value);
 		_op = value._op;
 		_txn_id = value._txn_id;
-		// protect against loss of checkpoint info via assignment
-		BOOST_ASSERT(!(_checkpoint_location.first != 0 && value._checkpoint_location.first==0));
+		// protect against leak of checkpoint space via assignment
+		BOOST_ASSERT(_checkpoint_location.first == 0 && _checkpoint_location.second==0);
 		_checkpoint_location = value._checkpoint_location;
 		SET_CHECKSUM();
 #ifdef STLDB_TROUBLESHOOT
