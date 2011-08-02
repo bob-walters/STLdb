@@ -310,9 +310,11 @@ void checkpoint_ofstream::commit( transaction_id_t lsn_at_start, transaction_id_
 	std::vector<boost::filesystem::path> to_remove;
 	for ( directory_iterator itr( checkpoint_dir ); itr != end_itr; ++itr )
 	{
-		if ( !is_directory(itr->status()) && (itr->path().extension() == ".meta"
-			 || itr->path().extension() == ".meta_wip") && (itr->path() != finalpath)
-			 && itr->path().filename().compare(0, meta.container_name.length(), meta.container_name) == 0)
+		if ( !is_directory(itr->status()) 
+			 && (itr->path().extension() == ".meta" || itr->path().extension() == ".meta_wip") 
+			 && itr->path() != finalpath
+			 && itr->path().filename().compare(0, meta.container_name.length(), meta.container_name) == 0
+			 && itr->path().filename()[meta.container_name.length()] == '.')
 		{
 			to_remove.push_back(itr->path());
 	    }
