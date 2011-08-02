@@ -809,7 +809,7 @@ transaction_id_t Database<ManagedRegionType>::checkpoint()
 		guard.unlock();
 
 		// Prepare checkpoint file
-		checkpoint_ofstream checkpoint( _dbinfo->checkpoint_directory.c_str(), container_name.c_str() );
+		checkpoint_ofstream checkpoint( _dbinfo->checkpoint_directory.c_str(), container_name.c_str(), last_checkpoint_lsn );
 
 		STLDB_TRACEDB(fine_e, _dbinfo->database_name, "Starting checkpoint of " << i->second->getName() << " for LSN: " << my_start_lsn << ", previous LSN: " << last_checkpoint_lsn );
 		try {
@@ -817,7 +817,11 @@ transaction_id_t Database<ManagedRegionType>::checkpoint()
 		}
 		catch (...) {
 			STLDB_TRACEDB(error_e, _dbinfo->database_name, "Exception during checkpoint write for container: " << i->second->getName());
-			continue;
+			// This is not a recoverable situation.  The checkpoint values on
+			// some rows will have changed but the checkpoint can't be completed.
+			// So the only way to undo this is to run recovery.
+			
+			throw new recovery_needed("Exception occurred during container checkpoint");
 		}
 
 		guard.lock();

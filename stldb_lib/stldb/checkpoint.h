@@ -13,6 +13,7 @@
 #include <fstream>
 #include <sstream>
 
+#include <boost/assert.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/serialization/map.hpp>
 
@@ -89,6 +90,17 @@ public:
 		: checkpoint_fstream_base(checkpoint_path,container_name), filestream()
 		  { open_checkpoint(); }
 
+	// construct by searching the checkpoint directory for a current
+	// metafile for the container with the indicated name.  The metafile
+	// found must correspond to a checkpoint run for the specified
+	checkpoint_ofstream(const boost::filesystem::path &checkpoint_path,
+			const char * container_name, transaction_id_t last_ckpt_lsn )
+		: checkpoint_fstream_base(checkpoint_path,container_name), filestream()
+		  { 
+		  	open_checkpoint();
+			BOOST_ASSERT(meta.lsn_at_start == last_ckpt_lsn);
+		  }
+
 	checkpoint_ofstream(const boost::filesystem::path &checkpoint_path,
 			const checkpoint_file_info &checkpoint_info)
 		: checkpoint_fstream_base(checkpoint_path,checkpoint_info), filestream()
@@ -101,36 +113,66 @@ public:
 	// a container has been cleared, or has been swapped with another container.
 	void clear();
 
+#ifndef NDEBUG
+	// present in order to be invokable from debugger.
+	void print_map(const std::map<boost::interprocess::offset_t,std::size_t> &m)
+	{
+		std::cerr << "Free space map contents:" << std::endl;
+		std::map<boost::interprocess::offset_t,std::size_t>::const_iterator j = m.begin();
+		while ( j != m.end()) {
+			std::cerr << "[" << j->first << "," << j->second << "]" << std::endl;
+			j++;
+		}
+	}
+
+	void print_collision(const checkpoint_loc_t& inmap, const checkpoint_loc_t &space)
+	{
+		std::cerr << "Collision between existing entry [" 
+			<< inmap.first << "," << inmap.second << "] and new space ["
+			<< space.first << "," << space.second << "]" << std::endl;
+	}
+
+	// debugging function - checks to see if space has any overlap with
+	// free space already within m.
+	void check_for_collisions(const std::map<boost::interprocess::offset_t,std::size_t> &m, const checkpoint_loc_t& space) 
+	{
+		std::map<boost::interprocess::offset_t,std::size_t>::const_iterator loc;
+		loc=m.lower_bound(space.first);
+		if (!(loc == m.end() || space.first + space.second <= loc->first)) {
+			print_collision(*loc, space);
+			print_map(m);
+			abort();
+		}
+		if (m.size() > 0 && loc != m.begin()) {
+			-- loc; 
+			if (!(loc->first + loc->second <= space.first)) {
+				print_collision(*loc, space);
+				print_map(m);
+				abort();
+			}
+		} 
+	}
+#endif
+
 	// used to initialize new_free_space with space accumulated on a container
 	// from entry erasure.
 	template <class InputIterator>
 	void add_free_space( InputIterator begin, InputIterator end ) {
-#ifdef BOOST_ENABLE_ASSERT_HANDLER
+#ifndef NDEBUG
 		// Detect possible overlaps with accumulated free
 		for (InputIterator i = begin; i != end; i++ ) {
-			std::map<boost::interprocess::offset_t,std::size_t>::const_iterator loc=new_free_space.lower_bound(i->first);
-			if(loc != new_free_space.end() && i->first + i->second > loc->first) {
-				std::cerr << "passed space overlaps new_free_space: i:[" << i->first << "," << i->second << "], existing:[" << loc->first << "," << loc->second << "]" << std::endl;
-			}
-			BOOST_ASSERT(loc == new_free_space.end() || i->first + i->second <= loc->first);
-
-			loc=free_by_offset.lower_bound(i->first);
-			if(loc != free_by_offset.end() && i->first + i->second > loc->first) {
-				std::cerr << "passed space overlaps free_by_offset: i:[" << i->first << "," << i->second << "], existing:[" << loc->first << "," << loc->second << "]" << std::endl;
-			}
-			BOOST_ASSERT(loc == free_by_offset.end() || i->first + i->second <= loc->first);
+			check_for_collisions(new_free_space, *i);
+			check_for_collisions(free_by_offset, *i);
 		}
 #endif
 		new_free_space.insert(begin,end);
 	}
 
 	void add_free_space(const checkpoint_loc_t& space) {
-#ifdef BOOST_ENABLE_ASSERT_HANDLER
-		std::map<boost::interprocess::offset_t,std::size_t>::const_iterator loc=new_free_space.lower_bound(space.first);
-		BOOST_ASSERT(loc == new_free_space.end() || space.first + space.second <= loc->first);
-		
-		loc=free_by_offset.lower_bound(space.first);
-		BOOST_ASSERT(loc == free_by_offset.end() || space.first + space.second <= loc->first);
+#ifndef NDEBUG
+		BOOST_ASSERT(space.second != 0);
+		check_for_collisions(new_free_space, space);
+		check_for_collisions(free_by_offset, space);
 #endif
 		new_free_space.insert(space);
 	}
