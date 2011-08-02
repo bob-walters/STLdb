@@ -17,9 +17,12 @@
  */
 
 #include "partitioned_test_database.h"
+#include <boost/interprocess/indexes/flat_map_index.hpp>
+
 #include <stldb/allocators/scoped_allocation.h>
 #include <stldb/allocators/scope_aware_allocator.h>
 #include <stldb/allocators/region_or_heap_allocator.h>
+#include <stldb/allocators/variable_node_allocator.h>
 #include <stldb/allocators/allocator_gnu.h>
 #include <stldb/timing/timer.h>
 #include <stldb/sync/wait_policy.h>
@@ -31,6 +34,15 @@
 
 using stldb::Transaction;
 using stldb::scoped_allocation;
+    
+static const std::size_t clump_size = 16*1024*1024;
+
+typedef 
+boost::interprocess::basic_managed_mapped_file< char,
+	boost::interprocess::rbtree_best_fit<
+		stldb::bounded_mutex_family, boost::interprocess::offset_ptr<void> >,
+		boost::interprocess::flat_map_index >
+bounded_managed_mapped_file;
 
 #ifdef __GNUC__
 // String in shared memory, ref counted, copy-on-write qualities based on GNU basic_string
@@ -39,25 +51,46 @@ using stldb::scoped_allocation;
 	typedef stldb::region_or_heap_allocator<
 		stldb::gnu_adapter<
 			boost::interprocess::allocator<
-				char, managed_mapped_file::segment_manager> > > shm_char_allocator_t;
+				char, bounded_managed_mapped_file::segment_manager> > > shm_char_allocator_t;
+
+	// A non-clustered string in shared memory
 	typedef stldb::basic_string<char, std::char_traits<char>, shm_char_allocator_t>  shm_string;
+
+	// A clustered shared memory allocator.
+	typedef stldb::region_or_heap_allocator<
+		stldb::gnu_adapter<
+			stldb::variable_node_allocator<
+				char, bounded_managed_mapped_file::segment_manager, clump_size> > > clustered_char_allocator_t;
+
+	// A shared memory string, used as key type, so that all allocated keys
+	// are in memory clusters
+    typedef stldb::basic_string<char, std::char_traits<char>, clustered_char_allocator_t>  clustered_shm_string;
+
 #else
 // String in shared memory, based on boost::interprocess::basic_string
 #	include <boost/interprocess/containers/string.hpp>
 	// Allocator of char in shared memory, with support for default constructor
 	typedef stldb::region_or_heap_allocator<
 		boost::interprocess::allocator<
-			char, managed_mapped_file::segment_manager> > shm_char_allocator_t;
+			char, bounded_managed_mapped_file::segment_manager> > shm_char_allocator_t;
 
+	// A non-clustered string in shared memory
 	typedef boost::interprocess::basic_string<char, std::char_traits<char>, shm_char_allocator_t> shm_string;
+
+	typedef stldb::region_or_heap_allocator<
+		stldb::variable_node_allocator<
+			char, bounded_managed_mapped_file::segment_manager, clump_size> > clustered_char_allocator_t;
+
+    typedef boost::interprocess::basic_string<char, std::char_traits<char>, clustered_char_allocator_t> clustered_shm_string;
+
 #endif
 
 // A node allocator for the map, which uses the bulk allocation mechanism of boost::interprocess
-typedef boost::interprocess::cached_node_allocator<std::pair<const shm_string, shm_string>,
-	managed_mapped_file::segment_manager>  trans_map_allocator;
+typedef boost::interprocess::cached_node_allocator<std::pair<const clustered_shm_string, shm_string>,
+	bounded_managed_mapped_file::segment_manager>  trans_map_allocator;
 
 // A transactional map, using std ref counted strings.
-typedef stldb::trans_map<shm_string, shm_string, std::less<shm_string>,
+typedef stldb::trans_map<clustered_shm_string, shm_string, std::less<clustered_shm_string>,
 	trans_map_allocator>  MapType;
 
 using boost::interprocess::sharable_lock;
@@ -86,14 +119,14 @@ static boost::posix_time::time_duration  g_invalidation_interval;
 // Databases.  We need the shared mutex to coordinate re-opening of the
 // databases in the event one of the starts throwing run_recovery exceptions
 static boost::shared_mutex  g_db_mutex[100];
-static PartitionedTestDatabase<managed_mapped_file,MapType> *g_databases[100];
+static PartitionedTestDatabase<bounded_managed_mapped_file,MapType> *g_databases[100];
 
 // fwd decl
 bool checkValue( int key_no, shm_string value );
 
 // validates the memory allocation of the key/values within map, making sure that they
 // are all pointing to addresses allocated within the db shared region.
-static void validate( PartitionedTestDatabase<managed_mapped_file,MapType> *db )
+static void validate( PartitionedTestDatabase<bounded_managed_mapped_file,MapType> *db )
 {
 	void *start = db->getRegion().get_address();
 	void *end = (char*)start + db->getRegion().get_size();
@@ -133,7 +166,7 @@ void cleanUp(int db_max)
 		std::string dbname( str.str() );
 
 		// Remove any previous database instance.
-		Database<managed_mapped_file>::remove(dbname.c_str(), g_db_dir.c_str(),
+		Database<bounded_managed_mapped_file>::remove(dbname.c_str(), g_db_dir.c_str(),
 				g_checkpoint_dir.c_str(), g_log_dir.c_str());
 	}
 }
@@ -141,11 +174,11 @@ void cleanUp(int db_max)
 // Returns the specified database, opening it if necessary.
 // A shared_lock is returned with the databases, which determines
 // how long the pointer returned is guaranteed to remain valid.
-PartitionedTestDatabase<managed_mapped_file,MapType>*
+PartitionedTestDatabase<bounded_managed_mapped_file,MapType>*
 getDatabase(int db_num, boost::shared_lock<boost::shared_mutex> &lock )
 {
 	// result holds a lock on d_db_mutex[db_num] after construction
-	PartitionedTestDatabase<managed_mapped_file,MapType>* result = NULL;
+	PartitionedTestDatabase<bounded_managed_mapped_file,MapType>* result = NULL;
 	boost::upgrade_lock<boost::shared_mutex>  ulock( g_db_mutex[db_num] );
 
 	while (g_databases[db_num] == NULL) {
@@ -158,7 +191,7 @@ getDatabase(int db_num, boost::shared_lock<boost::shared_mutex> &lock )
 		str << "stressDb_" << db_num;
 		std::string dbname( str.str() );
 		if (!g_databases[db_num])
-			g_databases[db_num] = new PartitionedTestDatabase<managed_mapped_file,MapType>(
+			g_databases[db_num] = new PartitionedTestDatabase<bounded_managed_mapped_file,MapType>(
 				dbname.c_str(), g_db_dir.c_str(),
 				g_checkpoint_dir.c_str(), g_log_dir.c_str(), g_maps_per_db );
 	}
@@ -227,7 +260,7 @@ bool checkValue( int key_no, shm_string value ) {
 
 
 void recoverDatabase( int db_num,
-		PartitionedTestDatabase<managed_mapped_file,MapType>* db,
+		PartitionedTestDatabase<bounded_managed_mapped_file,MapType>* db,
 		shared_lock<boost::shared_mutex> &lock )
 {
 	// We still have out shared lock, and db*.  Drop the shared lock,
@@ -241,7 +274,7 @@ void recoverDatabase( int db_num,
 	// constructed by another thread while we waited to get 'exholder'
 	if (g_databases[db_num]==db) {
 		// we now perform recovery processing.
-		PartitionedTestDatabase<managed_mapped_file,MapType> *db = g_databases[db_num];
+		PartitionedTestDatabase<bounded_managed_mapped_file,MapType> *db = g_databases[db_num];
 
 		db->close();
 
@@ -250,7 +283,7 @@ void recoverDatabase( int db_num,
 		std::string dbname( str.str() );
 
 		// During construction, recovery should occur.
-		g_databases[db_num] = new PartitionedTestDatabase<managed_mapped_file,MapType>(
+		g_databases[db_num] = new PartitionedTestDatabase<bounded_managed_mapped_file,MapType>(
 			dbname.c_str(), g_db_dir.c_str(),
 			g_checkpoint_dir.c_str(), g_log_dir.c_str(), g_maps_per_db );
 
@@ -302,9 +335,9 @@ public:
 		db_no = (db_no >= g_num_db) ? g_num_db-1 : db_no ;
 
 		shared_lock<boost::shared_mutex> lock;
-		PartitionedTestDatabase<managed_mapped_file,MapType>* db = getDatabase(db_no, lock);
+		PartitionedTestDatabase<bounded_managed_mapped_file,MapType>* db = getDatabase(db_no, lock);
 
-		typedef PartitionedTestDatabase<managed_mapped_file,MapType>::db_type db_type;
+		typedef PartitionedTestDatabase<bounded_managed_mapped_file,MapType>::db_type db_type;
 
 		Transaction *txn = NULL;
 		try {
@@ -326,7 +359,7 @@ public:
 				int key_no = static_cast<int>((::rand() * (double)g_max_key) / RAND_MAX);
 				ostringstream keystream;
 				keystream << "TestKey" << key_no;
-				shm_string key( keystream.str().c_str() );
+				clustered_shm_string key( keystream.str().c_str() );
 
 				{ // lock scope (shared lock).  I only lock per operation here.
 					sharable_lock<boost::interprocess::interprocess_upgradable_mutex> lock_holder(map->mutex());
@@ -351,7 +384,7 @@ public:
 						scoped_lock<boost::interprocess::interprocess_upgradable_mutex> ex_lock_holder(map->mutex());
 
 						// and generate a pseudo-random value for key.
-						shm_string key_in_shm( key.c_str() );  // permit allocator to change to shm
+						clustered_shm_string key_in_shm( key.c_str() );  // permit allocator to change to shm
 						shm_string value( randomValue(key_no) );
 
 						// insert the new key_in_shm, value pair.
@@ -387,13 +420,14 @@ public:
 
 						// With the found row, let's do one of 3 things. a) nothing, b) update it,
 						// c) delete it. (33.3% chance of each.)
-						int operation = static_cast<int>((::rand() * (double)3.0) / RAND_MAX);
+						int operation = static_cast<int>((::rand() * (double)10.0) / RAND_MAX);
 
 						stldb::bounded_wait_policy<sharable_lock<boost::interprocess::interprocess_upgradable_mutex> >
 							wait_with_timeout(lock_holder, g_max_wait);
 
 						switch (operation) {
 						case 1:
+						case 2:
 							{
 								// update the entry
 								try {
@@ -408,7 +442,12 @@ public:
 								}
 							}
 							break;
-						case 2:
+						case 3:
+						case 4:
+						case 5:
+						case 6:
+						case 7:
+						case 8:
 							{
 								// delete the entry
 								try {
@@ -422,6 +461,7 @@ public:
 								}
 							}
 							break;
+						case 9:
 						default: //0
 							// do nothing - read-only operation.
 							break;
@@ -517,7 +557,7 @@ public:
 			for (int i=0; i<g_num_db; i++) {
 				try {
 					shared_lock<boost::shared_mutex> lock;
-					PartitionedTestDatabase<managed_mapped_file,MapType>* db = getDatabase(i, lock);
+					PartitionedTestDatabase<bounded_managed_mapped_file,MapType>* db = getDatabase(i, lock);
 					db->getDatabase()->checkpoint();
 
 					std::vector<boost::filesystem::path> logs = db->getDatabase()->get_archivable_logs();
@@ -568,7 +608,7 @@ public:
 			int db_no = static_cast<int>((::rand() * (double)g_num_db) / RAND_MAX);
 			db_no = (db_no >= g_num_db) ? g_num_db-1 : db_no ;
 
-			PartitionedTestDatabase<managed_mapped_file,MapType> *db, *db2;
+			PartitionedTestDatabase<bounded_managed_mapped_file,MapType> *db, *db2;
 			{
 				shared_lock<boost::shared_mutex> lock;
 				db = getDatabase(db_no, lock);
@@ -642,7 +682,7 @@ public:
 
 	void operator()() {
 		shared_lock<boost::shared_mutex> lock;
-		PartitionedTestDatabase<managed_mapped_file,MapType>* db = getDatabase(db_no, lock);
+		PartitionedTestDatabase<bounded_managed_mapped_file,MapType>* db = getDatabase(db_no, lock);
 		validate(db);
 	}
 
@@ -673,7 +713,7 @@ int main(int argc, const char* argv[])
 	g_log_dir = g_db_dir + "/log";
 
 	g_num_db = properties.getProperty("databases", 4);
-	g_maps_per_db = properties.getProperty("maps_per_db", 4);
+	g_maps_per_db = properties.getProperty("maps_per_db", 20);
 	g_max_key = properties.getProperty("max_key", 10000);
 	g_avg_val_length = properties.getProperty("avg_val_length", 1000);
 	g_max_wait = boost::posix_time::millisec(properties.getProperty("max_wait", 10000));

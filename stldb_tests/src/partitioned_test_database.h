@@ -41,7 +41,7 @@ public:
 	// Constructor
 	PartitionedTestDatabase(const char *name, const char *db_directory=NULL,
 			const char *checkpoint_directory=NULL, const char *log_directory=NULL,
-			int partitions=10)
+			int partitions=20)
 		: db(NULL), _partitions(partitions),
 		  map( new map_type*[partitions] ), diskless(false)
 	{

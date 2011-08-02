@@ -21,6 +21,7 @@ project cvgcache_cpp
 	  <include>$(BOOST_ROOT)
 	  <include>$(STLDB_ROOT)
       <define>STLDB_TRACING
+	  <variant>debug:<define>STLDB_TROUBLESHOOT
       <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS
       <toolset>msvc:<define>_CRT_SECURE_NO_WARNINGS
       <toolset>msvc:<define>NO_STDINT_H
