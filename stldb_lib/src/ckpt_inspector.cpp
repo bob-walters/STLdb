@@ -59,6 +59,9 @@ int verify_checkpoint( boost::filesystem::path &tempfilepath,
 {
 	stldb::checkpoint_file_info meta;
 	stldb::detail::get_checkpoint_file_info( tempfilepath, meta );
+	cout << "=====================================================" << endl;
+	cout << meta << endl;
+	cout << "=====================================================" << endl;
 
 	// sanity check the free region of the file
 	std::map<offset_t,size_t> by_offset;
@@ -79,6 +82,8 @@ int verify_checkpoint( boost::filesystem::path &tempfilepath,
 			<< k->first << "," << k->second << "]" << endl;
 		j = adjacent_find(k, by_offset.end(), adjacent_regions());
 	}
+
+exit(0);
 
 	// now scan the checkpoint for duplicate entries and entries
 	// which have an erroneous overlap with free space
