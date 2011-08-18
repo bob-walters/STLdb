@@ -4,7 +4,6 @@
  *  Created on: Aug 28, 2009
  *      Author: rwalter3
  */
-#define BOOST_STLDB_SOURCE
 
 #include <boost/archive/archive_exception.hpp>
 #ifndef BOOST_ARCHIVE_TEXT

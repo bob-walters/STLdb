@@ -5,8 +5,6 @@
  *      Author: bobw
  */
 
-#define BOOST_STLDB_SOURCE
-
 #include <iostream>
 
 #include <boost/archive/xml_oarchive.hpp>
