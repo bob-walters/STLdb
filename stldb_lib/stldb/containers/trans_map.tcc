@@ -777,8 +777,10 @@ void trans_map<K,V,Comparator,Allocator,mutex_family>::save_checkpoint(
 		total += count;
 
 		// set i to the starting entry for the next iteration of this loop
+		// it is the lower_bound, not upper.  i.e. next_loop_key is a key
+		// which has not been scanned yet.
 		if (!done) {
-			i = iterator( baseclass::upper_bound(next_loop_key), this );
+			i = iterator( baseclass::lower_bound(next_loop_key), this );
 		}
 		else {
 			i = end();
