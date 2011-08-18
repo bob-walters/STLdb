@@ -2,6 +2,7 @@ import common ;
 import os ;
 
 path-constant BOOST_ROOT : [ os.environ BOOST_ROOT ] ;
+
 use-project /boostroot : $(BOOST_ROOT) ;
 
 alias libboost_serialization : /boostroot//serialization ;
@@ -15,10 +16,12 @@ project stldb_lib
 	  <include>$(BOOST_ROOT)
 	  <include>.
 	  <toolset>msvc:<define>NO_STDINT_H
-      <toolset>msvc:<define>_CRT_SECURE_NO_WARNINGS
-      <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS
-      <define>STLDB_TRACING
-      <threading>multi
+	  <toolset>msvc:<define>_CRT_SECURE_NO_WARNINGS
+	  <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS
+	  <define>STLDB_TRACING
+	  <toolset>msvc:<define>BOOST_ALL_NO_LIB
+	  <threading>multi
+	  <link>shared:<define>BOOST_STLDB_DYN_LINK
 	;
 	
 lib stldb
@@ -34,44 +37,43 @@ lib stldb
           libboost_filesystem
           libboost_thread
           libboost_system
-		  libboost_date_time
-		: <link>shared:<define>BOOST_STLDB_DYN_LINK=1 
+	  libboost_date_time
         ;
 
 exe log_inspector
-		: src/log_inspector.cpp
-		  stldb
+	: src/log_inspector.cpp
+	  stldb
           libboost_serialization
           libboost_filesystem
           libboost_thread
           libboost_system
-		  libboost_date_time
+	  libboost_date_time
         ;
 
 exe ckpt_inspector
-		: src/ckpt_inspector.cpp
-		  stldb
+	: src/ckpt_inspector.cpp
+	  stldb
           libboost_serialization
           libboost_filesystem
           libboost_thread
           libboost_system
-		  libboost_date_time
+	  libboost_date_time
         ;
 
 exe db_inspector
-		: src/db_inspector.cpp
-		  stldb
+	: src/db_inspector.cpp
+	  stldb/<link>shared
           libboost_serialization
           libboost_filesystem
           libboost_thread
           libboost_system
-		  libboost_date_time
+	  libboost_date_time
         ;
 
 install ../dist : stldb log_inspector ckpt_inspector db_inspector :
-		<variant>debug:<location>../dist/debug
-		<variant>release:<location>../dist/release 
-		<install-dependencies>on 
-		<install-type>EXE
+	<variant>debug:<location>../dist/debug
+	<variant>release:<location>../dist/release 
+	<install-dependencies>on 
+	<install-type>EXE
         <install-type>LIB
-		;
+	;
