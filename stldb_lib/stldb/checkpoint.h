@@ -347,7 +347,7 @@ private:
 		// TODO - should this be in network byte order for portability.?
 		// are binary streams from Boost.Serialization portable to some extent?
 		_checkpoint.filestream.read(reinterpret_cast<char*>(&size), sizeof(size));
-		BOOST_ASSERT(i == _checkpoint.free_by_offset.end() || _offset + (ssize_t)size <= i->first);
+		BOOST_ASSERT(i == _checkpoint.free_by_offset.end() || _offset + size <= i->first);
 		boost_iarchive_t archive(_checkpoint.filestream, boost::archive::no_header);
         archive & _current;
 		if (!_checkpoint.filestream) {
