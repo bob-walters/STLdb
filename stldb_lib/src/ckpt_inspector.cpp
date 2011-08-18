@@ -4,8 +4,6 @@
  *  Created on: Jan 18, 2010
  *      Author: bobw
  */
-#define BOOST_STLDB_SOURCE
-
 #include <stldb/checkpoint.h>
 #include <stldb/detail/db_file_util.h>
 #include <stldb/allocators/region_or_heap_allocator.h>
@@ -98,13 +96,13 @@ exit(0);
 		std::map<offset_t,size_t>::const_iterator freeb = by_offset.lower_bound(loc.first);
 		if (freeb != by_offset.end() && freeb != by_offset.begin() ) {
 			--freeb;
-			if (freeb->first + (ssize_t)freeb->second > loc.first) {
+			if (freeb->first + freeb->second > loc.first) {
 				cout << "ERROR: Overlap between checkpoint entry [" << loc.first << "," << loc.second << "] and free region [" << freeb->first << "," << freeb->second << "]" << endl;
 			}
 		}
 		std::map<offset_t,size_t>::const_iterator freea = by_offset.upper_bound(loc.first);
 		if (freea != by_offset.end()) {
-			if (loc.first + (ssize_t)loc.second > freea->first) {
+			if (loc.first + loc.second > freea->first) {
 				cout << "ERROR: Overlap between checkpoint entry [" << loc.first << "," << loc.second << "] and free region [" << freea->first << "," << freea->second << "]" << endl;
 			}
 		}
@@ -143,8 +141,8 @@ exit(0);
 	cout << "Free Region after: " << 
 		(after != by_offset.end() ? after->first : 0 ) << ":" <<
 		(after != by_offset.end() ? after->second : 0 ) << endl;
-	if (before->first + (ssize_t)before->second < loc &&
-		after == by_offset.end() || after->first > loc + (ssize_t)sz) {
+	if (before->first + before->second < loc &&
+		after == by_offset.end() || after->first > loc + sz) {
 		cout << "Looks like an occupied space" << endl;
 	}
 	else {
