@@ -62,11 +62,9 @@ void checkpoint_fstream_base::prepare_free_by_offset() {
 	std::multimap<std::size_t,boost::interprocess::offset_t>::iterator i (meta.free_space.begin() );
 	while (i != meta.free_space.end()) {
 		BOOST_VERIFY( free_by_offset.insert( std::make_pair( i->second, i->first )).second ); 
-		STLDB_TRACE(finer_e, "[" << i->second << "," << i->first << "]");
+		STLDB_TRACE_DEBUG(finer_e, "[" << i->second << "," << i->first << "]");
 		i++;
 	}
-	if (
-	free_by_offset.size() == meta.free_space.size() );
 	BOOST_ASSERT( free_by_offset.size() == meta.free_space.size() );
 }
 
@@ -101,8 +99,9 @@ void print_mmap( const std::multimap<std::size_t,boost::interprocess::offset_t> 
 
 checkpoint_loc_t checkpoint_ofstream::allocate(std::size_t size)
 {
-	// round size needed to alignment, and account for size_t header
-	std::size_t needed = size + sizeof(std::size_t);
+    // round size needed to alignment, and account for size_t header and uint32_t
+    // checksum
+	std::size_t needed = size + sizeof(std::size_t) + sizeof(uint32_t);
     needed = (needed / entry_alignment + ( needed % entry_alignment ? 1 : 0)) * entry_alignment;
 
     // find unit of allocation
@@ -172,6 +171,9 @@ void checkpoint_ofstream::write( boost::interprocess::offset_t offset, std::size
 	// TODO - should this be in network byte order for portability.?
 	// are binary streams from Boost.Serialization portable to some extent?
 	filestream.write(reinterpret_cast<char*>(&length), sizeof(length));
+    // compute the checksum for image, and write that next
+    uint32_t checksum = adler(image.data(), image.size());
+	filestream.write(reinterpret_cast<char*>(&checksum), sizeof(checksum));
 	filestream.write(image.data(), image.size());
 	// in case of a failed write...
 	if (!filestream) {

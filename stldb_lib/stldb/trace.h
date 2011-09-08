@@ -40,6 +40,33 @@
 
 #endif
 
+// Special versions of these macros which are completely optimized out
+// of release builds
+#if defined(DEBUG) && defined(STLDB_TRACING)
+
+#define STLDB_TRACE_DEBUG(lvl,msg) \
+	if(::stldb::tracing::get_trace_level() >= lvl) { \
+		std::ostringstream smsg; \
+		smsg << msg ; \
+		std::string msgs(smsg.str()); \
+		::stldb::tracing::get_tracer()->log(lvl, __FILE__ , __LINE__ , msgs.c_str()); \
+	}
+
+#define STLDB_TRACEDB_DEBUG(lvl,dbname,msg) \
+	if(::stldb::tracing::get_trace_level() >= lvl) { \
+		std::ostringstream smsg; \
+		smsg << "[" << dbname << "] " << msg ; \
+		std::string msgs(smsg.str()); \
+		::stldb::tracing::get_tracer()->log(lvl, __FILE__ , __LINE__ , msgs.c_str()); \
+	}
+
+#else
+
+#define STLDB_TRACE_DEBUG(lvl,msg)
+#define STLDB_TRACEDB_DEBUG(lvl,dbname,msg)
+
+#endif
+
 namespace stldb {
 
 // Tracing levels, using as first arg of above macro.
@@ -97,6 +124,7 @@ public:
 			std::cerr << filename << ":" << loc << ": ";
 		}
 		std::cerr << msg << std::endl;
+		std::cerr.flush();
 	}
 
 	// Get and set whether the file name and line of code should be included
