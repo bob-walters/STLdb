@@ -52,6 +52,18 @@ exe stress_test
 		  <link>shared:<define>BOOST_STLDB_DYN_LINK
         ;
 
+exe logtest
+	    : src/logtest.cpp
+		  libstldb
+          libboost_serialization
+          libboost_filesystem
+          libboost_thread
+          libboost_system
+          libboost_date_time
+		: <define>BOOST_ALL_NO_LIB
+		  <link>shared:<define>BOOST_STLDB_DYN_LINK
+        ;
+	    
 exe stldb_tests 
         : [ glob src/test_perf*.cpp ] 
           [ glob src/test_util*.cpp ]
@@ -68,3 +80,77 @@ exe stldb_tests
 		: <define>BOOST_ALL_NO_LIB
 		  <link>shared:<define>BOOST_STLDB_DYN_LINK
         ;
+        
+exe test5
+	    : src/test5.cpp
+		  libstldb
+          libboost_serialization
+          libboost_filesystem
+          libboost_thread
+          libboost_system
+          libboost_date_time
+		: <define>BOOST_ALL_NO_LIB
+		  <link>shared:<define>BOOST_STLDB_DYN_LINK
+        ;
+        
+exe test6
+	    : src/test6.cpp
+		  libstldb
+          libboost_serialization
+          libboost_filesystem
+          libboost_thread
+          libboost_system
+          libboost_date_time
+		: <define>BOOST_ALL_NO_LIB
+		  <link>shared:<define>BOOST_STLDB_DYN_LINK
+        ;
+
+exe test7
+	    : src/test7.cpp
+		  libstldb
+          libboost_serialization
+          libboost_filesystem
+          libboost_thread
+          libboost_system
+          libboost_date_time
+		: <define>BOOST_ALL_NO_LIB
+		  <link>shared:<define>BOOST_STLDB_DYN_LINK
+        ;
+
+exe freespace 
+        : src/freespace.cpp 
+		: <define>BOOST_ALL_NO_LIB
+		  <link>shared:<define>BOOST_STLDB_DYN_LINK
+        ;
+
+exe dualopentest
+	    : src/dualopentest.cpp
+		  libstldb
+          libboost_serialization
+          libboost_filesystem
+          libboost_thread
+          libboost_system
+          libboost_date_time
+		: <define>BOOST_ALL_NO_LIB
+		  <link>shared:<define>BOOST_STLDB_DYN_LINK
+        ;
+        
+exe stress_test_ckpt
+        : src/stress_test_ckpt.cpp 
+		  libstldb
+          libboost_serialization
+          libboost_filesystem
+          libboost_thread
+          libboost_system
+          libboost_date_time
+		: <define>BOOST_ALL_NO_LIB
+		  <link>shared:<define>BOOST_STLDB_DYN_LINK
+        ;
+
+		
+exe msync_test
+        : src/msync_test.cpp
+		: 
+		;
+		 
+		
