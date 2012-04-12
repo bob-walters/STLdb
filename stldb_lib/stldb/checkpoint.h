@@ -18,6 +18,7 @@
 #include <boost/serialization/map.hpp>
 
 #include <stldb/stldb.hpp>
+#include <stldb/logging.h>
 #include <stldb/cachetypes.h>
 #include <stldb/trace.h>
 #include <stldb/detail/os_file_functions_ext.h>
@@ -373,9 +374,9 @@ private:
                 uint32_t checksum;
                 _checkpoint.filestream.read(reinterpret_cast<char*>(&checksum), sizeof(checksum));
                 buffer.resize(size);
-                _checkpoint.filestream.read(buffer.data(), size);
+                _checkpoint.filestream.read(const_cast<char*>(buffer.data()), size);
 
-                uint32_t computed = adler(buffer.data(),size);
+                uint32_t computed = adler(reinterpret_cast<const uint8_t*>(buffer.data()),size);
                 if (computed != checksum) {
                     // Entry fails checksum check.
                     STLDB_TRACE(severe_e,"Checkpoint region at offset=" << _offset << ",  size=" << size << " fails checksum validation. Skipping that entry.");
@@ -388,7 +389,7 @@ private:
         while (!found_entry);
 
         // We are on an entry which looks valid.
-        strbuffer.pubsetbuf(buffer.data(), buffer.size());
+        strbuffer.pubsetbuf(const_cast<char*>(buffer.data()), buffer.size());
         strbuffer.pubseekpos(0,std::ios_base::in);
         boost_iarchive_t archive(strbuffer, boost::archive::no_header);
         archive & _current;
