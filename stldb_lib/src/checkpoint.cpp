@@ -11,6 +11,7 @@
 #include <boost/filesystem.hpp>
 
 #include <stldb/stldb.hpp>
+#include <stldb/logging.h>
 #include <stldb/checkpoint.h>
 #include <stldb/detail/db_file_util.h>
 #include <boost/assert.hpp>
@@ -172,7 +173,7 @@ void checkpoint_ofstream::write( boost::interprocess::offset_t offset, std::size
 	// are binary streams from Boost.Serialization portable to some extent?
 	filestream.write(reinterpret_cast<char*>(&length), sizeof(length));
     // compute the checksum for image, and write that next
-    uint32_t checksum = adler(image.data(), image.size());
+    uint32_t checksum = adler(reinterpret_cast<const uint8_t*>(image.data()), image.size());
 	filestream.write(reinterpret_cast<char*>(&checksum), sizeof(checksum));
 	filestream.write(image.data(), image.size());
 	// in case of a failed write...
