@@ -36,6 +36,9 @@ typedef boost::archive::text_iarchive boost_iarchive_t;
 typedef boost::archive::text_oarchive boost_oarchive_t;
 #endif
 
+#ifdef BOOST_WINDOWS
+typedef std::size_t ssize_t;
+#endif
 
 namespace stldb {
 
