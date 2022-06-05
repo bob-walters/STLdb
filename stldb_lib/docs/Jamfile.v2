@@ -7,30 +7,39 @@
 #
 
 import os ;
-import doxygen ;
-import quickbook ;
+
+using quickbook ;
+using doxygen ;
+using boostbook ;
 
 path-constant BOOST_ROOT : [ os.environ BOOST_ROOT ] ;
 
+import modules ;
+
 doxygen autodoc
    :
-      [ glob ../stldb/*.h ]
-      [ glob ../stldb/*.hpp ]
-      [ glob ../stldb/allcators/*.h ]
-      [ glob ../stldb/containers/*.h ]
-      [ glob ../stldb/sync/*.h ]
-      [ glob ../stldb/*.h ]
+      [ glob ../stldb/*.h 
+             ../stldb/*.hpp 
+             ../stldb/allcators/*.h 
+             ../stldb/containers/*.h 
+             ../stldb/sync/*.h 
+             ../stldb/*.h ]
    :
+      <doxygen:param>PROJECT_NAME="STLdb"
+      <doxygen:param>PROJECT_NUMBER=1
       <doxygen:param>EXTRACT_ALL=NO
       <doxygen:param>HIDE_UNDOC_MEMBERS=NO
       <doxygen:param>EXTRACT_PRIVATE=NO
       <doxygen:param>ENABLE_PREPROCESSING=YES
       <doxygen:param>EXPAND_ONLY_PREDEF=NO
       <doxygen:param>MACRO_EXPANSION=YES
+      <doxygen:param>WARNINGS=YES # Default NO, but useful to see warnings, especially in a logfile.
       <xsl:param>"boost.doxygen.reftitle=STLdb Reference"
    ;
 
-xml stldb : stldb.qbk ;
+xml stldb 
+   : stldb.qbk 
+   : <dependency>autodoc ;
 
 boostbook standalone
    :
@@ -48,10 +57,25 @@ boostbook standalone
       <xsl:param>boost.image.h=108
       <xsl:param>nav.layout=none
       <dependency>autodoc
-      <format>pdf:<xsl:param>boost.url.prefix=http://www.boost.org/doc/libs/release/doc/html
+      <xsl:param>boost.url.prefix=http://www.boost.org/doc/libs/release/doc/html
+#      <format>pdf
    ;
 
-install css : [ glob $(BOOST_ROOT)/doc/src/*.css ] : <location>html ;
-install images : [ glob $(BOOST_ROOT)/doc/src/images/*.png ] [ glob images/*.png ] [ glob images/*.jpg ] : <location>html/images ;
+install pdfinstall
+    : standalone
+    : <location>.. <install-type>PDF <name>STLdb.pdf
+    ;
 
-   
+install css 
+    : [ glob $(BOOST_ROOT)/doc/src/*.css ] 
+    : <location>html 
+    ;
+
+install images 
+    : [ glob $(BOOST_ROOT)/doc/src/images/*.png ] [ glob images/*.png ] [ glob images/*.jpg ] 
+    : <location>html/images ;
+
+explicit boostdoc ;
+alias boostrelease : standalone ;
+explicit boostrelease ;
+
