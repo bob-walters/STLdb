@@ -1,0 +1,64 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Struct pending_change_map_t</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../../../index.html" title="Chapter 1. STLdb 1.0">
+<link rel="up" href="../trans_map.html#idp105545151858576" title="Description">
+<link rel="prev" href="../trans_map.html" title="Class template trans_map">
+<link rel="next" href="../../contain_idp105544918393744.html" title="Class template container_proxy&lt;ManagedRegionType, concurrent::trans_map&lt; K, V, Pred, Allocator, mutex_family, picket_lock_size &gt;&gt;">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="STLdb" width="253" height="108" src="../../../images/stldb_logo.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../trans_map.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../trans_map.html#idp105545151858576"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="../../contain_idp105544918393744.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="refentry">
+<a name="stldb.concurrent.trans_map.pending_change_map_t"></a><div class="titlepage"></div>
+<div class="refnamediv">
+<h2><span class="refentrytitle">Struct pending_change_map_t</span></h2>
+<p>stldb::concurrent::trans_map::pending_change_map_t</p>
+</div>
+<h2 xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv-title">Synopsis</h2>
+<div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../../../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.concurrent_trans_map_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/concurrent_trans_map.h&gt;">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/concurrent_trans_map.h</a>&gt;
+
+</span>
+
+<span class="keyword">struct</span> <a class="link" href="pending_change_map_t.html" title="Struct pending_change_map_t">pending_change_map_t</a> <span class="special">:</span> <span class="keyword">public</span> std::map&lt; baseclass::iterator, value_type, iter_less&lt; baseclass::iterator &gt; &gt;
+<span class="special">{</span>
+  <span class="comment">// <a class="link" href="pending_change_map_t.html#stldb.concurrent.trans_map.pending_change_map_tconstruct-copy-destruct">construct/copy/destruct</a></span>
+  <a class="link" href="pending_change_map_t.html#idp105544918364176-bb"><span class="identifier">pending_change_map_t</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// public data members</span>
+  <span class="keyword">bool</span> <span class="identifier">exclusive_commit</span><span class="special">;</span>
+  <span class="keyword">bool</span> <span class="identifier">exclusive_rollback</span><span class="special">;</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">trans_map</span><span class="special">::</span><span class="identifier">pointer</span> <span class="special">&gt;</span> <span class="identifier">_modified_entries</span><span class="special">;</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span> <span class="identifier">mutex_type</span> <span class="special">*</span> <span class="special">&gt;</span> <span class="identifier">_locks_held</span><span class="special">;</span>
+<span class="special">}</span><span class="special">;</span></pre></div>
+<div class="refsect1">
+<a name="idp105545152270480"></a><h2>Description</h2>
+<div class="refsect2">
+<a name="idp105545152270864"></a><h3>
+<a name="stldb.concurrent.trans_map.pending_change_map_tconstruct-copy-destruct"></a><code class="computeroutput">pending_change_map_t</code> 
+        public
+       construct/copy/destruct</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><pre class="literallayout"><a name="idp105544918364176-bb"></a><span class="identifier">pending_change_map_t</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li></ol></div>
+</div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2009 Bob Walters<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../trans_map.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../trans_map.html#idp105545151858576"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="../../contain_idp105544918393744.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

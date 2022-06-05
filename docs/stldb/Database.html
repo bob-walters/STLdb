@@ -1,0 +1,357 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Class template Database</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../index.html" title="Chapter 1. STLdb 1.0">
+<link rel="up" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.Database_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/Database.h&gt;">
+<link rel="prev" href="open_or_recover.html" title="Global open_or_recover">
+<link rel="next" href="DatabaseInfo.html" title="Struct template DatabaseInfo">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="STLdb" width="253" height="108" src="../images/stldb_logo.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="open_or_recover.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.Database_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="DatabaseInfo.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+<div class="refentry">
+<a name="stldb.Database"></a><div class="titlepage"></div>
+<div class="refnamediv">
+<h2><span class="refentrytitle">Class template Database</span></h2>
+<p>stldb::Database — Class which allows applications to connect to and use an STLdb database. </p>
+</div>
+<h2 xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv-title">Synopsis</h2>
+<div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.Database_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/Database.h&gt;">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/Database.h</a>&gt;
+
+</span><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> ManagedRegionType<span class="special">&gt;</span> 
+<span class="keyword">class</span> <a class="link" href="Database.html" title="Class template Database">Database</a> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// types</span>
+  <span class="keyword">typedef</span> <span class="identifier">ManagedRegionType</span> <a name="stldb.Database.RegionType"></a><span class="identifier">RegionType</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="Database.html#stldb.Databaseconstruct-copy-destruct">construct/copy/destruct</a></span>
+  <a class="link" href="Database.html#idp105544917674768-bb"><span class="identifier">Database</span></a><span class="special">(</span><a class="link" href="create_or_recover_t.html" title="Struct create_or_recover_t">create_or_recover_t</a><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span><span class="special">,</span> 
+           <span class="keyword">void</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span><span class="special">,</span> <span class="keyword">bool</span><span class="special">,</span> 
+           <span class="identifier">std</span><span class="special">::</span><span class="identifier">list</span><span class="special">&lt;</span> container_proxy_type <span class="special">*</span> <span class="special">&gt;</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="Database.html#idp105544917681040-bb"><span class="identifier">Database</span></a><span class="special">(</span><a class="link" href="open_create_or_recover_t.html" title="Struct open_create_or_recover_t">open_create_or_recover_t</a><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span><span class="special">,</span> 
+           <span class="keyword">void</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span><span class="special">,</span> <span class="keyword">bool</span><span class="special">,</span> 
+           <span class="identifier">std</span><span class="special">::</span><span class="identifier">list</span><span class="special">&lt;</span> container_proxy_type <span class="special">*</span> <span class="special">&gt;</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="Database.html#idp105544917687312-bb"><span class="identifier">Database</span></a><span class="special">(</span><a class="link" href="open_or_create_t.html" title="Struct open_or_create_t">open_or_create_t</a><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span><span class="special">,</span> <span class="keyword">void</span> <span class="special">*</span><span class="special">,</span> 
+           <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span><span class="special">,</span> <span class="keyword">bool</span><span class="special">,</span> 
+           <span class="identifier">std</span><span class="special">::</span><span class="identifier">list</span><span class="special">&lt;</span> container_proxy_type <span class="special">*</span> <span class="special">&gt;</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="Database.html#idp105544917628048-bb"><span class="identifier">Database</span></a><span class="special">(</span><a class="link" href="open_or_recover_t.html" title="Struct open_or_recover_t">open_or_recover_t</a><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span><span class="special">,</span> <span class="keyword">void</span> <span class="special">*</span><span class="special">,</span> 
+           <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span><span class="special">,</span> <span class="keyword">bool</span><span class="special">,</span> 
+           <span class="identifier">std</span><span class="special">::</span><span class="identifier">list</span><span class="special">&lt;</span> container_proxy_type <span class="special">*</span> <span class="special">&gt;</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="Database.html#idp105544917634320-bb"><span class="identifier">Database</span></a><span class="special">(</span><a class="link" href="open_only_t.html" title="Struct open_only_t">open_only_t</a><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">void</span> <span class="special">*</span><span class="special">,</span> 
+           <span class="identifier">std</span><span class="special">::</span><span class="identifier">list</span><span class="special">&lt;</span> container_proxy_type <span class="special">*</span> <span class="special">&gt;</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="Database.html#idp105544917638032-bb"><span class="special">~</span><span class="identifier">Database</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="Database.html#idp105544917693840-bb">public member functions</a></span>
+  <a class="link" href="Transaction.html" title="Class Transaction">Transaction</a> <span class="special">*</span> <a class="link" href="Database.html#idp105544917694224-bb"><span class="identifier">beginTransaction</span></a><span class="special">(</span><a class="link" href="Transaction.html" title="Class Transaction">Transaction</a> <span class="special">*</span> <span class="special">=</span> <span class="identifier">NULL</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="exclusive_transaction.html" title="Class exclusive_transaction">exclusive_transaction</a> <span class="special">*</span> 
+  <a class="link" href="Database.html#idp105544917696528-bb"><span class="identifier">begin_exclusive_transaction</span></a><span class="special">(</span><a class="link" href="exclusive_transaction.html" title="Class exclusive_transaction">exclusive_transaction</a> <span class="special">*</span> <span class="special">=</span> <span class="identifier">NULL</span><span class="special">)</span><span class="special">;</span>
+  <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">interprocess_upgradable_mutex</span> <span class="special">&amp;</span> <a class="link" href="Database.html#idp105544917698832-bb"><span class="identifier">transactional_mutex</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">int</span> <a class="link" href="Database.html#idp105544917699472-bb"><span class="identifier">commit</span></a><span class="special">(</span><a class="link" href="Transaction.html" title="Class Transaction">Transaction</a> <span class="special">*</span><span class="special">,</span> <span class="keyword">bool</span> <span class="special">=</span> <span class="keyword">false</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">int</span> <a class="link" href="Database.html#idp105544917702032-bb"><span class="identifier">rollback</span></a><span class="special">(</span><a class="link" href="Transaction.html" title="Class Transaction">Transaction</a> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+  <span class="identifier">transaction_id_t</span> <a class="link" href="Database.html#idp105544917703824-bb"><span class="identifier">checkpoint</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="identifier">transaction_id_t</span> <a class="link" href="Database.html#idp105544917704848-bb"><span class="identifier">checkpoint_new</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">filesystem</span><span class="special">::</span><span class="identifier">path</span> <span class="special">&gt;</span> <a class="link" href="Database.html#idp105544917705488-bb"><span class="identifier">get_archivable_logs</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">filesystem</span><span class="special">::</span><span class="identifier">path</span> <span class="special">&gt;</span> <a class="link" href="Database.html#idp105544917706512-bb"><span class="identifier">get_current_logs</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span><span class="special">&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="identifier">checkpoint_file_info</span> <span class="special">&gt;</span> <a class="link" href="Database.html#idp105544917708048-bb"><span class="identifier">get_current_checkpoints</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="identifier">ManagedRegionType</span> <span class="special">&amp;</span> <a class="link" href="Database.html#idp105544917709712-bb"><span class="identifier">getRegion</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> ContainerType<span class="special">&gt;</span> <span class="identifier">ContainerType</span> <span class="special">*</span> <a class="link" href="Database.html#idp105544917710736-bb"><span class="identifier">getContainer</span></a><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">void</span> <span class="special">*</span> <a class="link" href="Database.html#idp105544917713424-bb"><span class="identifier">add_container</span></a><span class="special">(</span>container_proxy_type <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> ContainerType<span class="special">&gt;</span> <span class="keyword">bool</span> <a class="link" href="Database.html#idp105544917715216-bb"><span class="identifier">remove_container</span></a><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+  container_proxy_type <span class="special">*</span> <a class="link" href="Database.html#idp105544917717392-bb"><span class="identifier">getContainerProxy</span></a><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <a class="link" href="Database.html#idp105544917720208-bb"><span class="identifier">get_database_name</span></a><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+  <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <a class="link" href="Database.html#idp105544917721232-bb"><span class="identifier">get_database_directory</span></a><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+  <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <a class="link" href="Database.html#idp105544917722256-bb"><span class="identifier">get_checkpoint_directory</span></a><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+  <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <a class="link" href="Database.html#idp105544917723280-bb"><span class="identifier">get_logging_directory</span></a><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <a class="link" href="Database.html#idp105544917724304-bb"><span class="identifier">get_max_logfile_size</span></a><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+  <span class="keyword">bool</span> <a class="link" href="Database.html#idp105544917725328-bb"><span class="identifier">get_synchronous_logging</span></a><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+  <a class="link" href="database_stats.html" title="Struct database_stats">database_stats</a> <a class="link" href="Database.html#idp105544917660816-bb"><span class="identifier">get_stats</span></a><span class="special">(</span><span class="keyword">bool</span> <span class="special">=</span> <span class="keyword">false</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">bool</span> <a class="link" href="Database.html#idp105544917662736-bb"><span class="identifier">check_integrity</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="Database.html#idp105544917664784-bb"><span class="identifier">close</span></a><span class="special">(</span><span class="keyword">bool</span> <span class="special">=</span> <span class="keyword">false</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="Database.html#idp105544917666576-bb"><span class="identifier">set_invalid</span></a><span class="special">(</span><span class="keyword">bool</span><span class="special">)</span><span class="special">;</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">pair</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">mutex</span> <span class="special">*</span><span class="special">,</span> <a class="link" href="file_lock.html" title="Class file_lock">stldb::file_lock</a> <span class="special">*</span> <span class="special">&gt;</span> <a class="link" href="Database.html#idp105544917669648-bb"><span class="identifier">checkpoint_lock</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="Database.html#idp105544917672592-bb"><span class="identifier">safety_check</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="Database.html#idp105544917638672-bb">public static functions</a></span>
+  <span class="keyword">static</span> <span class="keyword">void</span> <a class="link" href="Database.html#idp105544917639056-bb"><span class="identifier">remove</span></a><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">static</span> <span class="keyword">void</span> <a class="link" href="Database.html#idp105544917642256-bb"><span class="identifier">remove_region</span></a><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">static</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">auto_ptr</span><span class="special">&lt;</span> <a class="link" href="file_lock.html" title="Class file_lock">stldb::file_lock</a> <span class="special">&gt;</span> 
+  <a class="link" href="Database.html#idp105544917644432-bb"><span class="identifier">checkpoint_lock</span></a><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Archive<span class="special">&gt;</span> 
+    <span class="keyword">static</span> <span class="keyword">void</span> <a class="link" href="Database.html#idp105544917647504-bb"><span class="identifier">dump_metadata</span></a><span class="special">(</span><span class="identifier">Archive</span> <span class="special">&amp;</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">void</span> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="Database.html#idp105544917651984-bb">private member functions</a></span>
+  <span class="keyword">void</span> <a class="link" href="Database.html#idp105544917652368-bb"><span class="identifier">find_or_construct_databaseinfo</span></a><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">list</span><span class="special">&lt;</span> container_proxy_type <span class="special">*</span> <span class="special">&gt;</span> <span class="special">&amp;</span><span class="special">,</span> 
+                                      <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> 
+                                      <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> 
+                                      <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span><span class="special">,</span> <span class="keyword">bool</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="Database.html#idp105544917656976-bb"><span class="identifier">open_containers</span></a><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">list</span><span class="special">&lt;</span> container_proxy_type <span class="special">*</span> <span class="special">&gt;</span> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">pair</span><span class="special">&lt;</span> <span class="identifier">transaction_id_t</span><span class="special">,</span> <span class="identifier">transaction_id_t</span> <span class="special">&gt;</span> 
+  <a class="link" href="Database.html#idp105544917658512-bb"><span class="identifier">load_containers</span></a><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">list</span><span class="special">&lt;</span> container_proxy_type <span class="special">*</span> <span class="special">&gt;</span> <span class="special">&amp;</span><span class="special">,</span> 
+                  <span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span><span class="special">&lt;</span> container_proxy_type <span class="special">*</span><span class="special">,</span> <span class="identifier">transaction_id_t</span> <span class="special">&gt;</span> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="Database.html#idp105544917595536-bb">private static functions</a></span>
+  <span class="keyword">static</span> <span class="keyword">void</span> <a class="link" href="Database.html#idp105544917595920-bb"><span class="identifier">remove_region_impl</span></a><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+<span class="special">}</span><span class="special">;</span></pre></div>
+<div class="refsect1">
+<a name="idp105545218433936"></a><h2>Description</h2>
+<p>ManagedRegionType is one of boost::interprocess::managed_shared_memory, managed_mapped_file, managed_heap_memory, managed_external_buffer, or managed_windows_shared_memory. Lock type is the mutex type which the database will use when synchronizing access to the database itself, and its own internal structures. </p>
+<div class="refsect2">
+<a name="idp105545218434576"></a><h3>
+<a name="stldb.Databaseconstruct-copy-destruct"></a><code class="computeroutput">Database</code> 
+        public
+       construct/copy/destruct</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+<pre class="literallayout"><a name="idp105544917674768-bb"></a><span class="identifier">Database</span><span class="special">(</span><a class="link" href="create_or_recover_t.html" title="Struct create_or_recover_t">create_or_recover_t</a><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_name<span class="special">,</span> 
+         <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_directory<span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> initial_size<span class="special">,</span> 
+         <span class="keyword">void</span> <span class="special">*</span> fixed_mapping_addr<span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> checkpoint_directory<span class="special">,</span> 
+         <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> log_directory<span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> max_log_file_len<span class="special">,</span> 
+         <span class="keyword">bool</span> synchronous_logging<span class="special">,</span> 
+         <span class="identifier">std</span><span class="special">::</span><span class="identifier">list</span><span class="special">&lt;</span> container_proxy_type <span class="special">*</span> <span class="special">&gt;</span> containers<span class="special">)</span><span class="special">;</span></pre>
+<p>Create or recover a database. If no database exists, it is created. If the database already exists, its shared memory region is deleted and reinitialized via recovery, regardless of whether that region appears valid. Opening a database in this way can recover from some types of errors in which the shared region contains badly corrupt data. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><a name="idp105544917681040-bb"></a><span class="identifier">Database</span><span class="special">(</span><a class="link" href="open_create_or_recover_t.html" title="Struct open_create_or_recover_t">open_create_or_recover_t</a><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_name<span class="special">,</span> 
+         <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_directory<span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> initial_size<span class="special">,</span> 
+         <span class="keyword">void</span> <span class="special">*</span> fixed_mapping_addr<span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> checkpoint_directory<span class="special">,</span> 
+         <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> log_directory<span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> max_log_file_len<span class="special">,</span> 
+         <span class="keyword">bool</span> synchronous_logging<span class="special">,</span> 
+         <span class="identifier">std</span><span class="special">::</span><span class="identifier">list</span><span class="special">&lt;</span> container_proxy_type <span class="special">*</span> <span class="special">&gt;</span> containers<span class="special">)</span><span class="special">;</span></pre>
+<p>Open or Create a database, and recover as needed. If no database exists it is created. If the database exists, but its shared region is in need of recovery, then recovery is performed. Otherwise, the existing region is simply opened and reused. This method is fast if there is no need to create or recover the database. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><a name="idp105544917687312-bb"></a><span class="identifier">Database</span><span class="special">(</span><a class="link" href="open_or_create_t.html" title="Struct open_or_create_t">open_or_create_t</a><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_name<span class="special">,</span> 
+         <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_directory<span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> initial_size<span class="special">,</span> 
+         <span class="keyword">void</span> <span class="special">*</span> fixed_mapping_addr<span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> checkpoint_directory<span class="special">,</span> 
+         <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> log_directory<span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> max_log_file_len<span class="special">,</span> 
+         <span class="keyword">bool</span> synchronous_logging<span class="special">,</span> 
+         <span class="identifier">std</span><span class="special">::</span><span class="identifier">list</span><span class="special">&lt;</span> container_proxy_type <span class="special">*</span> <span class="special">&gt;</span> containers<span class="special">)</span><span class="special">;</span></pre>
+<p>Open and optionally Create the database. If no database exists this method will create it. If a database already exists, this method will connect to the existing database region, unless recovery is needed. If recovery is needed, this constructor will throw an exception. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><a name="idp105544917628048-bb"></a><span class="identifier">Database</span><span class="special">(</span><a class="link" href="open_or_recover_t.html" title="Struct open_or_recover_t">open_or_recover_t</a><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_name<span class="special">,</span> 
+         <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_directory<span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> initial_size<span class="special">,</span> 
+         <span class="keyword">void</span> <span class="special">*</span> fixed_mapping_addr<span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> checkpoint_directory<span class="special">,</span> 
+         <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> log_directory<span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> max_log_file_len<span class="special">,</span> 
+         <span class="keyword">bool</span> synchronous_logging<span class="special">,</span> 
+         <span class="identifier">std</span><span class="special">::</span><span class="identifier">list</span><span class="special">&lt;</span> container_proxy_type <span class="special">*</span> <span class="special">&gt;</span> containers<span class="special">)</span><span class="special">;</span></pre>
+<p>Open an existing database. If the database region does not already exist, an exception is thrown. If the region exists but appears to need recovery, then recovery is done and the region is recreated with the same size and configuration as the existing region. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><a name="idp105544917634320-bb"></a><span class="identifier">Database</span><span class="special">(</span><a class="link" href="open_only_t.html" title="Struct open_only_t">open_only_t</a><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_name<span class="special">,</span> 
+         <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_directory<span class="special">,</span> <span class="keyword">void</span> <span class="special">*</span> fixed_mapping_addr<span class="special">,</span> 
+         <span class="identifier">std</span><span class="special">::</span><span class="identifier">list</span><span class="special">&lt;</span> container_proxy_type <span class="special">*</span> <span class="special">&gt;</span> containers<span class="special">)</span><span class="special">;</span></pre>
+<p>Open an existing database. If the database region does not already exist, an exception is thrown. If the region exists but appears to need recovery, then an exception is thrown. This constructor is guaranteed to be fast if it succeeds. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><a name="idp105544917638032-bb"></a><span class="special">~</span><span class="identifier">Database</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre>
+<p>The destructor closes the database. If there are outstanding transactions in effect when the destructor is called, then the destructor will block until those transactions are either resolved, or time out (i.e. gating behavior.) </p>
+</li>
+</ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545218598928"></a><h3>
+<a name="idp105544917693840-bb"></a><code class="computeroutput">Database</code> public member functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+<pre class="literallayout"><a class="link" href="Transaction.html" title="Class Transaction">Transaction</a> <span class="special">*</span> <a name="idp105544917694224-bb"></a><span class="identifier">beginTransaction</span><span class="special">(</span><a class="link" href="Transaction.html" title="Class Transaction">Transaction</a> <span class="special">*</span> reusable_t <span class="special">=</span> <span class="identifier">NULL</span><span class="special">)</span><span class="special">;</span></pre>
+<p>Begins a (normal) transaction. The new transaction is returned. Note that to improve efficiency, an existing completed (previously committed or aborted) transaction object may be passed as reusable_t. It is an error to pass an in-progress transaction in this way. Note that this method can block if there is currently an exclusive transaction in progress, or a thread waiting to start an exclusive transaction. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><a class="link" href="exclusive_transaction.html" title="Class exclusive_transaction">exclusive_transaction</a> <span class="special">*</span> 
+<a name="idp105544917696528-bb"></a><span class="identifier">begin_exclusive_transaction</span><span class="special">(</span><a class="link" href="exclusive_transaction.html" title="Class exclusive_transaction">exclusive_transaction</a> <span class="special">*</span> reusable_t <span class="special">=</span> <span class="identifier">NULL</span><span class="special">)</span><span class="special">;</span></pre>
+<p>Begins an exclusive transaction. Exclusive transactions are required for some operations on containers, as a matter of container design. Examples will be methods like swap() and clear(). An exclusive transaction is guaranteed to be the only transaction which is running against the database when it exists. Calling this method will most likely block the caller, as all existing regular transactions must be completed before the exclusive transaction is begun. </p>
+</li>
+<li class="listitem"><pre class="literallayout"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">interprocess_upgradable_mutex</span> <span class="special">&amp;</span> <a name="idp105544917698832-bb"></a><span class="identifier">transactional_mutex</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem">
+<pre class="literallayout"><span class="keyword">int</span> <a name="idp105544917699472-bb"></a><span class="identifier">commit</span><span class="special">(</span><a class="link" href="Transaction.html" title="Class Transaction">Transaction</a> <span class="special">*</span> t<span class="special">,</span> <span class="keyword">bool</span> diskless <span class="special">=</span> <span class="keyword">false</span><span class="special">)</span><span class="special">;</span></pre>
+<p>Commit the transaction (or exclusive transaction) passed. Returns 0 on success. On failure, an exception is thrown. If the exception is not a needs_recovery exception, then the commit has had no effect on the transaction, and it still can, and must be resolved, via a call to commit or rollback. If there is a problem (e.g. I/O problem) while attempting to commit the transaction, the exception is automatically escalated to a needs_recovery exception. Under those circumstances, the application should disconnect and perform database recovery. The needs_recovery exception is thrown to indicate that the transaction was partially completed (e.g. in memory, but then could not complete the disk logging required to make it permanent.) </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><span class="keyword">int</span> <a name="idp105544917702032-bb"></a><span class="identifier">rollback</span><span class="special">(</span><a class="link" href="Transaction.html" title="Class Transaction">Transaction</a> <span class="special">*</span> t<span class="special">)</span><span class="special">;</span></pre>
+<p>Rollback the transaction (or exclusive transaction) passed. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><span class="identifier">transaction_id_t</span> <a name="idp105544917703824-bb"></a><span class="identifier">checkpoint</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre>
+<p>Writes out a checkpoint for each container which is registered with this database. Returns the highest txn_id which the checkpoint has guaranteed to be durable. This value can be used to eliminate log files which are no longer needed. NOTE: This works by calling a checkpoint method on each container in turn. </p>
+</li>
+<li class="listitem"><pre class="literallayout"><span class="identifier">transaction_id_t</span> <a name="idp105544917704848-bb"></a><span class="identifier">checkpoint_new</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem">
+<pre class="literallayout"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">filesystem</span><span class="special">::</span><span class="identifier">path</span> <span class="special">&gt;</span> <a name="idp105544917705488-bb"></a><span class="identifier">get_archivable_logs</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre>
+<p>Get archivable logs. This returns the set of log files which are no longer needed for recovery processing. This static version takes an explicit checkpoint_directory and logging_directory, and does not require an open database. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">filesystem</span><span class="special">::</span><span class="identifier">path</span> <span class="special">&gt;</span> <a name="idp105544917706512-bb"></a><span class="identifier">get_current_logs</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre>
+<p>Get the set of log files which contain transactions that are not yet reflected in any checkpoints. This returns the set of log files which are needed for recovery processing. 
+</p>
+<div class="variablelist"><table border="0" class="variablelist compact">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term">Returns:</span></p></td>
+<td><p>a vector of log file names. </p></td>
+</tr></tbody>
+</table></div>
+</li>
+<li class="listitem">
+<pre class="literallayout"><span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span><span class="special">&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="identifier">checkpoint_file_info</span> <span class="special">&gt;</span> <a name="idp105544917708048-bb"></a><span class="identifier">get_current_checkpoints</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre>
+<p>Get the set of current checkpoint files, containing the most recent completed checkpoint for each container in the database. 
+</p>
+<div class="variablelist"><table border="0" class="variablelist compact">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term">Returns:</span></p></td>
+<td><p>a map of container names to current checkpoint filename. </p></td>
+</tr></tbody>
+</table></div>
+</li>
+<li class="listitem">
+<pre class="literallayout"><span class="identifier">ManagedRegionType</span> <span class="special">&amp;</span> <a name="idp105544917709712-bb"></a><span class="identifier">getRegion</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre>
+<p>Return a reference to the Managed Shared Memory Region that this database uses for its in-memory containers. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> ContainerType<span class="special">&gt;</span> 
+  <span class="identifier">ContainerType</span> <span class="special">*</span> <a name="idp105544917710736-bb"></a><span class="identifier">getContainer</span><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> name<span class="special">)</span><span class="special">;</span></pre>
+<p>Gets a Container by Name. The Container must be one mentioned in the list given to the <code class="computeroutput"><a class="link" href="Database.html" title="Class template Database">Database</a></code> constructor. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><span class="keyword">void</span> <span class="special">*</span> <a name="idp105544917713424-bb"></a><span class="identifier">add_container</span><span class="special">(</span>container_proxy_type <span class="special">*</span> proxy<span class="special">)</span><span class="special">;</span></pre>
+<p>Adds the container, specified by the proxy, to the database. This works by invoking the openContainer() API of the proxy. No effort is made to load the container from prior checkpoints. The container is returned (as a void*). This is intended for adding new containers to an already open database. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> ContainerType<span class="special">&gt;</span> <span class="keyword">bool</span> <a name="idp105544917715216-bb"></a><span class="identifier">remove_container</span><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> name<span class="special">)</span><span class="special">;</span></pre>
+<p>delete a container from the database. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout">container_proxy_type <span class="special">*</span> <a name="idp105544917717392-bb"></a><span class="identifier">getContainerProxy</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> container_name<span class="special">)</span><span class="special">;</span></pre>
+<p>Gets a <code class="computeroutput"><a class="link" href="container_proxy.html" title="Class template container_proxy">container_proxy</a></code> by id. The Container must be one mentioned in the list given to the <code class="computeroutput"><a class="link" href="Database.html" title="Class template Database">Database</a></code> constructor. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <a name="idp105544917720208-bb"></a><span class="identifier">get_database_name</span><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre>Returns the name of the database, as given to the constructor. </li>
+<li class="listitem">
+<pre class="literallayout"><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <a name="idp105544917721232-bb"></a><span class="identifier">get_database_directory</span><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre>Returns the name of the database, as given to the constructor. </li>
+<li class="listitem">
+<pre class="literallayout"><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <a name="idp105544917722256-bb"></a><span class="identifier">get_checkpoint_directory</span><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre>Returns the checkpoint directory, as given to the constructor. </li>
+<li class="listitem">
+<pre class="literallayout"><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <a name="idp105544917723280-bb"></a><span class="identifier">get_logging_directory</span><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre>Returns the directory being used for logging. </li>
+<li class="listitem">
+<pre class="literallayout"><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <a name="idp105544917724304-bb"></a><span class="identifier">get_max_logfile_size</span><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre>Returns the maximum log file size, as specified to the constructor. </li>
+<li class="listitem">
+<pre class="literallayout"><span class="keyword">bool</span> <a name="idp105544917725328-bb"></a><span class="identifier">get_synchronous_logging</span><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre>Returns whether syncronous logging is configured. </li>
+<li class="listitem">
+<pre class="literallayout"><a class="link" href="database_stats.html" title="Struct database_stats">database_stats</a> <a name="idp105544917660816-bb"></a><span class="identifier">get_stats</span><span class="special">(</span><span class="keyword">bool</span> reset <span class="special">=</span> <span class="keyword">false</span><span class="special">)</span><span class="special">;</span></pre>
+<p>Returns a stats object about the region, and the behavior of the associated logging subsystem. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><span class="keyword">bool</span> <a name="idp105544917662736-bb"></a><span class="identifier">check_integrity</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre>
+<p>Check to see if the <code class="computeroutput"><a class="link" href="Database.html" title="Class template Database">Database</a></code> integrity is assured. This performs the registry check function to see if any process have disconnected. 
+</p>
+<div class="variablelist"><table border="0" class="variablelist compact">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term">Returns:</span></p></td>
+<td><p>true if the registry check passes, false if it fails. if returns false, the panic bit in the registry of the existing region is also set to prevent any further transactions from being started. </p></td>
+</tr></tbody>
+</table></div>
+</li>
+<li class="listitem">
+<pre class="literallayout"><span class="keyword">void</span> <a name="idp105544917664784-bb"></a><span class="identifier">close</span><span class="special">(</span><span class="keyword">bool</span> final_checkpoint <span class="special">=</span> <span class="keyword">false</span><span class="special">)</span><span class="special">;</span></pre>
+<p>Closes the database. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><span class="keyword">void</span> <a name="idp105544917666576-bb"></a><span class="identifier">set_invalid</span><span class="special">(</span><span class="keyword">bool</span> value<span class="special">)</span><span class="special">;</span></pre>
+<p>sets or clears the internal 'valid' flag on the <code class="computeroutput"><a class="link" href="Database.html" title="Class template Database">Database</a></code>. set_invalid(true), is identical to a <code class="computeroutput"><a class="link" href="Database.html" title="Class template Database">Database</a></code> failing a call to check_integrity(). All processes will start seeing <code class="computeroutput"><a class="link" href="recovery_needed.html" title="Class recovery_needed">recovery_needed</a></code> exceptions until they close and Reconstruct the database, permitting recovery to occur. set_invalid(false) clears this flag, permitting processes to carry on using the current shared memory region, even though it may be corrupt. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><span class="identifier">std</span><span class="special">::</span><span class="identifier">pair</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">mutex</span> <span class="special">*</span><span class="special">,</span> <a class="link" href="file_lock.html" title="Class file_lock">stldb::file_lock</a> <span class="special">*</span> <span class="special">&gt;</span> <a name="idp105544917669648-bb"></a><span class="identifier">checkpoint_lock</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre>
+<p>Returns the lock pair which has to be acquired in order to gain exclusive access to the <code class="computeroutput"><a class="link" href="Database.html" title="Class template Database">Database</a></code>'s checkpoint data for a period of time. This method is for processes which have an open <code class="computeroutput"><a class="link" href="Database.html" title="Class template Database">Database</a></code>, and have other threads which might call the checkpoint method on this same <code class="computeroutput"><a class="link" href="Database.html" title="Class template Database">Database</a></code>. The caller should acquire locks on first and then second (and always in that order) at which point the checkpoint filesystem can be considered secured for use. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><span class="keyword">void</span> <a name="idp105544917672592-bb"></a><span class="identifier">safety_check</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre>
+<p>Fast check to see if the _registry-&gt;_database_invalid flag has been set, and if it is throw a <code class="computeroutput"><a class="link" href="recovery_needed.html" title="Class recovery_needed">recovery_needed</a></code> exception. This is used internally by other methods of <code class="computeroutput"><a class="link" href="Database.html" title="Class template Database">Database</a></code> to protect the app from using a region which may have hung locks or other forms of corruption. </p>
+</li>
+</ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545218681232"></a><h3>
+<a name="idp105544917638672-bb"></a><code class="computeroutput">Database</code> public static functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+<pre class="literallayout"><span class="keyword">static</span> <span class="keyword">void</span> <a name="idp105544917639056-bb"></a><span class="identifier">remove</span><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_name<span class="special">,</span> 
+                   <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_directory<span class="special">,</span> 
+                   <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> checkpoint_directory<span class="special">,</span> 
+                   <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> log_directory<span class="special">)</span><span class="special">;</span></pre>
+<p>Removes the indicated database, and all of its containers, including backing checkpoints and logs. This method is only safe on a closed database, and an exception is thrown if any process has the database open. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><span class="keyword">static</span> <span class="keyword">void</span> <a name="idp105544917642256-bb"></a><span class="identifier">remove_region</span><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_name<span class="special">,</span> 
+                          <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_directory<span class="special">)</span><span class="special">;</span></pre>
+<p>Remove the shared memory region for the indicated database. On some systems, this can only be done while no processes are attached to the database. The removal of the region forces it to be reloaded during a subsequent open request. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><span class="keyword">static</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">auto_ptr</span><span class="special">&lt;</span> <a class="link" href="file_lock.html" title="Class file_lock">stldb::file_lock</a> <span class="special">&gt;</span> 
+<a name="idp105544917644432-bb"></a><span class="identifier">checkpoint_lock</span><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_directory<span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_name<span class="special">)</span><span class="special">;</span></pre>
+<p>Returns a file lock which a process can use to gain exclusive access to the <code class="computeroutput"><a class="link" href="Database.html" title="Class template Database">Database</a></code>'s checkpoint data for a period of time. This is intended to permit dedicated backup process to lock out any checkpoint() threads while making copies of the checkpoint files. The use of this lock must not be a thread within the same process which may be doing checkpoints. For that scenario use the non-static version of checkpoint_lock(). </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Archive<span class="special">&gt;</span> 
+  <span class="keyword">static</span> <span class="keyword">void</span> <a name="idp105544917647504-bb"></a><span class="identifier">dump_metadata</span><span class="special">(</span><span class="identifier">Archive</span> <span class="special">&amp;</span> ar<span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_name<span class="special">,</span> 
+                            <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_directory<span class="special">,</span> 
+                            <span class="keyword">void</span> <span class="special">*</span> fixed_mapping_addr<span class="special">)</span><span class="special">;</span></pre>
+<p>Utility method which connects to the region of a database and then dumps information from the contents of the shared region, including <code class="computeroutput"><a class="link" href="DatabaseInfo.html" title="Struct template DatabaseInfo">DatabaseInfo</a></code>, the current registry contents, Logging info, checkpointing info, etc. </p>
+</li>
+</ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545218921104"></a><h3>
+<a name="idp105544917651984-bb"></a><code class="computeroutput">Database</code> private member functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544917652368-bb"></a><span class="identifier">find_or_construct_databaseinfo</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">list</span><span class="special">&lt;</span> container_proxy_type <span class="special">*</span> <span class="special">&gt;</span> <span class="special">&amp;</span> containers<span class="special">,</span> 
+                                    <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_name<span class="special">,</span> 
+                                    <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_dir<span class="special">,</span> 
+                                    <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> checkpoint_dir<span class="special">,</span> 
+                                    <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> log_directory<span class="special">,</span> 
+                                    <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> max_log_file_size<span class="special">,</span> 
+                                    <span class="keyword">bool</span> synchronous_logging<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544917656976-bb"></a><span class="identifier">open_containers</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">list</span><span class="special">&lt;</span> container_proxy_type <span class="special">*</span> <span class="special">&gt;</span> <span class="special">&amp;</span> containers<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="identifier">std</span><span class="special">::</span><span class="identifier">pair</span><span class="special">&lt;</span> <span class="identifier">transaction_id_t</span><span class="special">,</span> <span class="identifier">transaction_id_t</span> <span class="special">&gt;</span> 
+<a name="idp105544917658512-bb"></a><span class="identifier">load_containers</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">list</span><span class="special">&lt;</span> container_proxy_type <span class="special">*</span> <span class="special">&gt;</span> <span class="special">&amp;</span> containers<span class="special">,</span> 
+                <span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span><span class="special">&lt;</span> container_proxy_type <span class="special">*</span><span class="special">,</span> <span class="identifier">transaction_id_t</span> <span class="special">&gt;</span> <span class="special">&amp;</span> container_lsn<span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545218894096"></a><h3>
+<a name="idp105544917595536-bb"></a><code class="computeroutput">Database</code> private static functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><pre class="literallayout"><span class="keyword">static</span> <span class="keyword">void</span> <a name="idp105544917595920-bb"></a><span class="identifier">remove_region_impl</span><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_name<span class="special">,</span> 
+                               <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> database_directory<span class="special">)</span><span class="special">;</span></pre></li></ol></div>
+</div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2009 Bob Walters<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="open_or_recover.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.Database_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="DatabaseInfo.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

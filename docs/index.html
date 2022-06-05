@@ -1,0 +1,124 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Chapter 1. STLdb 1.0</title>
+<link rel="stylesheet" href="boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="Chapter 1. STLdb 1.0">
+<link rel="next" href="stldb/intro.html" title="Introduction">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="STLdb" width="253" height="108" src="images/stldb_logo.png"></td></tr></table>
+<hr>
+<div class="spirit-nav"><a accesskey="n" href="stldb/intro.html"><img src="images/next.png" alt="Next"></a></div>
+<div class="chapter">
+<div class="titlepage"><div>
+<div><h2 class="title">
+<a name="stldb"></a>Chapter 1. STLdb 1.0</h2></div>
+<div><div class="author"><h3 class="author">
+<span class="firstname">Bob</span> <span class="surname">Walters</span>
+</h3></div></div>
+<div><p class="copyright">Copyright © 2009 Bob Walters</p></div>
+<div><div class="legalnotice">
+<a name="stldb.legal"></a><p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></div>
+</div></div>
+<div class="toc">
+<p><b>Table of Contents</b></p>
+<dl class="toc">
+<dt><span class="section"><a href="stldb/intro.html">Introduction</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="stldb/intro.html#stldb.intro.acid">Acid Compliance</a></span></dt>
+<dt><span class="section"><a href="stldb/intro.html#stldb.intro.summary">Summary of features</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="stldb/build.html">Building STLdb</a></span></dt>
+<dt><span class="section"><a href="stldb/quickstart.html">Quick Start Guide</a></span></dt>
+<dt><span class="section"><a href="stldb/arch.html">Architecture of an STLdb database</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="stldb/arch.html#stldb.arch.example_memres">Example of a Memory-Resident
+      database</a></span></dt>
+<dt><span class="section"><a href="stldb/arch.html#stldb.arch.example_mmap">Example of a paged database</a></span></dt>
+<dt><span class="section"><a href="stldb/arch.html#stldb.arch.aside">Rationale: recovery processing design</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="stldb/databases.html">Using Databases</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="stldb/databases.html#stldb.databases.connecting">Connecting to a Database</a></span></dt>
+<dt><span class="section"><a href="stldb/databases.html#stldb.databases.resizing">Resizing Database Regions</a></span></dt>
+<dt><span class="section"><a href="stldb/databases.html#stldb.databases.removing">Removing Regions and Databases</a></span></dt>
+<dt><span class="section"><a href="stldb/databases.html#stldb.databases.database">Database Containers</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="stldb/trans.html">Using Transactions</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="stldb/trans.html#stldb.trans.create_trans">Creating and Destroying Transactions</a></span></dt>
+<dt><span class="section"><a href="stldb/trans.html#stldb.trans.complete_trans">Completing Transactions</a></span></dt>
+<dt><span class="section"><a href="stldb/trans.html#stldb.trans.thread_trans">Threads and Transactions</a></span></dt>
+<dt><span class="section"><a href="stldb/trans.html#stldb.trans.ex_trans">Exclusive Transactions</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="stldb/map.html">Using stldb::trans_map</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="stldb/map.html#stldb.map.map_locking">Locking Maps</a></span></dt>
+<dt><span class="section"><a href="stldb/map.html#stldb.map.map_entrylock">Entry-level locks</a></span></dt>
+<dt><span class="section"><a href="stldb/map.html#stldb.map.map_updates">Updating Entries</a></span></dt>
+<dt><span class="section"><a href="stldb/map.html#stldb.map.map_blocking">Blocking on row-level locks</a></span></dt>
+<dt><span class="section"><a href="stldb/map.html#stldb.map.itersafety">Iterator Safety</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="stldb/logging_opt.html">Logging Options</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="stldb/logging_opt.html#stldb.logging_opt.diskless_opt">Diskless STLdb databases</a></span></dt>
+<dt><span class="section"><a href="stldb/logging_opt.html#stldb.logging_opt.checkpoint_no_log">Using checkpointing
+      without logging</a></span></dt>
+<dt><span class="section"><a href="stldb/logging_opt.html#stldb.logging_opt.async_log">Asynchronous Logging</a></span></dt>
+<dt><span class="section"><a href="stldb/logging_opt.html#stldb.logging_opt.sync_log">Synchronous Logging</a></span></dt>
+<dt><span class="section"><a href="stldb/logging_opt.html#stldb.logging_opt.write_aggr">Write Aggregation</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="stldb_reference.html">STLdb Reference</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.cachetypes_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/cachetypes.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.checkpoint_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/checkpoint.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.checkpoint_manager_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/checkpoint_manager.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.commit_buffer_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/commit_buffer.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.container_proxy_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/container_proxy.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.concurrent_trans_assoc_iterator_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/concurrent_trans_assoc_iterator.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.concurrent_trans_map_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/concurrent_trans_map.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.intrusive_trans_map_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/intrusive_trans_map.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.iter_less_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/iter_less.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.rbtree_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/rbtree.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.string_compare_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/string_compare.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.string_serialize_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/string_serialize.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.trans_assoc_iterator_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_assoc_iterator.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.trans_iterator_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_iterator.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.trans_map_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_map.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.trans_map_entry_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_map_entry.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.trans_vector_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_vector.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.creation_tags_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/creation_tags.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.Database_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/Database.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.database_registry_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/database_registry.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.dynamic_managed_mapped_file_hpp">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/dynamic_managed_mapped_file.hpp&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.exceptions_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/exceptions.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.log_reader_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/log_reader.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.logger_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/logger.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.logging_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/logging.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.recovery_manager_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/recovery_manager.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.statistics_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/statistics.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.stldb_hpp">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/stldb.hpp&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.sync.bounded_interprocess_mutex_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/bounded_interprocess_mutex.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.sync.file_lock_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/file_lock.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.sync.picket_lock_set_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/picket_lock_set.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.sync.wait_policy_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/wait_policy.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.trace_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/trace.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.transaction_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/transaction.h&gt;</a></span></dt>
+</dl></dd>
+</dl>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"><p><small>Last revised: June 05, 2022 at 14:49:27 GMT</small></p></td>
+<td align="right"><div class="copyright-footer"></div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav"><a accesskey="n" href="stldb/intro.html"><img src="images/next.png" alt="Next"></a></div>
+</body>
+</html>

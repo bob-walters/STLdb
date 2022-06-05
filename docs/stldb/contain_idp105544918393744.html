@@ -1,0 +1,102 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Class template container_proxy&lt;ManagedRegionType, concurrent::trans_map&lt; K, V, Pred, Allocator, mutex_family, picket_lock_size &gt;&gt;</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../index.html" title="Chapter 1. STLdb 1.0">
+<link rel="up" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.concurrent_trans_map_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/concurrent_trans_map.h&gt;">
+<link rel="prev" href="concurrent/trans_map/pending_change_map_t.html" title="Struct pending_change_map_t">
+<link rel="next" href="iter_less.html" title="Struct template iter_less">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="STLdb" width="253" height="108" src="../images/stldb_logo.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="concurrent/trans_map/pending_change_map_t.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.concurrent_trans_map_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="iter_less.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+<div class="refentry">
+<a name="stldb.contain_idp105544918393744"></a><div class="titlepage"></div>
+<div class="refnamediv">
+<h2><span class="refentrytitle">Class template container_proxy&lt;ManagedRegionType, concurrent::trans_map&lt; K, V, Pred, Allocator, mutex_family, picket_lock_size &gt;&gt;</span></h2>
+<p>stldb::container_proxy&lt;ManagedRegionType, concurrent::trans_map&lt; K, V, Pred, Allocator, mutex_family, picket_lock_size &gt;&gt;</p>
+</div>
+<h2 xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv-title">Synopsis</h2>
+<div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.concurrent_trans_map_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/concurrent_trans_map.h&gt;">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/concurrent_trans_map.h</a>&gt;
+
+</span><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> ManagedRegionType<span class="special">,</span> <span class="keyword">typename</span> K<span class="special">,</span> <span class="keyword">typename</span> V<span class="special">,</span> <span class="keyword">typename</span> Pred<span class="special">,</span> 
+         <span class="keyword">typename</span> Allocator<span class="special">,</span> <span class="keyword">typename</span> mutex_family<span class="special">,</span> <span class="keyword">int</span> picket_lock_size<span class="special">&gt;</span> 
+<span class="keyword">class</span> <a class="link" href="contain_idp105544918393744.html" title="Class template container_proxy&lt;ManagedRegionType, concurrent::trans_map&lt; K, V, Pred, Allocator, mutex_family, picket_lock_size &gt;&gt;">container_proxy</a><span class="special">&lt;</span><span class="identifier">ManagedRegionType</span><span class="special">,</span> <span class="identifier">concurrent</span><span class="special">::</span><span class="identifier">trans_map</span><span class="special">&lt;</span> <span class="identifier">K</span><span class="special">,</span> <span class="identifier">V</span><span class="special">,</span> <span class="identifier">Pred</span><span class="special">,</span> <span class="identifier">Allocator</span><span class="special">,</span> <span class="identifier">mutex_family</span><span class="special">,</span> <span class="identifier">picket_lock_size</span> <span class="special">&gt;</span><span class="special">&gt;</span> <span class="special">:</span>
+  <span class="keyword">public</span> <span class="identifier">stldb</span><span class="special">::</span><span class="identifier">container_proxy_base</span><span class="special">&lt;</span> <span class="identifier">ManagedRegionType</span> <span class="special">&gt;</span>
+<span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// types</span>
+  <span class="keyword">typedef</span> <a class="link" href="concurrent/trans_map.html" title="Class template trans_map">concurrent::trans_map</a><span class="special">&lt;</span> <span class="identifier">K</span><span class="special">,</span> <span class="identifier">V</span><span class="special">,</span> <span class="identifier">Pred</span><span class="special">,</span> <span class="identifier">Allocator</span><span class="special">,</span> <span class="identifier">mutex_family</span><span class="special">,</span> <span class="identifier">picket_lock_size</span> <span class="special">&gt;</span> <a name="stldb.contain_idp105544918393744.container_type"></a><span class="identifier">container_type</span><span class="special">;</span>      
+  <span class="keyword">typedef</span> container_type::pending_change_map_t                                           <a name="stldb.contain_idp105544918393744.pending_change_map_t"></a><span class="identifier">pending_change_map_t</span><span class="special">;</span>
+  <span class="keyword">typedef</span> <span class="identifier">mutex_family</span><span class="special">::</span><span class="identifier">mutex_type</span>                                                       <a name="stldb.contain_idp105544918393744.mutex_type"></a><span class="identifier">mutex_type</span><span class="special">;</span>          
+  <span class="keyword">typedef</span> <a class="link" href="container_proxy_base.html" title="Class template container_proxy_base">container_proxy_base</a><span class="special">&lt;</span> <span class="identifier">ManagedRegionType</span> <span class="special">&gt;</span>                                      <a name="stldb.contain_idp105544918393744.base"></a><span class="identifier">base</span><span class="special">;</span>                
+  <span class="keyword">typedef</span> <span class="identifier">Allocator</span>                                                                      <a name="stldb.contain_idp105544918393744.allocator_type"></a><span class="identifier">allocator_type</span><span class="special">;</span>      
+
+  <span class="comment">// <a class="link" href="contain_idp105544918393744.html#stldb.contain_idp105544918393744construct-copy-destruct">construct/copy/destruct</a></span>
+  <a class="link" href="contain_idp105544918393744.html#idp105544918354064-bb"><span class="identifier">container_proxy</span></a><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="contain_idp105544918393744.html#idp105544918354832-bb"><span class="special">~</span><span class="identifier">container_proxy</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="contain_idp105544918393744.html#idp105544918404752-bb">public member functions</a></span>
+  <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="special">*</span> <a class="link" href="contain_idp105544918393744.html#idp105544918405136-bb"><span class="identifier">find_or_construct_container</span></a><span class="special">(</span><a class="link" href="Database.html" title="Class template Database">Database</a><span class="special">&lt;</span> <span class="identifier">ManagedRegionType</span> <span class="special">&gt;</span> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">virtual</span> <span class="keyword">void</span> <a class="link" href="contain_idp105544918393744.html#idp105544918406672-bb"><span class="identifier">recoverOp</span></a><span class="special">(</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">boost_iarchive_t</span> <span class="special">&amp;</span><span class="special">,</span> <span class="identifier">transaction_id_t</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">virtual</span> <span class="keyword">void</span> <a class="link" href="contain_idp105544918393744.html#idp105544918408976-bb"><span class="identifier">initializeCommit</span></a><span class="special">(</span><a class="link" href="Transaction.html" title="Class Transaction">Transaction</a> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">virtual</span> <span class="keyword">void</span> <a class="link" href="contain_idp105544918393744.html#idp105544918410512-bb"><span class="identifier">completeCommit</span></a><span class="special">(</span><a class="link" href="Transaction.html" title="Class Transaction">Transaction</a> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">virtual</span> <span class="keyword">void</span> <a class="link" href="contain_idp105544918393744.html#idp105544918412048-bb"><span class="identifier">initializeRollback</span></a><span class="special">(</span><a class="link" href="Transaction.html" title="Class Transaction">Transaction</a> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">virtual</span> <span class="keyword">void</span> <a class="link" href="contain_idp105544918393744.html#idp105544918413584-bb"><span class="identifier">completeRollback</span></a><span class="special">(</span><a class="link" href="Transaction.html" title="Class Transaction">Transaction</a> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">virtual</span> <span class="keyword">void</span> 
+  <a class="link" href="contain_idp105544918393744.html#idp105544918349584-bb"><span class="identifier">save_checkpoint</span></a><span class="special">(</span><a class="link" href="Database.html" title="Class template Database">Database</a><span class="special">&lt;</span> <span class="identifier">ManagedRegionType</span> <span class="special">&gt;</span> <span class="special">&amp;</span><span class="special">,</span> <a class="link" href="checkpoint_ofstream.html" title="Class checkpoint_ofstream">checkpoint_ofstream</a> <span class="special">&amp;</span><span class="special">,</span> 
+                  <span class="identifier">transaction_id_t</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">virtual</span> <span class="keyword">void</span> <a class="link" href="contain_idp105544918393744.html#idp105544918352400-bb"><span class="identifier">load_checkpoint</span></a><span class="special">(</span><a class="link" href="checkpoint_ifstream.html" title="Class checkpoint_ifstream">checkpoint_ifstream</a> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+<span class="special">}</span><span class="special">;</span></pre></div>
+<div class="refsect1">
+<a name="idp105545152430992"></a><h2>Description</h2>
+<p>Specialization of <a class="link" href="container_proxy.html" title="Class template container_proxy">container_proxy</a> for <a class="link" href="trans_map.html" title="Class template trans_map">trans_map</a>, to deal with map's 2 arg constructor. </p>
+<div class="refsect2">
+<a name="idp105545152432656"></a><h3>
+<a name="stldb.contain_idp105544918393744construct-copy-destruct"></a><code class="computeroutput">container_proxy</code> 
+        public
+       construct/copy/destruct</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><a name="idp105544918354064-bb"></a><span class="identifier">container_proxy</span><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> name<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><a name="idp105544918354832-bb"></a><span class="special">~</span><span class="identifier">container_proxy</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545152440848"></a><h3>
+<a name="idp105544918404752-bb"></a><code class="computeroutput">container_proxy</code> public member functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="special">*</span> <a name="idp105544918405136-bb"></a><span class="identifier">find_or_construct_container</span><span class="special">(</span><a class="link" href="Database.html" title="Class template Database">Database</a><span class="special">&lt;</span> <span class="identifier">ManagedRegionType</span> <span class="special">&gt;</span> <span class="special">&amp;</span> db<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">virtual</span> <span class="keyword">void</span> 
+<a name="idp105544918406672-bb"></a><span class="identifier">recoverOp</span><span class="special">(</span><span class="keyword">int</span> opcode<span class="special">,</span> <span class="identifier">boost_iarchive_t</span> <span class="special">&amp;</span> stream<span class="special">,</span> <span class="identifier">transaction_id_t</span> lsn<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">virtual</span> <span class="keyword">void</span> <a name="idp105544918408976-bb"></a><span class="identifier">initializeCommit</span><span class="special">(</span><a class="link" href="Transaction.html" title="Class Transaction">Transaction</a> <span class="special">&amp;</span> trans<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">virtual</span> <span class="keyword">void</span> <a name="idp105544918410512-bb"></a><span class="identifier">completeCommit</span><span class="special">(</span><a class="link" href="Transaction.html" title="Class Transaction">Transaction</a> <span class="special">&amp;</span> trans<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">virtual</span> <span class="keyword">void</span> <a name="idp105544918412048-bb"></a><span class="identifier">initializeRollback</span><span class="special">(</span><a class="link" href="Transaction.html" title="Class Transaction">Transaction</a> <span class="special">&amp;</span> trans<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">virtual</span> <span class="keyword">void</span> <a name="idp105544918413584-bb"></a><span class="identifier">completeRollback</span><span class="special">(</span><a class="link" href="Transaction.html" title="Class Transaction">Transaction</a> <span class="special">&amp;</span> trans<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">virtual</span> <span class="keyword">void</span> 
+<a name="idp105544918349584-bb"></a><span class="identifier">save_checkpoint</span><span class="special">(</span><a class="link" href="Database.html" title="Class template Database">Database</a><span class="special">&lt;</span> <span class="identifier">ManagedRegionType</span> <span class="special">&gt;</span> <span class="special">&amp;</span> db<span class="special">,</span> 
+                <a class="link" href="checkpoint_ofstream.html" title="Class checkpoint_ofstream">checkpoint_ofstream</a> <span class="special">&amp;</span> checkpoint<span class="special">,</span> 
+                <span class="identifier">transaction_id_t</span> last_checkpoint_lsn<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">virtual</span> <span class="keyword">void</span> <a name="idp105544918352400-bb"></a><span class="identifier">load_checkpoint</span><span class="special">(</span><a class="link" href="checkpoint_ifstream.html" title="Class checkpoint_ifstream">checkpoint_ifstream</a> <span class="special">&amp;</span> checkpoint<span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2009 Bob Walters<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="concurrent/trans_map/pending_change_map_t.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.concurrent_trans_map_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="iter_less.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

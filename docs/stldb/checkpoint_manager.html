@@ -1,0 +1,83 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Class template checkpoint_manager</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../index.html" title="Chapter 1. STLdb 1.0">
+<link rel="up" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.checkpoint_manager_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/checkpoint_manager.h&gt;">
+<link rel="prev" href="checkpoint_ofstream.html" title="Class checkpoint_ofstream">
+<link rel="next" href="commit_buffer_t.html" title="Class template commit_buffer_t">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="STLdb" width="253" height="108" src="../images/stldb_logo.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="checkpoint_ofstream.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.checkpoint_manager_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="commit_buffer_t.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+<div class="refentry">
+<a name="stldb.checkpoint_manager"></a><div class="titlepage"></div>
+<div class="refnamediv">
+<h2><span class="refentrytitle">Class template checkpoint_manager</span></h2>
+<p>stldb::checkpoint_manager</p>
+</div>
+<h2 xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv-title">Synopsis</h2>
+<div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.checkpoint_manager_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/checkpoint_manager.h&gt;">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/checkpoint_manager.h</a>&gt;
+
+</span><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> managed_region_t<span class="special">&gt;</span> 
+<span class="keyword">class</span> <a class="link" href="checkpoint_manager.html" title="Class template checkpoint_manager">checkpoint_manager</a> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// <a class="link" href="checkpoint_manager.html#stldb.checkpoint_managerconstruct-copy-destruct">construct/copy/destruct</a></span>
+  <a class="link" href="checkpoint_manager.html#idp105544918553104-bb"><span class="identifier">checkpoint_manager</span></a><span class="special">(</span><span class="identifier">managed_region_t</span> <span class="special">&amp;</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="checkpoint_manager.html#idp105544918549904-bb">public member functions</a></span>
+  <span class="keyword">void</span> <a class="link" href="checkpoint_manager.html#idp105544918550288-bb"><span class="identifier">swap</span></a><span class="special">(</span><a class="link" href="checkpoint_manager.html" title="Class template checkpoint_manager">checkpoint_manager</a> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="checkpoint_manager.html#idp105544918551696-bb"><span class="identifier">checkpoint</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">interprocess_upgradable_mutex</span> <span class="special">&amp;</span> <a class="link" href="checkpoint_manager.html#idp105544918552336-bb"><span class="identifier">transaction_lock</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="checkpoint_manager.html#idp105544918554384-bb">public static functions</a></span>
+  <span class="keyword">static</span> <span class="keyword">void</span> <a class="link" href="checkpoint_manager.html#idp105544918554768-bb"><span class="identifier">grow</span></a><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">static</span> <span class="keyword">void</span> <a class="link" href="checkpoint_manager.html#idp105544918556560-bb"><span class="identifier">shrink_to_fit</span></a><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+<span class="special">}</span><span class="special">;</span></pre></div>
+<div class="refsect1">
+<a name="idp105545150288016"></a><h2>Description</h2>
+<div class="refsect2">
+<a name="idp105545150288400"></a><h3>
+<a name="stldb.checkpoint_managerconstruct-copy-destruct"></a><code class="computeroutput">checkpoint_manager</code> 
+        public
+       construct/copy/destruct</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><pre class="literallayout"><a name="idp105544918553104-bb"></a><span class="identifier">checkpoint_manager</span><span class="special">(</span><span class="identifier">managed_region_t</span> <span class="special">&amp;</span> region<span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> ckpt_fname<span class="special">)</span><span class="special">;</span></pre></li></ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545150295312"></a><h3>
+<a name="idp105544918549904-bb"></a><code class="computeroutput">checkpoint_manager</code> public member functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544918550288-bb"></a><span class="identifier">swap</span><span class="special">(</span><a class="link" href="checkpoint_manager.html" title="Class template checkpoint_manager">checkpoint_manager</a> <span class="special">&amp;</span> rarg<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544918551696-bb"></a><span class="identifier">checkpoint</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">interprocess_upgradable_mutex</span> <span class="special">&amp;</span> <a name="idp105544918552336-bb"></a><span class="identifier">transaction_lock</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545150308624"></a><h3>
+<a name="idp105544918554384-bb"></a><code class="computeroutput">checkpoint_manager</code> public static functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><span class="keyword">static</span> <span class="keyword">void</span> <a name="idp105544918554768-bb"></a><span class="identifier">grow</span><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> ckpt_fname<span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> newsize<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">static</span> <span class="keyword">void</span> <a name="idp105544918556560-bb"></a><span class="identifier">shrink_to_fit</span><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> region_fname<span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> ckpt_fname<span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2009 Bob Walters<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="checkpoint_ofstream.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.checkpoint_manager_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="commit_buffer_t.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

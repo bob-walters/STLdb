@@ -1,0 +1,64 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Class tracing</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../index.html" title="Chapter 1. STLdb 1.0">
+<link rel="up" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.trace_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/trace.h&gt;">
+<link rel="prev" href="tracer.html" title="Class tracer">
+<link rel="next" href="../STLDB_TRACE.html" title="Macro STLDB_TRACE">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="STLdb" width="253" height="108" src="../images/stldb_logo.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="tracer.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.trace_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="../STLDB_TRACE.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+<div class="refentry">
+<a name="stldb.tracing"></a><div class="titlepage"></div>
+<div class="refnamediv">
+<h2><span class="refentrytitle">Class tracing</span></h2>
+<p>stldb::tracing</p>
+</div>
+<h2 xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv-title">Synopsis</h2>
+<div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.trace_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/trace.h&gt;">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/trace.h</a>&gt;
+
+</span>
+<span class="keyword">class</span> <a class="link" href="tracing.html" title="Class tracing">tracing</a> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+
+  <span class="comment">// <a class="link" href="tracing.html#idp105544917403792-bb">public static functions</a></span>
+  <span class="keyword">static</span> <a class="link" href="tracer.html" title="Class tracer">tracer</a> <span class="special">*</span> <a class="link" href="tracing.html#idp105544917404176-bb"><span class="identifier">get_tracer</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">static</span> <span class="keyword">void</span> <a class="link" href="tracing.html#idp105544917405200-bb"><span class="identifier">set_tracer</span></a><span class="special">(</span><a class="link" href="tracer.html" title="Class tracer">tracer</a> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">static</span> <span class="identifier">trace_level_t</span> <a class="link" href="tracing.html#idp105544917406736-bb"><span class="identifier">get_trace_level</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">static</span> <span class="keyword">void</span> <a class="link" href="tracing.html#idp105544917407504-bb"><span class="identifier">set_trace_level</span></a><span class="special">(</span><span class="identifier">trace_level_t</span><span class="special">)</span><span class="special">;</span>
+<span class="special">}</span><span class="special">;</span></pre></div>
+<div class="refsect1">
+<a name="idp105545220327312"></a><h2>Description</h2>
+<div class="refsect2">
+<a name="idp105545220327696"></a><h3>
+<a name="idp105544917403792-bb"></a><code class="computeroutput">tracing</code> public static functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><span class="keyword">static</span> <a class="link" href="tracer.html" title="Class tracer">tracer</a> <span class="special">*</span> <a name="idp105544917404176-bb"></a><span class="identifier">get_tracer</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">static</span> <span class="keyword">void</span> <a name="idp105544917405200-bb"></a><span class="identifier">set_tracer</span><span class="special">(</span><a class="link" href="tracer.html" title="Class tracer">tracer</a> <span class="special">*</span> t<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">static</span> <span class="identifier">trace_level_t</span> <a name="idp105544917406736-bb"></a><span class="identifier">get_trace_level</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">static</span> <span class="keyword">void</span> <a name="idp105544917407504-bb"></a><span class="identifier">set_trace_level</span><span class="special">(</span><span class="identifier">trace_level_t</span> lvl<span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2009 Bob Walters<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="tracer.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.trace_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="../STLDB_TRACE.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

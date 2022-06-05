@@ -1,0 +1,126 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Class template trans_assoc_iterator</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../index.html" title="Chapter 1. STLdb 1.0">
+<link rel="up" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.trans_assoc_iterator_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_assoc_iterator.h&gt;">
+<link rel="prev" href="iter_less.html" title="Struct template iter_less">
+<link rel="next" href="trans_iterator.html" title="Class template trans_iterator">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="STLdb" width="253" height="108" src="../images/stldb_logo.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="iter_less.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.trans_assoc_iterator_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="trans_iterator.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+<div class="refentry">
+<a name="stldb.trans_assoc_iterator"></a><div class="titlepage"></div>
+<div class="refnamediv">
+<h2><span class="refentrytitle">Class template trans_assoc_iterator</span></h2>
+<p>stldb::trans_assoc_iterator</p>
+</div>
+<h2 xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv-title">Synopsis</h2>
+<div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.trans_assoc_iterator_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_assoc_iterator.h&gt;">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_assoc_iterator.h</a>&gt;
+
+</span><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">&gt;</span> 
+<span class="keyword">class</span> <a class="link" href="trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a> <span class="special">:</span> <span class="keyword">public</span> std::iterator&lt; iterator_traits&lt; base_iterator &gt;::iterator_category, iterator_traits&lt; base_iterator &gt;::value_type, iterator_traits&lt; base_iterator &gt;::difference_type, iterator_traits&lt; base_iterator &gt;::pointer, iterator_traits&lt; base_iterator &gt;::reference &gt;
+<span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// types</span>
+  <span class="keyword">typedef</span> <span class="identifier">iterator_traits</span><span class="special">&lt;</span> <span class="identifier">base_iterator</span> <span class="special">&gt;</span><span class="special">::</span><span class="identifier">value_type</span>              <a name="stldb.trans_assoc_iterator.value_type"></a><span class="identifier">value_type</span><span class="special">;</span>          
+  <span class="keyword">typedef</span> <span class="identifier">iterator_traits</span><span class="special">&lt;</span> <span class="identifier">base_iterator</span> <span class="special">&gt;</span><span class="special">::</span><span class="identifier">value_type</span><span class="special">::</span><span class="identifier">first_type</span>  <a name="stldb.trans_assoc_iterator.K"></a><span class="identifier">K</span><span class="special">;</span>                   
+  <span class="keyword">typedef</span> <span class="identifier">iterator_traits</span><span class="special">&lt;</span> <span class="identifier">base_iterator</span> <span class="special">&gt;</span><span class="special">::</span><span class="identifier">value_type</span><span class="special">::</span><span class="identifier">second_type</span> <a name="stldb.trans_assoc_iterator.V"></a><span class="identifier">V</span><span class="special">;</span>                   
+  <span class="keyword">typedef</span> <span class="identifier">container_t</span><span class="special">::</span><span class="identifier">pending_change_map_t</span>                         <a name="stldb.trans_assoc_iterator.pending_change_map_t"></a><span class="identifier">pending_change_map_t</span><span class="special">;</span>
+  <span class="keyword">typedef</span> <span class="identifier">value_type</span> <span class="special">&amp;</span>                                              <a name="stldb.trans_assoc_iterator.reference"></a><span class="identifier">reference</span><span class="special">;</span>           
+  <span class="keyword">typedef</span> <span class="identifier">value_type</span> <span class="special">*</span>                                              <a name="stldb.trans_assoc_iterator.pointer"></a><span class="identifier">pointer</span><span class="special">;</span>             
+
+  <span class="comment">// <a class="link" href="trans_assoc_iterator.html#stldb.trans_assoc_iteratorconstruct-copy-destruct">construct/copy/destruct</a></span>
+  <a class="link" href="trans_assoc_iterator.html#idp105544918181264-bb"><span class="identifier">trans_assoc_iterator</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="trans_assoc_iterator.html#idp105544918181520-bb"><span class="identifier">trans_assoc_iterator</span></a><span class="special">(</span><span class="identifier">base_iterator</span><span class="special">,</span> <span class="identifier">container_t</span> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="trans_assoc_iterator.html#idp105544918183184-bb"><span class="identifier">trans_assoc_iterator</span></a><span class="special">(</span><span class="identifier">base_iterator</span><span class="special">,</span> <span class="identifier">container_t</span> <span class="special">*</span><span class="special">,</span> <a class="link" href="Transaction.html" title="Class Transaction">Transaction</a> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="trans_assoc_iterator.html#idp105544918119696-bb"><span class="identifier">trans_assoc_iterator</span></a><span class="special">(</span><span class="keyword">const</span> <a class="link" href="trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="trans_assoc_iterator.html#idp105544918172816-bb">public member functions</a></span>
+  <span class="identifier">reference</span> <a class="link" href="trans_assoc_iterator.html#idp105544918173200-bb"><span class="keyword">operator</span><span class="special">*</span></a><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+  <span class="identifier">pointer</span> <a class="link" href="trans_assoc_iterator.html#idp105544918173968-bb"><span class="keyword">operator</span><span class="special">-&gt;</span></a><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+  <a class="link" href="trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a> <span class="special">&amp;</span> <a class="link" href="trans_assoc_iterator.html#idp105544918174736-bb"><span class="keyword">operator</span><span class="special">++</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a> <span class="special">&amp;</span> <a class="link" href="trans_assoc_iterator.html#idp105544918175632-bb"><span class="keyword">operator</span><span class="special">--</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a> <a class="link" href="trans_assoc_iterator.html#idp105544918176528-bb"><span class="keyword">operator</span><span class="special">++</span></a><span class="special">(</span><span class="keyword">int</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a> <a class="link" href="trans_assoc_iterator.html#idp105544918177808-bb"><span class="keyword">operator</span><span class="special">--</span></a><span class="special">(</span><span class="keyword">int</span><span class="special">)</span><span class="special">;</span>
+  <span class="identifier">base_iterator</span> <span class="special">&amp;</span> <a class="link" href="trans_assoc_iterator.html#idp105544918179088-bb"><span class="identifier">base</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">bool</span> <a class="link" href="trans_assoc_iterator.html#idp105544918179728-bb"><span class="identifier">valid</span></a><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+  <span class="identifier">base_iterator</span> <a class="link" href="trans_assoc_iterator.html#idp105544918180496-bb"><span class="identifier">container_end</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="trans_assoc_iterator.html#idp105544918120848-bb">private member functions</a></span>
+  <span class="keyword">void</span> <a class="link" href="trans_assoc_iterator.html#idp105544918121232-bb"><span class="identifier">skip_forward</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="trans_assoc_iterator.html#idp105544918121872-bb"><span class="identifier">skip_backward</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="trans_assoc_iterator.html#idp105544918122512-bb"><span class="identifier">forward</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="trans_assoc_iterator.html#idp105544918123152-bb"><span class="identifier">backward</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="trans_assoc_iterator.html#idp105544918123792-bb"><span class="identifier">set_current</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+<span class="special">}</span><span class="special">;</span></pre></div>
+<div class="refsect1">
+<a name="idp105545152989456"></a><h2>Description</h2>
+<p>This is an iterator adapter which will work for any associative iterator type in which the value type of the base iterator is pair&lt;const K,transEntry&lt;V&gt;&gt; for any K,V.</p>
+<p>This adapter provides a transactionally aware iterator which keeps transactions isolated from each other.</p>
+<p>First, the iterator will skip over any uncomitted data, or any uncomitted data not associated with the transaction that the iterator was constructed with. This provides a consistent view of the data in the map.</p>
+<p>Finally, when the iterator lands on an entry which has been modified by the current transaction, it composes a value_type entry which has the key and the pending update value on it, and returns references to that pair. In this case, the pair being seen is not actually in the map, but is rather a pending change. </p>
+<div class="refsect2">
+<a name="idp105545152990864"></a><h3>
+<a name="stldb.trans_assoc_iteratorconstruct-copy-destruct"></a><code class="computeroutput">trans_assoc_iterator</code> 
+        public
+       construct/copy/destruct</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><a name="idp105544918181264-bb"></a><span class="identifier">trans_assoc_iterator</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem">
+<pre class="literallayout"><a name="idp105544918181520-bb"></a><span class="identifier">trans_assoc_iterator</span><span class="special">(</span><span class="identifier">base_iterator</span> i<span class="special">,</span> <span class="identifier">container_t</span> <span class="special">*</span> container<span class="special">)</span><span class="special">;</span></pre>
+<p>TODO: There seems to be a bug with boost::interprocess::map&lt;&gt;, because although map::value_type is pair&lt;const K, V&gt;, it seems that map::iterator::operator* is returning pair&lt;K,V&gt;, in violation of current C++ standards. The workaround are the reinterpret casts seen below and in the tcc. </p>
+</li>
+<li class="listitem"><pre class="literallayout"><a name="idp105544918183184-bb"></a><span class="identifier">trans_assoc_iterator</span><span class="special">(</span><span class="identifier">base_iterator</span> i<span class="special">,</span> <span class="identifier">container_t</span> <span class="special">*</span> container<span class="special">,</span> 
+                     <a class="link" href="Transaction.html" title="Class Transaction">Transaction</a> <span class="special">&amp;</span> trans<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><a name="idp105544918119696-bb"></a><span class="identifier">trans_assoc_iterator</span><span class="special">(</span><span class="keyword">const</span> <a class="link" href="trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a> <span class="special">&amp;</span> rarg<span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545152943888"></a><h3>
+<a name="idp105544918172816-bb"></a><code class="computeroutput">trans_assoc_iterator</code> public member functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><span class="identifier">reference</span> <a name="idp105544918173200-bb"></a><span class="keyword">operator</span><span class="special">*</span><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="identifier">pointer</span> <a name="idp105544918173968-bb"></a><span class="keyword">operator</span><span class="special">-&gt;</span><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><a class="link" href="trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a> <span class="special">&amp;</span> <a name="idp105544918174736-bb"></a><span class="keyword">operator</span><span class="special">++</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><a class="link" href="trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a> <span class="special">&amp;</span> <a name="idp105544918175632-bb"></a><span class="keyword">operator</span><span class="special">--</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><a class="link" href="trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a> <a name="idp105544918176528-bb"></a><span class="keyword">operator</span><span class="special">++</span><span class="special">(</span><span class="keyword">int</span> n<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><a class="link" href="trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a> <a name="idp105544918177808-bb"></a><span class="keyword">operator</span><span class="special">--</span><span class="special">(</span><span class="keyword">int</span> n<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="identifier">base_iterator</span> <span class="special">&amp;</span> <a name="idp105544918179088-bb"></a><span class="identifier">base</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">bool</span> <a name="idp105544918179728-bb"></a><span class="identifier">valid</span><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="identifier">base_iterator</span> <a name="idp105544918180496-bb"></a><span class="identifier">container_end</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545152912656"></a><h3>
+<a name="idp105544918120848-bb"></a><code class="computeroutput">trans_assoc_iterator</code> private member functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544918121232-bb"></a><span class="identifier">skip_forward</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544918121872-bb"></a><span class="identifier">skip_backward</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544918122512-bb"></a><span class="identifier">forward</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544918123152-bb"></a><span class="identifier">backward</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544918123792-bb"></a><span class="identifier">set_current</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2009 Bob Walters<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="iter_less.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.trans_assoc_iterator_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="trans_iterator.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

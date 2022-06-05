@@ -1,0 +1,77 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Class template bounded_wait_policy</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../index.html" title="Chapter 1. STLdb 1.0">
+<link rel="up" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.sync.wait_policy_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/wait_policy.h&gt;">
+<link rel="prev" href="picket_lock_set.html" title="Class template picket_lock_set">
+<link rel="next" href="wait_indefinitely_policy.html" title="Class template wait_indefinitely_policy">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="STLdb" width="253" height="108" src="../images/stldb_logo.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="picket_lock_set.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.sync.wait_policy_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="wait_indefinitely_policy.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+<div class="refentry">
+<a name="stldb.bounded_wait_policy"></a><div class="titlepage"></div>
+<div class="refnamediv">
+<h2><span class="refentrytitle">Class template bounded_wait_policy</span></h2>
+<p>stldb::bounded_wait_policy</p>
+</div>
+<h2 xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv-title">Synopsis</h2>
+<div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.sync.wait_policy_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/wait_policy.h&gt;">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/wait_policy.h</a>&gt;
+
+</span><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_lock_t<span class="special">&gt;</span> 
+<span class="keyword">class</span> <a class="link" href="bounded_wait_policy.html" title="Class template bounded_wait_policy">bounded_wait_policy</a> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// <a class="link" href="bounded_wait_policy.html#stldb.bounded_wait_policyconstruct-copy-destruct">construct/copy/destruct</a></span>
+  <a class="link" href="bounded_wait_policy.html#idp105544917450384-bb"><span class="identifier">bounded_wait_policy</span></a><span class="special">(</span><span class="identifier">container_lock_t</span> <span class="special">&amp;</span><span class="special">,</span> 
+                      <span class="keyword">const</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">posix_time</span><span class="special">::</span><span class="identifier">time_duration</span> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="bounded_wait_policy.html#idp105544917445904-bb">public member functions</a></span>
+  <span class="keyword">void</span> <a class="link" href="bounded_wait_policy.html#idp105544917446288-bb"><span class="identifier">unlock_container</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="bounded_wait_policy.html#idp105544917446928-bb"><span class="identifier">relock_container</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> row_mutex_t<span class="special">,</span> <span class="keyword">typename</span> condition_t<span class="special">&gt;</span> 
+    <span class="keyword">void</span> <a class="link" href="bounded_wait_policy.html#idp105544917447568-bb"><span class="identifier">wait</span></a><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">scoped_lock</span><span class="special">&lt;</span> <span class="identifier">row_mutex_t</span> <span class="special">&gt;</span> <span class="special">&amp;</span><span class="special">,</span> 
+              <span class="identifier">condition_t</span> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+<span class="special">}</span><span class="special">;</span></pre></div>
+<div class="refsect1">
+<a name="idp105545220001680"></a><h2>Description</h2>
+<div class="refsect2">
+<a name="idp105545220002064"></a><h3>
+<a name="stldb.bounded_wait_policyconstruct-copy-destruct"></a><code class="computeroutput">bounded_wait_policy</code> 
+        public
+       construct/copy/destruct</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><pre class="literallayout"><a name="idp105544917450384-bb"></a><span class="identifier">bounded_wait_policy</span><span class="special">(</span><span class="identifier">container_lock_t</span> <span class="special">&amp;</span> lock<span class="special">,</span> 
+                    <span class="keyword">const</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">posix_time</span><span class="special">::</span><span class="identifier">time_duration</span> <span class="special">&amp;</span> max_wait<span class="special">)</span><span class="special">;</span></pre></li></ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545220010512"></a><h3>
+<a name="idp105544917445904-bb"></a><code class="computeroutput">bounded_wait_policy</code> public member functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544917446288-bb"></a><span class="identifier">unlock_container</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544917446928-bb"></a><span class="identifier">relock_container</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> row_mutex_t<span class="special">,</span> <span class="keyword">typename</span> condition_t<span class="special">&gt;</span> 
+  <span class="keyword">void</span> <a name="idp105544917447568-bb"></a><span class="identifier">wait</span><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">scoped_lock</span><span class="special">&lt;</span> <span class="identifier">row_mutex_t</span> <span class="special">&gt;</span> <span class="special">&amp;</span> held_lock<span class="special">,</span> 
+            <span class="identifier">condition_t</span> <span class="special">&amp;</span> condition<span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2009 Bob Walters<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="picket_lock_set.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.sync.wait_policy_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="wait_indefinitely_policy.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Class cerr_tracer</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../index.html" title="Chapter 1. STLdb 1.0">
+<link rel="up" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.trace_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/trace.h&gt;">
+<link rel="prev" href="wait_indefinitely_policy.html" title="Class template wait_indefinitely_policy">
+<link rel="next" href="tracer.html" title="Class tracer">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="STLdb" width="253" height="108" src="../images/stldb_logo.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="wait_indefinitely_policy.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.trace_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="tracer.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+<div class="refentry">
+<a name="stldb.cerr_tracer"></a><div class="titlepage"></div>
+<div class="refnamediv">
+<h2><span class="refentrytitle">Class cerr_tracer</span></h2>
+<p>stldb::cerr_tracer</p>
+</div>
+<h2 xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv-title">Synopsis</h2>
+<div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.trace_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/trace.h&gt;">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/trace.h</a>&gt;
+
+</span>
+<span class="keyword">class</span> <a class="link" href="cerr_tracer.html" title="Class cerr_tracer">cerr_tracer</a> <span class="special">:</span> <span class="keyword">public</span> <span class="identifier">stldb</span><span class="special">::</span><span class="identifier">tracer</span> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// <a class="link" href="cerr_tracer.html#stldb.cerr_tracerconstruct-copy-destruct">construct/copy/destruct</a></span>
+  <a class="link" href="cerr_tracer.html#idp105544917399312-bb"><span class="identifier">cerr_tracer</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="cerr_tracer.html#idp105544917459600-bb">public member functions</a></span>
+  <span class="keyword">virtual</span> <span class="keyword">void</span> <a class="link" href="cerr_tracer.html#idp105544917459984-bb"><span class="identifier">log</span></a><span class="special">(</span><span class="identifier">trace_level_t</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="keyword">int</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">bool</span> <a class="link" href="cerr_tracer.html#idp105544917462800-bb"><span class="identifier">file_loc_included</span></a><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="cerr_tracer.html#idp105544917463568-bb"><span class="identifier">set_file_loc_included</span></a><span class="special">(</span><span class="keyword">bool</span><span class="special">)</span><span class="special">;</span>
+<span class="special">}</span><span class="special">;</span></pre></div>
+<div class="refsect1">
+<a name="idp105545220118928"></a><h2>Description</h2>
+<div class="refsect2">
+<a name="idp105545220119312"></a><h3>
+<a name="stldb.cerr_tracerconstruct-copy-destruct"></a><code class="computeroutput">cerr_tracer</code> 
+        public
+       construct/copy/destruct</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><pre class="literallayout"><a name="idp105544917399312-bb"></a><span class="identifier">cerr_tracer</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li></ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545220123152"></a><h3>
+<a name="idp105544917459600-bb"></a><code class="computeroutput">cerr_tracer</code> public member functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><span class="keyword">virtual</span> <span class="keyword">void</span> 
+<a name="idp105544917459984-bb"></a><span class="identifier">log</span><span class="special">(</span><span class="identifier">trace_level_t</span> lvl<span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> filename<span class="special">,</span> <span class="keyword">int</span> loc<span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> msg<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">bool</span> <a name="idp105544917462800-bb"></a><span class="identifier">file_loc_included</span><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544917463568-bb"></a><span class="identifier">set_file_loc_included</span><span class="special">(</span><span class="keyword">bool</span> b<span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2009 Bob Walters<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="wait_indefinitely_policy.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.trace_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="tracer.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

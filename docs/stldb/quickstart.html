@@ -1,0 +1,781 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Quick Start Guide</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../index.html" title="Chapter 1. STLdb 1.0">
+<link rel="up" href="../index.html" title="Chapter 1. STLdb 1.0">
+<link rel="prev" href="build.html" title="Building STLdb">
+<link rel="next" href="arch.html" title="Architecture of an STLdb database">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="STLdb" width="253" height="108" src="../images/stldb_logo.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="build.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="arch.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="stldb.quickstart"></a><a class="link" href="quickstart.html" title="Quick Start Guide">Quick Start Guide</a>
+</h2></div></div></div>
+<p>
+      This section presents a quick overview of how an STLdb database can be created
+      and used in an application. The concepts which are introduced in this section
+      are elaborated on in the sections which follow.
+    </p>
+<p>
+      This example shows a simple database composed of std::maps. We start with the
+      maps being in the heap, and them progresses that to a model in which the maps
+      are in an STLdb database.
+    </p>
+<p>
+      To start with, consider a simple Shoe Store application in which a database
+      consists of two data types, Customers and Accounts. Both types are stored in
+      their own maps, corresponding to the notion of database tables.
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">string</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">map</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">cassert</span><span class="special">&gt;</span>
+
+<span class="keyword">typedef</span> <span class="keyword">long</span> <span class="identifier">date_t</span><span class="special">;</span>  <span class="comment">// days since epoch.</span>
+
+<span class="comment">// customer record for my shoe store</span>
+<span class="keyword">struct</span> <span class="identifier">customer_t</span> <span class="special">{</span>
+	<span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">name</span><span class="special">;</span>
+	<span class="keyword">int</span> <span class="identifier">shoe_size</span><span class="special">;</span>
+	<span class="identifier">date_t</span> <span class="identifier">last_purchase_date</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="comment">// account record for customers.</span>
+<span class="keyword">struct</span> <span class="identifier">account_t</span> <span class="special">{</span>
+	<span class="keyword">int</span> <span class="identifier">account_num</span><span class="special">;</span>
+	<span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">customer_name</span><span class="special">;</span>
+	<span class="identifier">date_t</span> <span class="identifier">account_start_date</span><span class="special">;</span>
+	<span class="keyword">long</span> <span class="identifier">balance</span><span class="special">;</span>
+	<span class="identifier">date_t</span> <span class="identifier">last_payment_date</span><span class="special">;</span>
+
+	<span class="keyword">void</span> <span class="identifier">add_purchase</span><span class="special">(</span> <span class="keyword">double</span> <span class="identifier">amount</span> <span class="special">)</span> <span class="special">{</span>
+		<span class="identifier">balance</span> <span class="special">+=</span> <span class="identifier">amount</span><span class="special">;</span>
+	<span class="special">}</span>
+	<span class="keyword">void</span> <span class="identifier">add_payment</span><span class="special">(</span> <span class="keyword">double</span> <span class="identifier">amount</span> <span class="special">)</span> <span class="special">{</span>
+		<span class="identifier">balance</span> <span class="special">-=</span> <span class="identifier">amount</span><span class="special">;</span>
+	<span class="special">}</span>
+<span class="special">};</span>
+</pre>
+<p>
+    </p>
+<p>
+      In the above code, we establish our customer and account types. Note that they
+      are not concrete types, they have std::string members. Now we need corresponding
+      map types to store sets of these objects, keyed off the customer names.
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="comment">// "table" types in my database.</span>
+<span class="keyword">typedef</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span><span class="identifier">customer_t</span><span class="special">&gt;</span> <span class="identifier">customer_map_t</span><span class="special">;</span>
+<span class="keyword">typedef</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span><span class="identifier">account_t</span><span class="special">&gt;</span> <span class="identifier">account_map_t</span><span class="special">;</span>
+
+<span class="keyword">typedef</span> <span class="identifier">customer_map_t</span><span class="special">::</span><span class="identifier">iterator</span> <span class="identifier">customer_ref</span><span class="special">;</span>
+<span class="keyword">typedef</span> <span class="identifier">account_map_t</span><span class="special">::</span><span class="identifier">iterator</span> <span class="identifier">account_ref</span><span class="special">;</span>
+</pre>
+<p>
+    </p>
+<p>
+      Now all that remains is our example of data manipulation.
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="comment">// operations...</span>
+<span class="keyword">int</span> <span class="identifier">main</span><span class="special">(</span><span class="keyword">int</span> <span class="identifier">argc</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="identifier">argv</span><span class="special">[])</span>
+<span class="special">{</span>
+	<span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">name</span> <span class="special">=</span> <span class="string">"John Smith"</span><span class="special">;</span>
+
+	<span class="comment">// 1) create database</span>
+	<span class="identifier">customer_map_t</span>  <span class="identifier">cust_map</span><span class="special">;</span>
+	<span class="identifier">account_map_t</span> <span class="identifier">account_map</span><span class="special">;</span>
+
+	<span class="comment">// create a customer and account within the database</span>
+	<span class="identifier">customer_t</span> <span class="identifier">cust</span><span class="special">;</span>
+	<span class="identifier">cust</span><span class="special">.</span><span class="identifier">name</span> <span class="special">=</span> <span class="identifier">name</span><span class="special">;</span>
+	<span class="identifier">cust</span><span class="special">.</span><span class="identifier">shoe_size</span> <span class="special">=</span> <span class="number">8</span><span class="special">;</span>
+	<span class="identifier">cust_map</span><span class="special">.</span><span class="identifier">insert</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">make_pair</span><span class="special">(</span><span class="identifier">name</span><span class="special">,</span> <span class="identifier">cust</span><span class="special">));</span>
+
+	<span class="identifier">assert</span><span class="special">(</span> <span class="identifier">account_map</span><span class="special">.</span><span class="identifier">find</span><span class="special">(</span><span class="identifier">name</span><span class="special">)</span> <span class="special">==</span> <span class="identifier">account_map</span><span class="special">.</span><span class="identifier">end</span><span class="special">()</span> <span class="special">);</span>
+	<span class="identifier">account_t</span> <span class="identifier">account</span><span class="special">;</span>
+	<span class="identifier">account</span><span class="special">.</span><span class="identifier">account_num</span> <span class="special">=</span> <span class="identifier">account_map</span><span class="special">.</span><span class="identifier">size</span><span class="special">();</span>  <span class="comment">// next available</span>
+	<span class="identifier">account</span><span class="special">.</span><span class="identifier">customer_name</span> <span class="special">=</span> <span class="identifier">name</span><span class="special">;</span>
+	<span class="identifier">account</span><span class="special">.</span><span class="identifier">account_start_date</span> <span class="special">=</span> <span class="number">39785</span><span class="special">;</span> <span class="comment">// ~2009</span>
+	<span class="identifier">account</span><span class="special">.</span><span class="identifier">balance</span> <span class="special">=</span> <span class="number">0.0</span><span class="special">;</span>
+	<span class="identifier">account</span><span class="special">.</span><span class="identifier">last_payment_date</span> <span class="special">=</span> <span class="special">-</span><span class="number">1</span><span class="special">;</span> <span class="comment">// never</span>
+	<span class="identifier">account_map</span><span class="special">.</span><span class="identifier">insert</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">make_pair</span><span class="special">(</span><span class="identifier">name</span><span class="special">,</span> <span class="identifier">account</span><span class="special">));</span>
+
+	<span class="comment">// transaction 1: find a customer by name, and confirm that it</span>
+	<span class="comment">// has an account with us.</span>
+	<span class="identifier">customer_ref</span> <span class="identifier">custref</span> <span class="special">=</span> <span class="identifier">cust_map</span><span class="special">.</span><span class="identifier">find</span><span class="special">(</span><span class="identifier">name</span><span class="special">);</span>
+	<span class="identifier">assert</span><span class="special">(</span><span class="identifier">custref</span><span class="special">-&gt;</span><span class="identifier">second</span><span class="special">.</span><span class="identifier">shoe_size</span> <span class="special">==</span> <span class="number">8</span><span class="special">);</span>
+	<span class="identifier">account_ref</span> <span class="identifier">accountref</span> <span class="special">=</span> <span class="identifier">account_map</span><span class="special">.</span><span class="identifier">find</span><span class="special">(</span><span class="identifier">name</span><span class="special">);</span>
+	<span class="identifier">assert</span><span class="special">(</span><span class="identifier">accountref</span> <span class="special">!=</span> <span class="identifier">account_map</span><span class="special">.</span><span class="identifier">end</span><span class="special">());</span>
+
+	<span class="comment">// transaction 2: add a purchase to an account by name.</span>
+	<span class="identifier">accountref</span> <span class="special">=</span> <span class="identifier">account_map</span><span class="special">.</span><span class="identifier">find</span><span class="special">(</span><span class="identifier">name</span><span class="special">);</span>
+	<span class="identifier">accountref</span><span class="special">-&gt;</span><span class="identifier">second</span><span class="special">.</span><span class="identifier">add_purchase</span><span class="special">(</span><span class="number">100.0</span><span class="special">);</span>
+	<span class="identifier">assert</span><span class="special">(</span><span class="identifier">accountref</span><span class="special">-&gt;</span><span class="identifier">second</span><span class="special">.</span><span class="identifier">balance</span> <span class="special">==</span> <span class="number">100.0</span><span class="special">);</span>
+
+	<span class="comment">// transaction 3: add a payment to an account.</span>
+	<span class="identifier">accountref</span><span class="special">-&gt;</span><span class="identifier">second</span><span class="special">.</span><span class="identifier">add_payment</span><span class="special">(</span><span class="number">60.0</span><span class="special">);</span>
+	<span class="identifier">assert</span><span class="special">(</span><span class="identifier">accountref</span><span class="special">-&gt;</span><span class="identifier">second</span><span class="special">.</span><span class="identifier">balance</span> <span class="special">==</span> <span class="number">40.0</span><span class="special">);</span>
+
+	<span class="comment">// transaction 4: remove the account.</span>
+	<span class="identifier">account_map</span><span class="special">.</span><span class="identifier">erase</span><span class="special">(</span><span class="identifier">accountref</span><span class="special">);</span>
+<span class="special">}</span>
+</pre>
+<p>
+    </p>
+<p>
+      So far, nothing beyond the standard STL map type has been introduced. Now to
+      create an STLdb example which does the same set of operations, with full transactions,
+      we need to move the maps and their associated data types into shared memory.
+      STLdb works with the database contents as an active set in a boost::interprocess
+      region of your choice (shared memory, mapped file, etc.) and the maps are literally
+      accessed directly from shared memory. This makes operations, particularly read
+      operations, very efficient. No deserialization of objects during find() calls,
+      and no disk I/O for read-only operations.
+    </p>
+<p>
+      Understanding the paradigm for working with STL containers in Boost::interprocess
+      shared memory regions is essential to the use of STLdb. This next example shows
+      the same data structures moved into a boost::interprocess region. For more
+      detailed explanations of boost::interprocess, see the <a href="http://www.boost.org/doc/libs/1_41_0/doc/html/interprocess.html" target="_top">boost::interprocess
+      library documentation for details</a>
+    </p>
+<p>
+      Here's our type definitions for the case of customer and account types which
+      will reside in shared memory.
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">string</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">map</span><span class="special">&gt;</span>
+
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">interprocess</span><span class="special">/</span><span class="identifier">containers</span><span class="special">/</span><span class="identifier">string</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">interprocess</span><span class="special">/</span><span class="identifier">containers</span><span class="special">/</span><span class="identifier">map</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">interprocess</span><span class="special">/</span><span class="identifier">allocators</span><span class="special">/</span><span class="identifier">cached_adaptive_pool</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">interprocess</span><span class="special">/</span><span class="identifier">managed_shared_memory</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">stldb</span><span class="special">/</span><span class="identifier">allocators</span><span class="special">/</span><span class="identifier">scoped_allocation</span><span class="special">.</span><span class="identifier">h</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">stldb</span><span class="special">/</span><span class="identifier">allocators</span><span class="special">/</span><span class="identifier">scope_aware_allocator</span><span class="special">.</span><span class="identifier">h</span><span class="special">&gt;</span>
+
+<span class="keyword">using</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">managed_shared_memory</span><span class="special">;</span>
+
+<span class="keyword">typedef</span> <span class="keyword">long</span> <span class="identifier">date_t</span><span class="special">;</span>  <span class="comment">// days since epoch.</span>
+
+<span class="comment">// String in shared memory, based on boost::interprocess::basic_string</span>
+<span class="comment">// Allocator of char in shared memory, with support for default constructor</span>
+<span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">basic_string</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">char_traits</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">&gt;,</span>
+	<span class="identifier">stldb</span><span class="special">::</span><span class="identifier">scope_aware_allocator</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">allocator</span><span class="special">&lt;</span>
+		<span class="keyword">char</span><span class="special">,</span> <span class="identifier">managed_shared_memory</span><span class="special">::</span><span class="identifier">segment_manager</span><span class="special">&gt;</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <span class="identifier">shm_string</span><span class="special">;</span>
+
+<span class="comment">// customer record for my shoe store</span>
+<span class="keyword">struct</span> <span class="identifier">customer_t</span> <span class="special">{</span>
+	<span class="identifier">shm_string</span> <span class="identifier">name</span><span class="special">;</span>
+	<span class="keyword">int</span> <span class="identifier">shoe_size</span><span class="special">;</span>
+	<span class="identifier">date_t</span> <span class="identifier">last_purchase_date</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="comment">// account record for customers.</span>
+<span class="keyword">struct</span> <span class="identifier">account_t</span> <span class="special">{</span>
+	<span class="keyword">int</span> <span class="identifier">account_num</span><span class="special">;</span>
+	<span class="identifier">shm_string</span> <span class="identifier">customer_name</span><span class="special">;</span>
+	<span class="identifier">date_t</span> <span class="identifier">account_start_date</span><span class="special">;</span>
+	<span class="keyword">long</span> <span class="identifier">balance</span><span class="special">;</span>
+	<span class="identifier">date_t</span> <span class="identifier">last_payment_date</span><span class="special">;</span>
+
+	<span class="keyword">void</span> <span class="identifier">add_purchase</span><span class="special">(</span> <span class="keyword">double</span> <span class="identifier">amount</span> <span class="special">)</span> <span class="special">{</span>
+		<span class="identifier">balance</span> <span class="special">+=</span> <span class="identifier">amount</span><span class="special">;</span>
+	<span class="special">}</span>
+	<span class="keyword">void</span> <span class="identifier">add_payment</span><span class="special">(</span> <span class="keyword">double</span> <span class="identifier">amount</span> <span class="special">)</span> <span class="special">{</span>
+		<span class="identifier">balance</span> <span class="special">-=</span> <span class="identifier">amount</span><span class="special">;</span>
+	<span class="special">}</span>
+<span class="special">};</span>
+</pre>
+<p>
+    </p>
+<p>
+      Notice that in this case, we no longer use std::string for strings. Rather,
+      we are using boost::interprocess::basic_string to hold string data, because
+      that string class will work effectively with offset_ptr, and with interprocess
+      allocators. The allocator type being given to the string class in this case
+      is not a pure interprocess_allocator, but rather an stldb::scope_aware_allocator
+      wrapper, which supports a scope-based allocation scheme that enables a default
+      constructor so that constructed objects implicitly know which boost::interprocess
+      region they should use for allocation. You'll see more on that later. For now,
+      the important thing to note is that my customer_t and account_t classes needed
+      to switch to use shm_string instead of std::string. Had either of these types
+      done their own internal memory allocation they would need to accept an allocator
+      template parameter, and use that allocator for memory allocation.
+    </p>
+<p>
+      With the types modified to work in shared memory, we can now declare the map
+      types which will hold these objects.
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="comment">// "table" types in my database.</span>
+<span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">map</span><span class="special">&lt;</span><span class="identifier">shm_string</span><span class="special">,</span> <span class="identifier">customer_t</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">less</span><span class="special">&lt;</span><span class="identifier">shm_string</span><span class="special">&gt;,</span>
+	<span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">cached_adaptive_pool</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">pair</span><span class="special">&lt;</span><span class="keyword">const</span> <span class="identifier">shm_string</span><span class="special">,</span> <span class="identifier">customer_t</span><span class="special">&gt;,</span>
+		<span class="identifier">managed_shared_memory</span><span class="special">::</span><span class="identifier">segment_manager</span><span class="special">&gt;</span> <span class="special">&gt;</span>  <span class="identifier">customer_map_t</span><span class="special">;</span>
+
+<span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">map</span><span class="special">&lt;</span><span class="identifier">shm_string</span><span class="special">,</span> <span class="identifier">account_t</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">less</span><span class="special">&lt;</span><span class="identifier">shm_string</span><span class="special">&gt;,</span>
+	<span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">cached_adaptive_pool</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">pair</span><span class="special">&lt;</span><span class="keyword">const</span> <span class="identifier">shm_string</span><span class="special">,</span> <span class="identifier">account_t</span><span class="special">&gt;,</span>
+		<span class="identifier">managed_shared_memory</span><span class="special">::</span><span class="identifier">segment_manager</span><span class="special">&gt;</span> <span class="special">&gt;</span>  <span class="identifier">account_map_t</span><span class="special">;</span>
+
+<span class="keyword">typedef</span> <span class="identifier">customer_map_t</span><span class="special">::</span><span class="identifier">iterator</span> <span class="identifier">customer_ref</span><span class="special">;</span>
+<span class="keyword">typedef</span> <span class="identifier">account_map_t</span><span class="special">::</span><span class="identifier">iterator</span> <span class="identifier">account_ref</span><span class="special">;</span>
+</pre>
+<p>
+    </p>
+<p>
+      In this case, we use the boost::interprocess::map types to hold data in shared
+      memory, as most STL map implementations do not (yet) fully support custom pointer
+      types in the manner suggested by the STL standard. In this case, I've also
+      elected to use the cached_adaptive_pool allocators purely as a performance
+      enabler since all nodes in this map are the same size, and can exploit that
+      trait.
+    </p>
+<p>
+      Finally, we have our example of using the maps. The process for constructing
+      the maps is now a little different...
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="comment">// operations...</span>
+<span class="keyword">int</span> <span class="identifier">main</span><span class="special">(</span><span class="keyword">int</span> <span class="identifier">argc</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="identifier">argv</span><span class="special">[])</span>
+<span class="special">{</span>
+	<span class="comment">// Create the shared region</span>
+	<span class="identifier">managed_shared_memory</span> <span class="identifier">segment</span><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">create_only</span><span class="special">,</span>
+		<span class="string">"ShoeDatabaseSegment"</span><span class="special">,</span> <span class="number">65536</span><span class="special">);</span>
+
+	<span class="comment">//Create the cust_map in shared memory</span>
+	<span class="identifier">customer_map_t</span> <span class="special">*</span><span class="identifier">cust_map</span> <span class="special">=</span> <span class="identifier">segment</span><span class="special">.</span><span class="identifier">construct</span><span class="special">&lt;</span><span class="identifier">customer_map_t</span><span class="special">&gt;</span>
+		<span class="special">(</span><span class="string">"Customers"</span><span class="special">)</span>  <span class="comment">//name of the object</span>
+	    <span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">less</span><span class="special">&lt;</span><span class="identifier">shm_string</span><span class="special">&gt;(),</span> <span class="identifier">segment</span><span class="special">.</span><span class="identifier">get_segment_manager</span><span class="special">()</span> <span class="special">);</span>  <span class="comment">//constructor arguments</span>
+
+	<span class="comment">// Create the account_map in shared memory</span>
+	<span class="identifier">account_map_t</span> <span class="special">*</span><span class="identifier">account_map</span> <span class="special">=</span> <span class="identifier">segment</span><span class="special">.</span><span class="identifier">construct</span><span class="special">&lt;</span><span class="identifier">account_map_t</span><span class="special">&gt;</span>
+	    <span class="special">(</span><span class="string">"Accounts"</span><span class="special">)</span>     <span class="comment">//name of the object</span>
+	    <span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">less</span><span class="special">&lt;</span><span class="identifier">shm_string</span><span class="special">&gt;(),</span> <span class="identifier">segment</span><span class="special">.</span><span class="identifier">get_segment_manager</span><span class="special">()</span> <span class="special">);</span>  <span class="comment">//constructor arguments</span>
+</pre>
+<p>
+    </p>
+<p>
+      Here, rather than just construct the maps, we must create the shared memory
+      region, then use the associated construct methods to construct the maps in
+      the region. Then we're ready to get to work. The next thing I do is establish
+      an allocation scope designating this shared memory region as the one to use
+      for all scope_aware_allocators which get constructed with a default constructor.
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="comment">// This object ensures that stldb::scope_aware_allocators constructed hereafter will use</span>
+<span class="comment">// 'segment' for their shared region.  Thus the shm_string members end up properly created in the</span>
+<span class="comment">// shared memory.</span>
+<span class="identifier">stldb</span><span class="special">::</span><span class="identifier">scoped_allocation</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">managed_shared_memory</span><span class="special">::</span><span class="identifier">segment_manager</span><span class="special">&gt;</span> <span class="identifier">scope</span><span class="special">(</span><span class="identifier">segment</span><span class="special">.</span><span class="identifier">get_segment_manager</span><span class="special">());</span>
+<span class="identifier">shm_string</span> <span class="identifier">name</span> <span class="special">=</span> <span class="string">"John Smith"</span><span class="special">;</span>
+</pre>
+<p>
+    </p>
+<p>
+      This is mainly for convenience, as I could have added constructors to my customer_t
+      and account_t types in order to explicitly pass the shared memory region into
+      them and from there into their shm_string members. In general however, many
+      methods of STL containers will not compile if the allocator doesn't support
+      a default constructor, so the scope_aware_allocator is both easier and needed
+      in those cases. With our shm_string objects dutifully notified that they should
+      use 'segment' for memory allocation, we now use the maps, and little has changed
+      from before.
+    </p>
+<p>
+</p>
+<pre class="programlisting">	<span class="comment">// create a customer and account within the database</span>
+	<span class="identifier">customer_t</span> <span class="identifier">cust</span><span class="special">;</span>
+	<span class="identifier">cust</span><span class="special">.</span><span class="identifier">name</span> <span class="special">=</span> <span class="identifier">name</span><span class="special">;</span>
+	<span class="identifier">cust</span><span class="special">.</span><span class="identifier">shoe_size</span> <span class="special">=</span> <span class="number">8</span><span class="special">;</span>
+	<span class="identifier">cust_map</span><span class="special">-&gt;</span><span class="identifier">insert</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">make_pair</span><span class="special">(</span><span class="identifier">name</span><span class="special">,</span> <span class="identifier">cust</span><span class="special">));</span>
+
+	<span class="identifier">assert</span><span class="special">(</span> <span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">find</span><span class="special">(</span><span class="identifier">name</span><span class="special">)</span> <span class="special">==</span> <span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">end</span><span class="special">()</span> <span class="special">);</span>
+	<span class="identifier">account_t</span> <span class="identifier">account</span><span class="special">;</span>
+	<span class="identifier">account</span><span class="special">.</span><span class="identifier">account_num</span> <span class="special">=</span> <span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">size</span><span class="special">();</span>  <span class="comment">// next available</span>
+	<span class="identifier">account</span><span class="special">.</span><span class="identifier">customer_name</span> <span class="special">=</span> <span class="identifier">name</span><span class="special">;</span>
+	<span class="identifier">account</span><span class="special">.</span><span class="identifier">account_start_date</span> <span class="special">=</span> <span class="number">39785</span><span class="special">;</span> <span class="comment">// ~2009</span>
+	<span class="identifier">account</span><span class="special">.</span><span class="identifier">balance</span> <span class="special">=</span> <span class="number">0.0</span><span class="special">;</span>
+	<span class="identifier">account</span><span class="special">.</span><span class="identifier">last_payment_date</span> <span class="special">=</span> <span class="special">-</span><span class="number">1</span><span class="special">;</span> <span class="comment">// never</span>
+	<span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">insert</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">make_pair</span><span class="special">(</span><span class="identifier">name</span><span class="special">,</span> <span class="identifier">account</span><span class="special">));</span>
+
+	<span class="comment">// transaction 1: find a customer by name, and confirm that it</span>
+	<span class="comment">// has an account with us.</span>
+	<span class="identifier">customer_ref</span> <span class="identifier">custref</span> <span class="special">=</span> <span class="identifier">cust_map</span><span class="special">-&gt;</span><span class="identifier">find</span><span class="special">(</span><span class="identifier">name</span><span class="special">);</span>
+	<span class="identifier">assert</span><span class="special">(</span><span class="identifier">custref</span><span class="special">-&gt;</span><span class="identifier">second</span><span class="special">.</span><span class="identifier">shoe_size</span> <span class="special">==</span> <span class="number">8</span><span class="special">);</span>
+	<span class="identifier">account_ref</span> <span class="identifier">accountref</span> <span class="special">=</span> <span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">find</span><span class="special">(</span><span class="identifier">name</span><span class="special">);</span>
+	<span class="identifier">assert</span><span class="special">(</span><span class="identifier">accountref</span> <span class="special">!=</span> <span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">end</span><span class="special">());</span>
+
+	<span class="comment">// transaction 2: add a purchase to an account by name.</span>
+	<span class="identifier">accountref</span> <span class="special">=</span> <span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">find</span><span class="special">(</span><span class="identifier">name</span><span class="special">);</span>
+	<span class="identifier">accountref</span><span class="special">-&gt;</span><span class="identifier">second</span><span class="special">.</span><span class="identifier">add_purchase</span><span class="special">(</span><span class="number">100.0</span><span class="special">);</span>
+	<span class="identifier">assert</span><span class="special">(</span><span class="identifier">accountref</span><span class="special">-&gt;</span><span class="identifier">second</span><span class="special">.</span><span class="identifier">balance</span> <span class="special">==</span> <span class="number">100.0</span><span class="special">);</span>
+
+	<span class="comment">// transaction 3: add a payment to an account.</span>
+	<span class="identifier">accountref</span><span class="special">-&gt;</span><span class="identifier">second</span><span class="special">.</span><span class="identifier">add_payment</span><span class="special">(</span><span class="number">60.0</span><span class="special">);</span>
+	<span class="identifier">assert</span><span class="special">(</span><span class="identifier">accountref</span><span class="special">-&gt;</span><span class="identifier">second</span><span class="special">.</span><span class="identifier">balance</span> <span class="special">==</span> <span class="number">40.0</span><span class="special">);</span>
+
+	<span class="comment">// transaction 4: remove the account.</span>
+	<span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">erase</span><span class="special">(</span><span class="identifier">accountref</span><span class="special">);</span>
+<span class="special">}</span>
+</pre>
+<p>
+    </p>
+<p>
+      Now that we've seen how this would work with boost::interprocess maps, we have
+      a final set of changes to make to make this work as an STLdb database.
+    </p>
+<p>
+      The final set of changes we need to do are as follows:
+    </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+          Our customer_t and account_t types will need to support Boost.Serialization
+          since they will now be persistent.
+        </li>
+<li class="listitem">
+          Instead of a Boost.Interprocess region, the maps will be declared within
+          an stldb::Database
+        </li>
+<li class="listitem">
+          The map type changes to stldb::trans_map.
+        </li>
+<li class="listitem">
+          In our use of the maps, we will control concurrency using a lock on the
+          map, and employ transactions when making changes.
+        </li>
+</ul></div>
+<p>
+      To begin with, we need to alter our data types to include support for Boost.Serialization.
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">string</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">map</span><span class="special">&gt;</span>
+
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">interprocess</span><span class="special">/</span><span class="identifier">containers</span><span class="special">/</span><span class="identifier">string</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">interprocess</span><span class="special">/</span><span class="identifier">allocators</span><span class="special">/</span><span class="identifier">cached_adaptive_pool</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">interprocess</span><span class="special">/</span><span class="identifier">managed_shared_memory</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">interprocess</span><span class="special">/</span><span class="identifier">sync</span><span class="special">/</span><span class="identifier">scoped_lock</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">interprocess</span><span class="special">/</span><span class="identifier">sync</span><span class="special">/</span><span class="identifier">sharable_lock</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">stldb</span><span class="special">/</span><span class="identifier">allocators</span><span class="special">/</span><span class="identifier">scoped_allocation</span><span class="special">.</span><span class="identifier">h</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">stldb</span><span class="special">/</span><span class="identifier">allocators</span><span class="special">/</span><span class="identifier">scope_aware_allocator</span><span class="special">.</span><span class="identifier">h</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">stldb</span><span class="special">/</span><span class="identifier">Database</span><span class="special">.</span><span class="identifier">h</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">stldb</span><span class="special">/</span><span class="identifier">containers</span><span class="special">/</span><span class="identifier">trans_map</span><span class="special">.</span><span class="identifier">h</span><span class="special">&gt;</span>
+<span class="comment">// This addresses an outstanding bug with boost::interprocess::map::swap(other) when the map</span>
+<span class="comment">// uses a cached_node_allocator.</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">stldb</span><span class="special">/</span><span class="identifier">allocators</span><span class="special">/</span><span class="identifier">swap_workaround</span><span class="special">.</span><span class="identifier">h</span><span class="special">&gt;</span>
+<span class="comment">// This provides boost.serialization support for boost.interprocess.basic_string&lt;&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">stldb</span><span class="special">/</span><span class="identifier">containers</span><span class="special">/</span><span class="identifier">string_serialize</span><span class="special">.</span><span class="identifier">h</span><span class="special">&gt;</span>
+
+<span class="keyword">using</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">managed_shared_memory</span><span class="special">;</span>
+<span class="keyword">using</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">scoped_lock</span><span class="special">;</span>
+<span class="keyword">using</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">sharable_lock</span><span class="special">;</span>
+
+<span class="keyword">using</span> <span class="identifier">stldb</span><span class="special">::</span><span class="identifier">Database</span><span class="special">;</span>
+<span class="keyword">using</span> <span class="identifier">stldb</span><span class="special">::</span><span class="identifier">Transaction</span><span class="special">;</span>
+
+<span class="keyword">typedef</span> <span class="keyword">long</span> <span class="identifier">date_t</span><span class="special">;</span>  <span class="comment">// days since epoch.</span>
+
+<span class="comment">// String in shared memory, based on boost::interprocess::basic_string</span>
+<span class="comment">// Allocator of char in shared memory, with support for default constructor</span>
+<span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">basic_string</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">char_traits</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">&gt;,</span>
+	<span class="identifier">stldb</span><span class="special">::</span><span class="identifier">scope_aware_allocator</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">allocator</span><span class="special">&lt;</span>
+		<span class="keyword">char</span><span class="special">,</span> <span class="identifier">managed_shared_memory</span><span class="special">::</span><span class="identifier">segment_manager</span><span class="special">&gt;</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <span class="identifier">shm_string</span><span class="special">;</span>
+
+<span class="comment">// customer record for my shoe store</span>
+<span class="keyword">struct</span> <span class="identifier">customer_t</span> <span class="special">{</span>
+	<span class="identifier">shm_string</span> <span class="identifier">name</span><span class="special">;</span>
+	<span class="keyword">int</span> <span class="identifier">shoe_size</span><span class="special">;</span>
+	<span class="identifier">date_t</span> <span class="identifier">last_purchase_date</span><span class="special">;</span>
+
+	<span class="comment">// serialization support</span>
+	<span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Archive</span><span class="special">&gt;</span>
+	<span class="keyword">void</span> <span class="identifier">serialize</span><span class="special">(</span><span class="identifier">Archive</span> <span class="special">&amp;</span><span class="identifier">ar</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">int</span><span class="special">){</span>
+		<span class="identifier">ar</span> <span class="special">&amp;</span> <span class="identifier">name</span> <span class="special">&amp;</span> <span class="identifier">shoe_size</span> <span class="special">&amp;</span> <span class="identifier">last_purchase_date</span><span class="special">;</span>
+	<span class="special">}</span>
+<span class="special">};</span>
+
+<span class="comment">// account record for customers.</span>
+<span class="keyword">struct</span> <span class="identifier">account_t</span> <span class="special">{</span>
+	<span class="keyword">int</span> <span class="identifier">account_num</span><span class="special">;</span>
+	<span class="identifier">shm_string</span> <span class="identifier">customer_name</span><span class="special">;</span>
+	<span class="identifier">date_t</span> <span class="identifier">account_start_date</span><span class="special">;</span>
+	<span class="keyword">long</span> <span class="identifier">balance</span><span class="special">;</span>
+	<span class="identifier">date_t</span> <span class="identifier">last_payment_date</span><span class="special">;</span>
+
+	<span class="keyword">void</span> <span class="identifier">add_purchase</span><span class="special">(</span> <span class="keyword">double</span> <span class="identifier">amount</span> <span class="special">)</span> <span class="special">{</span>
+		<span class="identifier">balance</span> <span class="special">+=</span> <span class="identifier">amount</span><span class="special">;</span>
+	<span class="special">}</span>
+	<span class="keyword">void</span> <span class="identifier">add_payment</span><span class="special">(</span> <span class="keyword">double</span> <span class="identifier">amount</span> <span class="special">)</span> <span class="special">{</span>
+		<span class="identifier">balance</span> <span class="special">-=</span> <span class="identifier">amount</span><span class="special">;</span>
+	<span class="special">}</span>
+
+	<span class="comment">// serialization support</span>
+	<span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Archive</span><span class="special">&gt;</span>
+	<span class="keyword">void</span> <span class="identifier">serialize</span><span class="special">(</span><span class="identifier">Archive</span> <span class="special">&amp;</span><span class="identifier">ar</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">int</span><span class="special">){</span>
+		<span class="identifier">ar</span> <span class="special">&amp;</span> <span class="identifier">customer_name</span> <span class="special">&amp;</span> <span class="identifier">account_num</span> <span class="special">&amp;</span> <span class="identifier">account_start_date</span>
+		   <span class="special">&amp;</span> <span class="identifier">balance</span> <span class="special">&amp;</span> <span class="identifier">last_payment_date</span><span class="special">;</span>
+	<span class="special">}</span>
+<span class="special">};</span>
+</pre>
+<p>
+    </p>
+<p>
+      Note the addition of the templated serialize methods. If you aren't sure what
+      those are, read up on Boost.Serialization.
+    </p>
+<p>
+      Next the map types are changed to use stldb::trans_map. This is a transactional
+      variation on std::map which supports all map operations but does so in a transactional
+      manner, in which changes are logged, isolated from other threads, and can be
+      rolled back or committed.
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="comment">// "table" types in my database.</span>
+<span class="keyword">typedef</span> <span class="identifier">stldb</span><span class="special">::</span><span class="identifier">trans_map</span><span class="special">&lt;</span><span class="identifier">shm_string</span><span class="special">,</span> <span class="identifier">customer_t</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">less</span><span class="special">&lt;</span><span class="identifier">shm_string</span><span class="special">&gt;,</span>
+	<span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">cached_adaptive_pool</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">pair</span><span class="special">&lt;</span><span class="keyword">const</span> <span class="identifier">shm_string</span><span class="special">,</span> <span class="identifier">customer_t</span><span class="special">&gt;,</span>
+		<span class="identifier">managed_shared_memory</span><span class="special">::</span><span class="identifier">segment_manager</span><span class="special">&gt;</span> <span class="special">&gt;</span>  <span class="identifier">customer_map_t</span><span class="special">;</span>
+
+<span class="keyword">typedef</span> <span class="identifier">stldb</span><span class="special">::</span><span class="identifier">trans_map</span><span class="special">&lt;</span><span class="identifier">shm_string</span><span class="special">,</span> <span class="identifier">account_t</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">less</span><span class="special">&lt;</span><span class="identifier">shm_string</span><span class="special">&gt;,</span>
+	<span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">cached_adaptive_pool</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">pair</span><span class="special">&lt;</span><span class="keyword">const</span> <span class="identifier">shm_string</span><span class="special">,</span> <span class="identifier">account_t</span><span class="special">&gt;,</span>
+		<span class="identifier">managed_shared_memory</span><span class="special">::</span><span class="identifier">segment_manager</span><span class="special">&gt;</span> <span class="special">&gt;</span>  <span class="identifier">account_map_t</span><span class="special">;</span>
+
+<span class="keyword">typedef</span> <span class="identifier">customer_map_t</span><span class="special">::</span><span class="identifier">iterator</span> <span class="identifier">customer_ref</span><span class="special">;</span>
+<span class="keyword">typedef</span> <span class="identifier">account_map_t</span><span class="special">::</span><span class="identifier">iterator</span> <span class="identifier">account_ref</span><span class="special">;</span>
+</pre>
+<p>
+    </p>
+<p>
+      Now we need to create our maps. The way in which this is done is by constructing
+      an stldb::database object, which is an equivalent to a Boost.Interprocess region
+      with an added transactional infrastructure.
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="comment">// operations...</span>
+<span class="keyword">int</span> <span class="identifier">main</span><span class="special">(</span><span class="keyword">int</span> <span class="identifier">argc</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="identifier">argv</span><span class="special">[])</span>
+<span class="special">{</span>
+	<span class="comment">// Create/Open/Recover the database region</span>
+	<span class="comment">// We define the "schema" of the database as an argument for the constructor.</span>
+	<span class="comment">// This is to support recovery processing or creation during the connection.</span>
+	<span class="identifier">std</span><span class="special">::</span><span class="identifier">list</span><span class="special">&lt;</span> <span class="identifier">stldb</span><span class="special">::</span><span class="identifier">container_proxy_base</span><span class="special">&lt;</span><span class="identifier">managed_shared_memory</span><span class="special">&gt;*</span> <span class="special">&gt;</span> <span class="identifier">containers</span><span class="special">;</span>
+	<span class="identifier">containers</span><span class="special">.</span><span class="identifier">push_back</span><span class="special">(</span> <span class="keyword">new</span> <span class="identifier">stldb</span><span class="special">::</span><span class="identifier">container_proxy</span><span class="special">&lt;</span><span class="identifier">managed_shared_memory</span><span class="special">,</span><span class="identifier">customer_map_t</span><span class="special">&gt;(</span><span class="string">"Customers"</span><span class="special">));</span>
+	<span class="identifier">containers</span><span class="special">.</span><span class="identifier">push_back</span><span class="special">(</span> <span class="keyword">new</span> <span class="identifier">stldb</span><span class="special">::</span><span class="identifier">container_proxy</span><span class="special">&lt;</span><span class="identifier">managed_shared_memory</span><span class="special">,</span><span class="identifier">account_map_t</span><span class="special">&gt;(</span><span class="string">"Accounts"</span><span class="special">));</span>
+
+	<span class="comment">// Connect to / Create / Recover the database, as appropriate.</span>
+	<span class="identifier">Database</span><span class="special">&lt;</span><span class="identifier">managed_shared_memory</span><span class="special">&gt;</span> <span class="identifier">db</span><span class="special">(</span> <span class="identifier">stldb</span><span class="special">::</span><span class="identifier">open_create_or_recover</span>
+		<span class="special">,</span> <span class="string">"ShoeDatabase"</span> <span class="comment">// the name of this database (used for region name)</span>
+		<span class="special">,</span> <span class="string">"/tmp"</span>     <span class="comment">// the location of metadata &amp; lock files</span>
+		<span class="special">,</span> <span class="number">268435456</span>  <span class="comment">// the maximum database size, determines the region size.</span>
+		<span class="special">,</span> <span class="identifier">NULL</span>       <span class="comment">// fixed mapping address (optional)</span>
+		<span class="special">,</span> <span class="string">"/tmp"</span>     <span class="comment">// where the persistent containers are stored</span>
+		<span class="special">,</span> <span class="string">"/tmp"</span>     <span class="comment">// where the log files are written</span>
+		<span class="special">,</span> <span class="number">268435456</span>  <span class="comment">// maximum individual log file length</span>
+		<span class="special">,</span> <span class="keyword">true</span>       <span class="comment">// synchronous_logging</span>
+		<span class="special">,</span> <span class="identifier">containers</span> <span class="comment">// the containers you want created/opened in the database</span>
+	<span class="special">);</span>
+</pre>
+<p>
+    </p>
+<p>
+      When the database is constructed, it creates or attaches to a shared memory
+      region, and may conditionally perform recovery operations using the redo log.
+      Because of its capacity for recovery processing, the constructor itself needs
+      to know the container types which are expected to be in the database, and this
+      is passed to it as the last argument, the list of container proxies. Aside
+      from supporting recovery or container creation, the proxies also constitute
+      a polymorphic interface for how the database infrastructure works with containers,
+      and is meant to make it fairly easy to add additional container types to STLdb.
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="comment">//Get pointers to the maps in the database, permitting direct use of the maps.</span>
+<span class="identifier">customer_map_t</span> <span class="special">*</span><span class="identifier">cust_map</span> <span class="special">=</span> <span class="identifier">db</span><span class="special">.</span><span class="identifier">getContainer</span><span class="special">&lt;</span><span class="identifier">customer_map_t</span><span class="special">&gt;(</span><span class="string">"Customers"</span><span class="special">);</span>
+<span class="identifier">account_map_t</span> <span class="special">*</span><span class="identifier">account_map</span> <span class="special">=</span> <span class="identifier">db</span><span class="special">.</span><span class="identifier">getContainer</span><span class="special">&lt;</span><span class="identifier">account_map_t</span><span class="special">&gt;(</span><span class="string">"Accounts"</span><span class="special">);</span>
+
+<span class="comment">// This object ensures that stldb::scope_aware_allocators constructed hereafter will use</span>
+<span class="comment">// the Database 'segment' for their shared region.  Thus the shm_string members end up properly created in the</span>
+<span class="comment">// shared memory.</span>
+<span class="identifier">stldb</span><span class="special">::</span><span class="identifier">scoped_allocation</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">managed_shared_memory</span><span class="special">::</span><span class="identifier">segment_manager</span><span class="special">&gt;</span> <span class="identifier">scope</span><span class="special">(</span>
+		<span class="identifier">db</span><span class="special">.</span><span class="identifier">getRegion</span><span class="special">().</span><span class="identifier">get_segment_manager</span><span class="special">());</span>
+
+<span class="identifier">shm_string</span> <span class="identifier">name</span> <span class="special">=</span> <span class="string">"John Smith"</span><span class="special">;</span>  <span class="comment">// key for this example.</span>
+</pre>
+<p>
+    </p>
+<p>
+      After the database is constructed, pointers to the maps within it can be fetched
+      with the getContainer() calls. This is the equivalent of using find_or_construct()
+      methods on the underlying shared region. We then establish scoped allocation
+      against the shared memory region this database is using.
+    </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+        The database class really represents a particular application's connection
+        to the shared database in much the same way that a boost::interprocess::shared_memory_region
+        is really a connection to the shared region, and not the region itself. There
+        are different database constructors for different connection scenarios, including
+        variants which never create or recover the database. But for this example,
+        I'm showing the most capable constructor, which creates, opens and/or recovers
+        the database as appropriate.
+      </p></td></tr>
+</table></div>
+<p>
+      Once we have the maps, we're now ready to repeat the transactional work. Here's
+      where things get a bit different.
+    </p>
+<p>
+      The first change is that we now have to create transactions and pass those
+      transactions to methods of trans_map which modify data. (An implicit, transactional
+      scope concept similar to the allocation scope idea is planned which eliminates
+      the need to explicitly pass the transactions.) In addition, we now have to
+      work with the lock on the map. This isn't strictly required here because I
+      know this example is single-threaded, but I'm showing the right form since
+      this an example. The trans_map has a upgradeable lock, and all operations except
+      insert(), swap(), and clear() can be done while holding only a shared lock,
+      permitting a high level of concurrency over the map as a whole.
+    </p>
+<p>
+      Here's how we do the initial insert of the two records, transactionally.
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="comment">// 1) create a customer and account within the database</span>
+<span class="comment">// All changes to a map must be done under the control of a transaction.</span>
+<span class="identifier">Transaction</span> <span class="special">*</span><span class="identifier">txn</span> <span class="special">=</span> <span class="identifier">db</span><span class="special">.</span><span class="identifier">beginTransaction</span><span class="special">();</span>
+<span class="special">{</span>
+	<span class="identifier">customer_t</span> <span class="identifier">cust</span><span class="special">;</span>
+	<span class="identifier">cust</span><span class="special">.</span><span class="identifier">name</span> <span class="special">=</span> <span class="identifier">name</span><span class="special">;</span>
+	<span class="identifier">cust</span><span class="special">.</span><span class="identifier">shoe_size</span> <span class="special">=</span> <span class="number">8</span><span class="special">;</span>
+
+	<span class="comment">// an exclusive lock is required on the map for a call to insert.</span>
+	<span class="identifier">scoped_lock</span><span class="special">&lt;</span><span class="identifier">customer_map_t</span><span class="special">::</span><span class="identifier">upgradable_mutex_type</span><span class="special">&gt;</span> <span class="identifier">lock_holder</span><span class="special">(</span><span class="identifier">cust_map</span><span class="special">-&gt;</span><span class="identifier">mutex</span><span class="special">());</span>
+	<span class="identifier">cust_map</span><span class="special">-&gt;</span><span class="identifier">insert</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">make_pair</span><span class="special">(</span><span class="identifier">name</span><span class="special">,</span> <span class="identifier">cust</span><span class="special">),</span> <span class="special">*</span><span class="identifier">txn</span><span class="special">);</span>
+<span class="special">}</span>
+<span class="special">{</span>
+	<span class="identifier">account_t</span> <span class="identifier">account</span><span class="special">;</span>
+	<span class="identifier">account</span><span class="special">.</span><span class="identifier">account_num</span> <span class="special">=</span> <span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">size</span><span class="special">();</span>  <span class="comment">// next available</span>
+	<span class="identifier">account</span><span class="special">.</span><span class="identifier">customer_name</span> <span class="special">=</span> <span class="identifier">name</span><span class="special">;</span>
+	<span class="identifier">account</span><span class="special">.</span><span class="identifier">account_start_date</span> <span class="special">=</span> <span class="number">39785</span><span class="special">;</span> <span class="comment">// ~2009</span>
+	<span class="identifier">account</span><span class="special">.</span><span class="identifier">balance</span> <span class="special">=</span> <span class="number">0.0</span><span class="special">;</span>
+	<span class="identifier">account</span><span class="special">.</span><span class="identifier">last_payment_date</span> <span class="special">=</span> <span class="special">-</span><span class="number">1</span><span class="special">;</span> <span class="comment">// never</span>
+
+	<span class="identifier">scoped_lock</span><span class="special">&lt;</span><span class="identifier">account_map_t</span><span class="special">::</span><span class="identifier">upgradable_mutex_type</span><span class="special">&gt;</span> <span class="identifier">lock_holder</span><span class="special">(</span><span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">mutex</span><span class="special">());</span>
+	<span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">insert</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">make_pair</span><span class="special">(</span><span class="identifier">name</span><span class="special">,</span> <span class="identifier">account</span><span class="special">),</span> <span class="special">*</span><span class="identifier">txn</span><span class="special">);</span>
+<span class="special">}</span>
+<span class="identifier">db</span><span class="special">.</span><span class="identifier">commit</span><span class="special">(</span><span class="identifier">txn</span><span class="special">);</span>
+</pre>
+<p>
+    </p>
+<p>
+      In this case, we start a transaction with db.beginTransaction(), and commit
+      it when done. The transaction is now passed to the map's insert() methods.
+      The other change here is that we must acquire exclusive locks on the maps while
+      insert() is being called to be sure that the map isn't going to be corrupted
+      by another thread or process doing similar operations.
+    </p>
+<p>
+      With the data insertion done, we now proceed to our first, read-only transaction.
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="comment">// transaction 1: find a customer by name, and confirm that it</span>
+<span class="comment">// has an account with us.</span>
+<span class="special">{</span>
+	<span class="identifier">sharable_lock</span><span class="special">&lt;</span><span class="identifier">customer_map_t</span><span class="special">::</span><span class="identifier">upgradable_mutex_type</span><span class="special">&gt;</span> <span class="identifier">lock_holder</span><span class="special">(</span><span class="identifier">cust_map</span><span class="special">-&gt;</span><span class="identifier">mutex</span><span class="special">());</span>
+	<span class="identifier">customer_ref</span> <span class="identifier">custref</span> <span class="special">=</span> <span class="identifier">cust_map</span><span class="special">-&gt;</span><span class="identifier">find</span><span class="special">(</span><span class="identifier">name</span><span class="special">);</span>
+	<span class="identifier">assert</span><span class="special">(</span><span class="identifier">custref</span><span class="special">-&gt;</span><span class="identifier">second</span><span class="special">.</span><span class="identifier">shoe_size</span> <span class="special">==</span> <span class="number">8</span><span class="special">);</span>
+<span class="special">}</span>
+<span class="special">{</span>
+	<span class="identifier">sharable_lock</span><span class="special">&lt;</span><span class="identifier">account_map_t</span><span class="special">::</span><span class="identifier">upgradable_mutex_type</span><span class="special">&gt;</span> <span class="identifier">lock_holder</span><span class="special">(</span><span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">mutex</span><span class="special">());</span>
+	<span class="identifier">account_ref</span> <span class="identifier">accountref</span> <span class="special">=</span> <span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">find</span><span class="special">(</span><span class="identifier">name</span><span class="special">);</span>
+	<span class="identifier">assert</span><span class="special">(</span><span class="identifier">accountref</span> <span class="special">!=</span> <span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">end</span><span class="special">());</span>
+<span class="special">}</span>
+</pre>
+<p>
+    </p>
+<p>
+      The only difference here is that sharable locks are established while using
+      the trans_map. If you are wondering at this point why this is being done by
+      the code and not automatically within the find() method, the answer is to give
+      you more control over the scope and type of lock. In general, iterators should
+      only exist within the scope of some lock on the map, otherwise, the iterator
+      itself could be invalid due to operations performed by other threads on the
+      map.
+    </p>
+<p>
+      Note that in this case, we didn't actually start a transaction for this segment
+      of code. Transactions aren't needed when you know that a particular set of
+      operations are read-only. The trans_map still supports all read-only operations
+      without requiring a transaction parameter.
+    </p>
+<p>
+      Now we move on to some operations, transactions 2 and 3.
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="comment">// transaction 2: add a purchase to an account by name.</span>
+<span class="identifier">txn</span> <span class="special">=</span> <span class="identifier">db</span><span class="special">.</span><span class="identifier">beginTransaction</span><span class="special">();</span>
+<span class="special">{</span>
+	<span class="identifier">sharable_lock</span><span class="special">&lt;</span><span class="identifier">customer_map_t</span><span class="special">::</span><span class="identifier">upgradable_mutex_type</span><span class="special">&gt;</span> <span class="identifier">lock_holder</span><span class="special">(</span><span class="identifier">cust_map</span><span class="special">-&gt;</span><span class="identifier">mutex</span><span class="special">());</span>
+	<span class="identifier">account_ref</span> <span class="identifier">accountref</span> <span class="special">=</span> <span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">find</span><span class="special">(</span><span class="identifier">name</span><span class="special">,</span> <span class="special">*</span><span class="identifier">txn</span><span class="special">);</span>
+
+	<span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">lock</span><span class="special">(</span><span class="identifier">accountref</span><span class="special">,</span> <span class="special">*</span><span class="identifier">txn</span><span class="special">);</span>
+	<span class="identifier">account_t</span> <span class="identifier">localcopy</span><span class="special">(</span> <span class="identifier">accountref</span><span class="special">-&gt;</span><span class="identifier">second</span> <span class="special">);</span>
+	<span class="identifier">localcopy</span><span class="special">.</span><span class="identifier">add_purchase</span><span class="special">(</span><span class="number">100.0</span><span class="special">);</span>
+	<span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">update</span><span class="special">(</span><span class="identifier">accountref</span><span class="special">,</span> <span class="identifier">localcopy</span><span class="special">,</span> <span class="special">*</span><span class="identifier">txn</span><span class="special">);</span> <span class="comment">// update the entry with the new value.</span>
+
+	<span class="comment">// This works because the iterator is associated with txn (when find() was called above.)</span>
+	<span class="comment">// So it shows pending changes related to txn.  If it had been created by calling find(name)</span>
+	<span class="comment">// it would show a balance of 0 (the currently committed value.)</span>
+	<span class="identifier">assert</span><span class="special">(</span><span class="identifier">accountref</span><span class="special">-&gt;</span><span class="identifier">second</span><span class="special">.</span><span class="identifier">balance</span> <span class="special">==</span> <span class="number">100.0</span><span class="special">);</span>
+<span class="special">}</span>
+<span class="identifier">db</span><span class="special">.</span><span class="identifier">commit</span><span class="special">(</span><span class="identifier">txn</span><span class="special">);</span>
+</pre>
+<p>
+    </p>
+<p>
+      Here we intend to modify an entry by adding a purchase to it, so we need a
+      transaction. For updates, we still only need a sharable_lock on the map itself.
+      This is because the map structure is not being changed, and because STLdb also
+      has entry-level lock tracking which permits concurrent updates to different
+      entries in the map by different threads. When threads attempt an update operation
+      on a row that another pending transaction has locked, one of two things will
+      happen, depending on the method of trans_map which is called. The application
+      will either block on the other transaction, and complete the update once the
+      other transaction completes, or it will get an immediate row_level_lock_contention
+      exception to indicate that it can't update the row at that time. In this example,
+      we are calling a version of update() which does the later. The other variation
+      takes a wait policy which allows a timeout to be established (if desired.)
+    </p>
+<p>
+      The other thing which is different in this case is that trans_map doesn't perform
+      updates to entries directly via the iterator, there is an explicit update()
+      method which is called with a new value in order to pass in the modified value.
+      The trans_map implements a degree of multi-version concurrency control in order
+      to ensure that writers (pending changes) never have to block readers. Because
+      of this, updates are not done directly to the existing committed value via
+      the iterator, rather the update method is used. Thus, we make a local copy
+      of the current entry, modify it, and pass the modified copy back to the update
+      method.
+    </p>
+<p>
+      Finally, there is the lock() call. The lock() call is there to support a pessimistic
+      locking scheme. Consider that if lock() was not there to lock the row, when
+      I made the local copy, and applied the add_purchase() method to the account,
+      another thread or process, in that same timeframe, might read the entry itself,
+      update it, and commit its transaction, in which case my computed balance would
+      then be wrong. I would be overwriting that row with a balance computed from
+      stale data. This is the equivalent of what can happen in relational databases
+      when a C program executes:
+    </p>
+<pre class="programlisting"><span class="identifier">select</span> <span class="identifier">balance</span> <span class="identifier">from</span> <span class="identifier">account</span> <span class="identifier">where</span> <span class="identifier">name</span> <span class="special">=</span> <span class="string">"Joe Smith"</span><span class="special">;</span>
+<span class="identifier">compute</span> <span class="keyword">new</span> <span class="identifier">balance</span>
+<span class="identifier">update</span> <span class="identifier">account</span> <span class="identifier">set</span> <span class="identifier">balance</span> <span class="special">=</span> <span class="special">:</span><span class="identifier">newval</span> <span class="identifier">where</span> <span class="identifier">name</span> <span class="special">=</span> <span class="string">"Joe Smith"</span><span class="special">;</span>
+</pre>
+<p>
+      The right sequence with a relational database would be:
+    </p>
+<pre class="programlisting"><span class="identifier">select</span> <span class="identifier">balance</span> <span class="identifier">from</span> <span class="identifier">account</span> <span class="identifier">where</span> <span class="identifier">name</span> <span class="special">=</span> <span class="string">"Joe Smith"</span> <span class="special">[*[</span><span class="keyword">for</span> <span class="identifier">update</span><span class="special">]];</span>
+<span class="identifier">compute</span> <span class="keyword">new</span> <span class="identifier">balance</span>
+<span class="identifier">update</span> <span class="identifier">account</span> <span class="identifier">set</span> <span class="identifier">balance</span> <span class="special">=</span> <span class="special">:</span><span class="identifier">newval</span> <span class="identifier">where</span> <span class="identifier">name</span> <span class="special">=</span> <span class="string">"Joe Smith"</span><span class="special">;</span>
+</pre>
+<p>
+      In this case, the equivalent of doing a "select ... for update" is
+      to lock the entry using the lock() API before using the data on the entry found.
+      The lock method establishes an entry-level lock on the entry passed, which
+      lasts until the transaction is comitted, and guarantees that no other thread
+      can modify that entry while the lock exists.
+    </p>
+<p>
+      The lock() and update() methods of trans_map represent the only additions to
+      the std::map API. They were needed. While some version of update() might be
+      attempted by inferring an update from non-const access to an iterator, that
+      seemed a dangerous inference to me. There would undoubtedly be cases of unwanted/unexpected
+      updates occuring just because a row was mistakenly accessed in a non-const
+      manner. So the explicit update() method is the better option.
+    </p>
+<p>
+      The third transaction is essentially the same as the second, being another
+      update() operation based on the application of a payment.
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="comment">// transaction 3: add a payment to an account.</span>
+<span class="identifier">txn</span> <span class="special">=</span> <span class="identifier">db</span><span class="special">.</span><span class="identifier">beginTransaction</span><span class="special">();</span>
+<span class="special">{</span>
+	<span class="identifier">sharable_lock</span><span class="special">&lt;</span><span class="identifier">customer_map_t</span><span class="special">::</span><span class="identifier">upgradable_mutex_type</span><span class="special">&gt;</span> <span class="identifier">lock_holder</span><span class="special">(</span><span class="identifier">cust_map</span><span class="special">-&gt;</span><span class="identifier">mutex</span><span class="special">());</span>
+	<span class="identifier">account_ref</span> <span class="identifier">accountref</span> <span class="special">=</span> <span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">find</span><span class="special">(</span><span class="identifier">name</span><span class="special">);</span>
+	<span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">lock</span><span class="special">(</span><span class="identifier">accountref</span><span class="special">,</span> <span class="special">*</span><span class="identifier">txn</span><span class="special">);</span>
+
+	<span class="identifier">account_t</span> <span class="identifier">localcopy</span><span class="special">(</span> <span class="identifier">accountref</span><span class="special">-&gt;</span><span class="identifier">second</span> <span class="special">);</span>
+	<span class="identifier">localcopy</span><span class="special">.</span><span class="identifier">add_payment</span><span class="special">(</span><span class="number">60.0</span><span class="special">);</span>
+	<span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">update</span><span class="special">(</span><span class="identifier">accountref</span><span class="special">,</span> <span class="identifier">localcopy</span><span class="special">,</span> <span class="special">*</span><span class="identifier">txn</span><span class="special">);</span> <span class="comment">// update the entry with the new value.</span>
+
+	<span class="identifier">assert</span><span class="special">(</span><span class="identifier">accountref</span><span class="special">-&gt;</span><span class="identifier">second</span><span class="special">.</span><span class="identifier">balance</span> <span class="special">==</span> <span class="number">40.0</span><span class="special">);</span>
+<span class="special">}</span>
+<span class="identifier">db</span><span class="special">.</span><span class="identifier">commit</span><span class="special">(</span><span class="identifier">txn</span><span class="special">);</span>
+</pre>
+<p>
+    </p>
+<p>
+      Finally, the erase transaction is as follows:
+    </p>
+<p>
+</p>
+<pre class="programlisting">	<span class="comment">// transaction 4: remove the account.</span>
+	<span class="identifier">txn</span> <span class="special">=</span> <span class="identifier">db</span><span class="special">.</span><span class="identifier">beginTransaction</span><span class="special">();</span>
+	<span class="special">{</span>
+		<span class="identifier">sharable_lock</span><span class="special">&lt;</span><span class="identifier">customer_map_t</span><span class="special">::</span><span class="identifier">upgradable_mutex_type</span><span class="special">&gt;</span> <span class="identifier">lock_holder</span><span class="special">(</span><span class="identifier">cust_map</span><span class="special">-&gt;</span><span class="identifier">mutex</span><span class="special">());</span>
+		<span class="identifier">account_ref</span> <span class="identifier">accountref</span> <span class="special">=</span> <span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">find</span><span class="special">(</span><span class="identifier">name</span><span class="special">);</span>
+		<span class="identifier">account_map</span><span class="special">-&gt;</span><span class="identifier">erase</span><span class="special">(</span><span class="identifier">accountref</span><span class="special">,</span> <span class="special">*</span><span class="identifier">txn</span><span class="special">);</span>
+	<span class="special">}</span>
+	<span class="identifier">db</span><span class="special">.</span><span class="identifier">commit</span><span class="special">(</span><span class="identifier">txn</span><span class="special">);</span>
+<span class="special">}</span>
+</pre>
+<p>
+    </p>
+<p>
+      Note that erase operations can be done with a sharable lock. This is counter
+      intuitive, but has to do with the MVCC transactional conventions. The erase()
+      operation marks the row as erased from the map, but does not actually remove
+      it, until the transaction is committed. An exclusive lock is used briefly during
+      commit processing of the transaction, to complete the erase at that time.
+    </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2009 Bob Walters<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="build.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="arch.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

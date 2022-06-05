@@ -1,0 +1,316 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Using stldb::trans_map</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../index.html" title="Chapter 1. STLdb 1.0">
+<link rel="up" href="../index.html" title="Chapter 1. STLdb 1.0">
+<link rel="prev" href="trans.html" title="Using Transactions">
+<link rel="next" href="logging_opt.html" title="Logging Options">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="STLdb" width="253" height="108" src="../images/stldb_logo.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="trans.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="logging_opt.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="stldb.map"></a><a class="link" href="map.html" title="Using stldb::trans_map">Using stldb::trans_map</a>
+</h2></div></div></div>
+<div class="toc"><dl class="toc">
+<dt><span class="section"><a href="map.html#stldb.map.map_locking">Locking Maps</a></span></dt>
+<dt><span class="section"><a href="map.html#stldb.map.map_entrylock">Entry-level locks</a></span></dt>
+<dt><span class="section"><a href="map.html#stldb.map.map_updates">Updating Entries</a></span></dt>
+<dt><span class="section"><a href="map.html#stldb.map.map_blocking">Blocking on row-level locks</a></span></dt>
+<dt><span class="section"><a href="map.html#stldb.map.itersafety">Iterator Safety</a></span></dt>
+</dl></div>
+<p>
+      <code class="computeroutput"><a class="link" href="trans_map.html" title="Class template trans_map">stldb::trans_map</a></code> is a concurrent,
+      transactional implementation of std::map. While the goal of STLdb has been
+      to keep to the API of std::map as much as possible, some changes were necessary
+      to allow for a transactional map. Accordingly, the API of the map template
+      is changed in the following ways:
+    </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+          The map has a mutex (accessible via the <code class="computeroutput"><a class="link" href="trans_map.html#idp105544917945872-bb">stldb::trans_map::mutex</a></code>()
+          method) which is used by callers for concurrency control.
+        </li>
+<li class="listitem">
+          Methods of map which modify the map contents require a <code class="computeroutput"><a class="link" href="Transaction.html" title="Class Transaction">stldb::Transaction</a></code>
+          parameter to indicate the transaction that the change is being made under.
+        </li>
+<li class="listitem">
+          Unlike std::map, methods which modify entries could contend on entry-level
+          locks held by other transactions. Methods with the standard API handle
+          this by throwing a <code class="computeroutput"><a class="link" href="row_level_lock_contention.html" title="Class row_level_lock_contention">stldb::row_level_lock_contention</a></code>
+          exception. However methods are available which will instead block the caller
+          until the contending transaction is resolved. These variant methods take
+          a <code class="computeroutput">stldb::wait_policy</code> parameter
+          to allow the caller to control the blocking behavior.
+        </li>
+<li class="listitem">
+          To modify an existing value in the map, new methods, <code class="computeroutput"><a class="link" href="trans_map.html#idp105544917939344-bb">stldb::trans_map::update</a></code>()
+          and <code class="computeroutput"><a class="link" href="trans_map.html#idp105544917933840-bb">stldb::trans_map::lock</a></code>()
+          have been added to support the transactional handling of modifications.
+          The use of these methods is required as opposed to the use of the direct
+          use of a referenced entry as an lvalue.
+        </li>
+</ul></div>
+<p>
+      The rationalization for these changes to the map API is discussed in the remainder
+      of this section. Aside from these changes, the <code class="computeroutput"><a class="link" href="trans_map.html" title="Class template trans_map">stldb::trans_map</a></code>
+      interface is otherwise identical to the std::map interface, for the sake of
+      minimizing the learning curve associated with this library.
+    </p>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="stldb.map.map_locking"></a><a class="link" href="map.html#stldb.map.map_locking" title="Locking Maps">Locking Maps</a>
+</h3></div></div></div>
+<p>
+        Concurrency control with stldb::trans_map is via a mutex which is exposed
+        through the <code class="computeroutput"><a class="link" href="trans_map.html#idp105544917945872-bb">stldb::trans_map::mutex</a></code>()
+        method of the map. The type of this mutex is determined by template parameters.
+        It can be an interprocess_mutex or a interprocess_upgradable_mutex. The map
+        container supports a degree of concurrency via shared locking. If an interprocess_upgradable_mutex
+        is used the type of lock acquired can be shared for all operations except
+        calls to insert().
+      </p>
+<p>
+        Applications using the stldb::trans_map must first acquire a lock on the
+        maps mutex and can then call one or more methods of the map while the lock
+        is held. This approach allows the application to decide the granularity of
+        locks at the level of map. A lock might be held for one or several operations.
+        This convention also allows you to choose the type of lock (sharable or exclusive)
+        in cases where the mutex type is an upgradable mutex.
+      </p>
+<p>
+        TODO - example of insert, alongside find.
+      </p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="stldb.map.map_entrylock"></a><a class="link" href="map.html#stldb.map.map_entrylock" title="Entry-level locks">Entry-level locks</a>
+</h3></div></div></div>
+<p>
+        When an application uses a method which inserts, erases, or modifies an entry
+        within the map, the entry in question is locked by that transaction, using
+        an entry-level lock. This is the equivalent of a row-level lock in traditional
+        RDBMS databases. The duration of the entry-level lock is tied to the transaction
+        which creates it. It is held until the transaction is committed or rolled
+        back.
+      </p>
+<p>
+        stldb::trans_map implements multi-version concurrency control. This means
+        that the last committed value of any given entry remains in the map, even
+        when there is a pending change or erase of an entry. This in turn allows
+        accessor methods like find(), lower_bond(), and upper_bound() to continue
+        to show the last committed value for any entry, corresponding to iso isolation
+        level 1 (read committed). row-level locks never block these read-only accessor
+        methods.
+      </p>
+<p>
+        TODO - example of read isolation.
+      </p>
+<p>
+        There are versions of the accessor() methods which take a transaction as
+        a parameter. Such accessor methods (and any iterators returned by them) return
+        results which reflect outstanding changes which have been made as part of
+        that transaction. So for example, iterators can point to newly inserted entries
+        which have not yet been committed. The use of these accessor methods yields
+        results which are consistent from the perspective of the transaction. Methods
+        whch do not take a transaction() always return committed information, and
+        return iterators which show only committed information.
+      </p>
+<p>
+        TODO - example of the above.
+      </p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="stldb.map.map_updates"></a><a class="link" href="map.html#stldb.map.map_updates" title="Updating Entries">Updating Entries</a>
+</h3></div></div></div>
+<div class="toc"><dl class="toc"><dt><span class="section"><a href="map.html#stldb.map.map_updates.locks_for_consistency">Consistency
+        Considerations</a></span></dt></dl></div>
+<p>
+        A normal map permits the modification of entries within the map by using
+        a dereferenced iterator directly as an lvalue. The transactional infrastructure
+        of STLdb needs to know when the application is modifying the entries within
+        the map. Attempting to infer this from the use of operator* or operator-&gt;
+        on iterators is subject to false inferences in which routine non-const access
+        could be incorrectly asmed to be an update. stldb::trans_map makes use of
+        a more explicit technique to avoid that problem.
+      </p>
+<p>
+        stdb::map has an update( iterator, V newValue, txn ) method. When called,
+        this method sets the value component of the entry at the iterator to the
+        newValue passed, and does so within the context of the transaction passed.
+        This method establishes an entry-level lock on the entry, if one is not alread
+        in place.
+      </p>
+<p>
+        TODO - example of find() followed by update()
+      </p>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="stldb.map.map_updates.locks_for_consistency"></a><a class="link" href="map.html#stldb.map.map_updates.locks_for_consistency" title="Consistency Considerations">Consistency
+        Considerations</a>
+</h4></div></div></div>
+<p>
+          One point with regard to updating entries in a map should be kept in mind.
+          With the example above, threads could overwrite each other's values because
+          a shared lock is being used during the scope of the find() and update()
+          methods. Specifically, the following paths of execution, by two different
+          threads on a shared processor, shows the problems that can occur:
+        </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+              thread A find()s the value for a given key under transaction 1.
+            </li>
+<li class="listitem">
+              thread B find()s the value for the same key under transaction 2.
+            </li>
+<li class="listitem">
+              thread A updates() the entry to a new value, and commits transaction
+              1.
+            </li>
+<li class="listitem">
+              thread B updates() the entry to a new value, discarding the change
+              that was made by thread A, and commits transaction 2.
+            </li>
+</ol></div>
+<p>
+          Under that sequence, the second thread overwrites the value that had just
+          been committed by the first. To avoid this problem, the application could
+          use an exclusive lock when locking the map, however that can reduce the
+          overall concurrency of the map, and could be a significant problem if a
+          great deal of processing is required between the initial find() of a row
+          and the subsequent update().
+        </p>
+<p>
+          As an alternative, stldb::trans_map includes support for a lock( iterator,
+          txn ) method, which can be used to establish a row-level lock on an entry
+          without modifying it in the process. This then allows the application to
+          use the entry without fear that any other transaction could change the
+          values on the entry.
+        </p>
+<p>
+          A revised version of the prior example which addresses the overwrite problem
+          would look as follows:
+        </p>
+<p>
+          TODO - example of find(), lock(), increment value attribute, and update()
+        </p>
+</div>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="stldb.map.map_blocking"></a><a class="link" href="map.html#stldb.map.map_blocking" title="Blocking on row-level locks">Blocking on row-level locks</a>
+</h3></div></div></div>
+<p>
+        The locking example in the previous section, is almost a complete, ready-to-run
+        example. One detail remains. When a thread attempts to lokc(), update() or
+        erase() an entry which currently has an entry-level lock held by another
+        transaction, a lock contention problem has occurred. This contention can
+        be handled in one of two ways by stldb::trans_map:
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+            The operation could fail by throwing a <code class="computeroutput"><a class="link" href="row_level_lock_contention.html" title="Class row_level_lock_contention">stldb::row_level_lock_contention</a></code>
+            exception, requiring that it be retried later once the transaction holding
+            the lock has completed.
+          </li>
+<li class="listitem">
+            The operation could block, waiting for the transaction which holds the
+            lock to complete, at which point the operation then proceeds.
+          </li>
+</ul></div>
+<p>
+        STLdb, as with most relational databases, supports both of those options.
+        Those versions of insert(), erase(), update(), and lock() which do not take
+        a wait_policy parameter do not block, and will instead throw an <code class="computeroutput"><a class="link" href="row_level_lock_contention.html" title="Class row_level_lock_contention">stldb::row_level_lock_contention</a></code>
+        exception to indicate that the operation cannot be done without blocking.
+      </p>
+<p>
+        Alternative versions of insert(), erase(), update(), and lock() exist which
+        take a final 'wait_policy' parameter. The wait_policy argument permits blocking
+        behavior and determines the blocking policy. The wait_policy can, for example,
+        determine a timeout whch applies to the wait.
+      </p>
+<pre class="programlisting"><span class="keyword">class</span> <span class="identifier">wait_policy</span> <span class="special">{</span>
+    <span class="keyword">void</span> <span class="identifier">unlock_container</span><span class="special">();</span>
+    <span class="keyword">void</span> <span class="identifier">relock_container</span><span class="special">();</span>
+
+    <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">row_mutex_t</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">condition_t</span><span class="special">&gt;</span>
+    <span class="keyword">void</span> <span class="identifier">wait</span><span class="special">(</span>
+      <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">scoped_lock</span><span class="special">&lt;</span><span class="identifier">row_mutex_t</span><span class="special">&gt;</span> <span class="special">&amp;</span><span class="identifier">mutex</span><span class="special">,</span> <span class="identifier">condition_t</span> <span class="special">&amp;</span><span class="identifier">condition</span> <span class="special">);</span>
+<span class="special">}</span>
+</pre>
+<p>
+        The wait_policy is assumed to have a reference to the lock that the application
+        currently has on the container. This allows it to implement the unlock_container()
+        and relock_container() methods. The wait() method is invoked to perform a
+        wait on the condition variable passed. Internally, stldb::trans_map uses
+        an interprocess_condition to implement blocking on entry-level locks. The
+        wait() method must wait on that vairable, but may do so conditionally.
+      </p>
+<p>
+        STLdb comes with two pre-implemented wait policies. <code class="computeroutput"><a class="link" href="wait_indefinitely_policy.html" title="Class template wait_indefinitely_policy">stldb::wait_indefinitely_policy</a></code>
+        blocks until the entry is unlocked. <code class="computeroutput"><a class="link" href="bounded_wait_policy.html" title="Class template bounded_wait_policy">stldb::bounded_wait_policy</a></code>
+        will wait for the entry-level lock to be released for a designated maximum
+        amount of time. If it is not released within that timeframe, a <code class="computeroutput"><a class="link" href="lock_timeout_exception.html" title="Class lock_timeout_exception">stldb::lock_timeout_exception</a></code>
+        is thrown.
+      </p>
+<p>
+        TODO - Example find(), lock(), update() with wait policy.
+      </p>
+<p>
+        With the blocking variant, it is possible for the lock(), update(), or erase()
+        method to ultimately fail if the entry which it is waiting on is erased by
+        the transaction which currently holds the lock. In the event that this should
+        occur, those methods will throw a <code class="computeroutput"><a class="link" href="row_deleted_exception.html" title="Class row_deleted_exception">stldb::row_deleted_exception</a></code>
+        to signal that the entry was erased, and thus can no longer occur.
+      </p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="stldb.map.itersafety"></a><a class="link" href="map.html#stldb.map.itersafety" title="Iterator Safety">Iterator Safety</a>
+</h3></div></div></div>
+<p>
+        Iterators acquired from a stldb::trans_map are good so long as the thread
+        using them maintains at least a sharable lock on the trans_map. Once a lock
+        is released, it is possible that other threads might erase the entry that
+        the iterator currently points to.
+      </p>
+<p>
+        The stldb::trans_map iterator has a <code class="computeroutput"><a class="link" href="trans_assoc_iterator.html#idp105544918179728-bb">valid</a></code>()
+        method which returns true if the iterator is known to point to a valid entry
+        in the trans_map. If an iterator is used across locks on a trans_map, this
+        method can be used to confirm that the iterator is still valid. Currently,
+        this method errors on the side of caution. It will return false if any entries
+        in the trans_map are erased after the iterator is created.
+      </p>
+<p>
+        With the blocking variant of the lock(), update(), and erase() methods, the
+        application's lock on the container is released while the application is
+        waiting, and as such, all iterators which existed prior to the blocking call
+        might then be invalid, and their valid() method should be consulted.
+      </p>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2009 Bob Walters<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="trans.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="logging_opt.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

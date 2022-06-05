@@ -1,0 +1,525 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>STLdb Reference</title>
+<link rel="stylesheet" href="boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="Chapter 1. STLdb 1.0">
+<link rel="up" href="index.html" title="Chapter 1. STLdb 1.0">
+<link rel="prev" href="stldb/logging_opt.html" title="Logging Options">
+<link rel="next" href="stldb/transaction_id_t.html" title="Type definition transaction_id_t">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="STLdb" width="253" height="108" src="images/stldb_logo.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="stldb/logging_opt.html"><img src="images/prev.png" alt="Prev"></a><a accesskey="u" href="index.html"><img src="images/up.png" alt="Up"></a><a accesskey="h" href="index.html"><img src="images/home.png" alt="Home"></a><a accesskey="n" href="stldb/transaction_id_t.html"><img src="images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="stldb_reference"></a>STLdb Reference</h2></div></div></div>
+<div class="toc"><dl class="toc">
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.cachetypes_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/cachetypes.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.checkpoint_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/checkpoint.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.checkpoint_manager_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/checkpoint_manager.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.commit_buffer_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/commit_buffer.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.container_proxy_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/container_proxy.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.concurrent_trans_assoc_iterator_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/concurrent_trans_assoc_iterator.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.concurrent_trans_map_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/concurrent_trans_map.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.intrusive_trans_map_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/intrusive_trans_map.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.iter_less_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/iter_less.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.rbtree_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/rbtree.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.string_compare_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/string_compare.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.string_serialize_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/string_serialize.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.trans_assoc_iterator_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_assoc_iterator.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.trans_iterator_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_iterator.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.trans_map_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_map.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.trans_map_entry_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_map_entry.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.trans_vector_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_vector.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.creation_tags_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/creation_tags.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.Database_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/Database.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.database_registry_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/database_registry.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.dynamic_managed_mapped_file_hpp">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/dynamic_managed_mapped_file.hpp&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.exceptions_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/exceptions.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.log_reader_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/log_reader.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.logger_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/logger.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.logging_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/logging.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.recovery_manager_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/recovery_manager.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.statistics_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/statistics.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.stldb_hpp">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/stldb.hpp&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.sync.bounded_interprocess_mutex_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/bounded_interprocess_mutex.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.sync.file_lock_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/file_lock.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.sync.picket_lock_set_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/picket_lock_set.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.sync.wait_policy_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/wait_policy.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.trace_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/trace.h&gt;</a></span></dt>
+<dt><span class="section"><a href="stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.transaction_h">Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/transaction.h&gt;</a></span></dt>
+</dl></div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.cachetypes_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/cachetypes.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/cachetypes.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">typedef</span> <span class="identifier">int64_t</span> <a class="link" href="stldb/transaction_id_t.html" title="Type definition transaction_id_t"><span class="identifier">transaction_id_t</span></a><span class="special">;</span>
+  <span class="keyword">typedef</span> <span class="identifier">int64_t</span> <a class="link" href="stldb/log_seq_num_t.html" title="Type definition log_seq_num_t"><span class="identifier">log_seq_num_t</span></a><span class="special">;</span>
+
+  <span class="keyword">static</span> <span class="keyword">const</span> <span class="identifier">transaction_id_t</span> <a class="link" href="stldb/no_transaction.html" title="Global no_transaction">no_transaction</a><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.checkpoint_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/checkpoint.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/checkpoint.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/checkpoint_fstream_base.html" title="Class checkpoint_fstream_base">checkpoint_fstream_base</a><span class="special">;</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/checkpoint_ifstream.html" title="Class checkpoint_ifstream">checkpoint_ifstream</a><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> T<span class="special">&gt;</span> <span class="keyword">class</span> <a class="link" href="stldb/checkpoint_iterator.html" title="Class template checkpoint_iterator">checkpoint_iterator</a><span class="special">;</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/checkpoint_ofstream.html" title="Class checkpoint_ofstream">checkpoint_ofstream</a><span class="special">;</span>
+
+  <span class="keyword">typedef</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">pair</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">offset_t</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="special">&gt;</span> <a name="stldb.checkpoint_loc_t"></a><span class="identifier">checkpoint_loc_t</span><span class="special">;</span>
+<span class="special">}</span>
+
+<span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">archive</span><span class="special">::</span><span class="identifier">binary_iarchive</span> <a name="boost_iarchive_t"></a><span class="identifier">boost_iarchive_t</span><span class="special">;</span>
+<span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">archive</span><span class="special">::</span><span class="identifier">binary_oarchive</span> <a name="boost_oarchive_t"></a><span class="identifier">boost_oarchive_t</span><span class="special">;</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.checkpoint_manager_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/checkpoint_manager.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/checkpoint_manager.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> managed_region_t<span class="special">&gt;</span> <span class="keyword">class</span> <a class="link" href="stldb/checkpoint_manager.html" title="Class template checkpoint_manager">checkpoint_manager</a><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.commit_buffer_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/commit_buffer.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/commit_buffer.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> void_alloc_type<span class="special">&gt;</span> <span class="keyword">class</span> <a class="link" href="stldb/commit_buffer_t.html" title="Class template commit_buffer_t">commit_buffer_t</a><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.container_proxy_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/container_proxy.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/container_proxy.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> ManagedRegionType<span class="special">,</span> <span class="keyword">typename</span> ContainerT<span class="special">&gt;</span> 
+    <span class="keyword">class</span> <a class="link" href="stldb/container_proxy.html" title="Class template container_proxy">container_proxy</a><span class="special">;</span>
+
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> ManagedRegionType<span class="special">,</span> <span class="keyword">typename</span> K<span class="special">,</span> <span class="keyword">typename</span> V<span class="special">,</span> <span class="keyword">typename</span> Pred<span class="special">,</span> 
+           <span class="keyword">typename</span> Alloc<span class="special">&gt;</span> 
+    <span class="keyword">class</span> <a class="link" href="stldb/contain_idp105544918522384.html" title="Class template container_proxy&lt;ManagedRegionType, boost::interprocess::map&lt; K, V, Pred, Alloc &gt;&gt;">container_proxy</a><span class="special">&lt;</span><span class="identifier">ManagedRegionType</span><span class="special">,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">map</span><span class="special">&lt;</span> <span class="identifier">K</span><span class="special">,</span> <span class="identifier">V</span><span class="special">,</span> <span class="identifier">Pred</span><span class="special">,</span> <span class="identifier">Alloc</span> <span class="special">&gt;</span><span class="special">&gt;</span><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> ManagedRegionType<span class="special">,</span> <span class="keyword">typename</span> K<span class="special">,</span> <span class="keyword">typename</span> V<span class="special">,</span> <span class="keyword">typename</span> Pred<span class="special">,</span> 
+           <span class="keyword">typename</span> Alloc<span class="special">&gt;</span> 
+    <span class="keyword">class</span> <a class="link" href="stldb/contain_idp105544918480016.html" title="Class template container_proxy&lt;ManagedRegionType, std::map&lt; K, V, Pred, Alloc &gt;&gt;">container_proxy</a><span class="special">&lt;</span><span class="identifier">ManagedRegionType</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span><span class="special">&lt;</span> <span class="identifier">K</span><span class="special">,</span> <span class="identifier">V</span><span class="special">,</span> <span class="identifier">Pred</span><span class="special">,</span> <span class="identifier">Alloc</span> <span class="special">&gt;</span><span class="special">&gt;</span><span class="special">;</span>
+
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> ManagedRegionType<span class="special">&gt;</span> <span class="keyword">class</span> <a class="link" href="stldb/container_proxy_base.html" title="Class template container_proxy_base">container_proxy_base</a><span class="special">;</span>
+<span class="special">}</span>
+
+<span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">archive</span><span class="special">::</span><span class="identifier">binary_iarchive</span> <a name="boost_iarchive_t"></a><span class="identifier">boost_iarchive_t</span><span class="special">;</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.concurrent_trans_assoc_iterator_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/concurrent_trans_assoc_iterator.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/concurrent_trans_assoc_iterator.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">namespace</span> <span class="identifier">concurrent</span> <span class="special">{</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">,</span> <span class="keyword">typename</span> lock_type<span class="special">&gt;</span> 
+      <span class="keyword">class</span> <a class="link" href="stldb/concurrent/trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">,</span> <span class="keyword">typename</span> lock_type<span class="special">&gt;</span> 
+      <span class="keyword">bool</span> <a name="stldb.concurrent.operato_idp105544918436624"></a><span class="keyword">operator</span><span class="special">==</span><span class="special">(</span><span class="keyword">const</span> <a class="link" href="stldb/concurrent/trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span><span class="special">,</span> <span class="identifier">lock_type</span> <span class="special">&gt;</span> <span class="special">&amp;</span> larg<span class="special">,</span> 
+                      <span class="keyword">const</span> <a class="link" href="stldb/concurrent/trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span><span class="special">,</span> <span class="identifier">lock_type</span> <span class="special">&gt;</span> <span class="special">&amp;</span> rarg<span class="special">)</span><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">,</span> <span class="keyword">typename</span> lock_type<span class="special">&gt;</span> 
+      <span class="keyword">bool</span> <a name="stldb.concurrent.operato_idp105544918440464"></a><span class="keyword">operator</span><span class="special">==</span><span class="special">(</span><span class="keyword">const</span> <a class="link" href="stldb/concurrent/trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span><span class="special">,</span> <span class="identifier">lock_type</span> <span class="special">&gt;</span> <span class="special">&amp;</span> larg<span class="special">,</span> 
+                      <span class="keyword">const</span> <span class="identifier">base_iterator</span> <span class="special">&amp;</span> rarg<span class="special">)</span><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">,</span> <span class="keyword">typename</span> lock_type<span class="special">&gt;</span> 
+      <span class="keyword">bool</span> <a name="stldb.concurrent.operato_idp105544918443920"></a><span class="keyword">operator</span><span class="special">==</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">base_iterator</span> <span class="special">&amp;</span> larg<span class="special">,</span> 
+                      <span class="keyword">const</span> <a class="link" href="stldb/concurrent/trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span><span class="special">,</span> <span class="identifier">lock_type</span> <span class="special">&gt;</span> <span class="special">&amp;</span> rarg<span class="special">)</span><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">,</span> <span class="keyword">typename</span> lock_type<span class="special">&gt;</span> 
+      <span class="keyword">bool</span> <a name="stldb.concurrent.operato_idp105544918381840"></a><span class="keyword">operator</span><span class="special">!=</span><span class="special">(</span><span class="keyword">const</span> <a class="link" href="stldb/concurrent/trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span><span class="special">,</span> <span class="identifier">lock_type</span> <span class="special">&gt;</span> <span class="special">&amp;</span> larg<span class="special">,</span> 
+                      <span class="keyword">const</span> <a class="link" href="stldb/concurrent/trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span><span class="special">,</span> <span class="identifier">lock_type</span> <span class="special">&gt;</span> <span class="special">&amp;</span> rarg<span class="special">)</span><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">,</span> <span class="keyword">typename</span> lock_type<span class="special">&gt;</span> 
+      <span class="keyword">bool</span> <a name="stldb.concurrent.operato_idp105544918385680"></a><span class="keyword">operator</span><span class="special">!=</span><span class="special">(</span><span class="keyword">const</span> <a class="link" href="stldb/concurrent/trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span><span class="special">,</span> <span class="identifier">lock_type</span> <span class="special">&gt;</span> <span class="special">&amp;</span> larg<span class="special">,</span> 
+                      <span class="keyword">const</span> <span class="identifier">base_iterator</span> <span class="special">&amp;</span> rarg<span class="special">)</span><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">,</span> <span class="keyword">typename</span> lock_type<span class="special">&gt;</span> 
+      <span class="keyword">bool</span> <a name="stldb.concurrent.operato_idp105544918389136"></a><span class="keyword">operator</span><span class="special">!=</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">base_iterator</span> <span class="special">&amp;</span> larg<span class="special">,</span> 
+                      <span class="keyword">const</span> <a class="link" href="stldb/concurrent/trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span><span class="special">,</span> <span class="identifier">lock_type</span> <span class="special">&gt;</span> <span class="special">&amp;</span> rarg<span class="special">)</span><span class="special">;</span>
+  <span class="special">}</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.concurrent_trans_map_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/concurrent_trans_map.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/concurrent_trans_map.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> ManagedRegionType<span class="special">,</span> <span class="keyword">typename</span> K<span class="special">,</span> <span class="keyword">typename</span> V<span class="special">,</span> <span class="keyword">typename</span> Pred<span class="special">,</span> 
+           <span class="keyword">typename</span> Allocator<span class="special">,</span> <span class="keyword">typename</span> mutex_family<span class="special">,</span> <span class="keyword">int</span> picket_lock_size<span class="special">&gt;</span> 
+    <span class="keyword">class</span> <a class="link" href="stldb/contain_idp105544918393744.html" title="Class template container_proxy&lt;ManagedRegionType, concurrent::trans_map&lt; K, V, Pred, Allocator, mutex_family, picket_lock_size &gt;&gt;">container_proxy</a><span class="special">&lt;</span><span class="identifier">ManagedRegionType</span><span class="special">,</span> <span class="identifier">concurrent</span><span class="special">::</span><span class="identifier">trans_map</span><span class="special">&lt;</span> <span class="identifier">K</span><span class="special">,</span> <span class="identifier">V</span><span class="special">,</span> <span class="identifier">Pred</span><span class="special">,</span> <span class="identifier">Allocator</span><span class="special">,</span> <span class="identifier">mutex_family</span><span class="special">,</span> <span class="identifier">picket_lock_size</span> <span class="special">&gt;</span><span class="special">&gt;</span><span class="special">;</span>
+  <span class="keyword">namespace</span> <span class="identifier">concurrent</span> <span class="special">{</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> K<span class="special">,</span> <span class="keyword">typename</span> V<span class="special">,</span> <span class="keyword">typename</span> Comparator <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">less</span><span class="special">&lt;</span><span class="identifier">K</span><span class="special">&gt;</span><span class="special">,</span> 
+             <span class="keyword">typename</span> Allocator <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">allocator</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">pair</span><span class="special">&lt;</span><span class="keyword">const</span> <span class="identifier">K</span><span class="special">,</span> <span class="identifier">V</span><span class="special">&gt;</span><span class="special">,</span>						    <span class="keyword">typename</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">managed_mapped_file</span><span class="special">::</span><span class="identifier">segment_manager</span><span class="special">&gt;</span><span class="special">,</span> 
+             <span class="keyword">typename</span> mutex_family <span class="special">=</span> <a class="link" href="stldb/bounded_mutex_family.html" title="Struct bounded_mutex_family">stldb::bounded_mutex_family</a><span class="special">,</span> 
+             <span class="keyword">int</span> picket_lock_size <span class="special">=</span> <span class="number">31</span><span class="special">&gt;</span> 
+      <span class="keyword">class</span> <a class="link" href="stldb/concurrent/trans_map.html" title="Class template trans_map">trans_map</a><span class="special">;</span>
+  <span class="special">}</span>
+<span class="special">}</span>
+
+<span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">archive</span><span class="special">::</span><span class="identifier">binary_iarchive</span> <a name="boost_iarchive_t"></a><span class="identifier">boost_iarchive_t</span><span class="special">;</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.intrusive_trans_map_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/intrusive_trans_map.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/intrusive_trans_map.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+<span class="special">}</span>
+
+<span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">archive</span><span class="special">::</span><span class="identifier">binary_iarchive</span> <a name="boost_iarchive_t"></a><span class="identifier">boost_iarchive_t</span><span class="special">;</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.iter_less_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/iter_less.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/iter_less.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> iterator_type<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="stldb/iter_less.html" title="Struct template iter_less">iter_less</a><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.rbtree_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/rbtree.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/rbtree.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis">
+<span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">archive</span><span class="special">::</span><span class="identifier">binary_iarchive</span> <a name="boost_iarchive_t"></a><span class="identifier">boost_iarchive_t</span><span class="special">;</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.string_compare_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/string_compare.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/string_compare.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis">
+<span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> CharT<span class="special">,</span> <span class="keyword">typename</span> Traits<span class="special">,</span> <span class="keyword">typename</span> Alloc1<span class="special">,</span> <span class="keyword">typename</span> Alloc2<span class="special">&gt;</span> 
+  <span class="keyword">bool</span> <a name="operato_idp105544918250000"></a><span class="keyword">operator</span><span class="special">==</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">basic_string</span><span class="special">&lt;</span> <span class="identifier">CharT</span><span class="special">,</span> <span class="identifier">Traits</span><span class="special">,</span> <span class="identifier">Alloc1</span> <span class="special">&gt;</span> <span class="special">&amp;</span> str1<span class="special">,</span> 
+                  <span class="keyword">const</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">basic_string</span><span class="special">&lt;</span> <span class="identifier">CharT</span><span class="special">,</span> <span class="identifier">Traits</span><span class="special">,</span> <span class="identifier">Alloc2</span> <span class="special">&gt;</span> <span class="special">&amp;</span> str2<span class="special">)</span><span class="special">;</span>
+<span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> CharT<span class="special">,</span> <span class="keyword">typename</span> Traits<span class="special">,</span> <span class="keyword">typename</span> Alloc1<span class="special">,</span> <span class="keyword">typename</span> Alloc2<span class="special">&gt;</span> 
+  <span class="keyword">bool</span> <a name="operato_idp105544918187920"></a><span class="keyword">operator</span><span class="special">==</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">basic_string</span><span class="special">&lt;</span> <span class="identifier">CharT</span><span class="special">,</span> <span class="identifier">Traits</span><span class="special">,</span> <span class="identifier">Alloc1</span> <span class="special">&gt;</span> <span class="special">&amp;</span> str2<span class="special">,</span> 
+                  <span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">basic_string</span><span class="special">&lt;</span> <span class="identifier">CharT</span><span class="special">,</span> <span class="identifier">Traits</span><span class="special">,</span> <span class="identifier">Alloc2</span> <span class="special">&gt;</span> <span class="special">&amp;</span> str1<span class="special">)</span><span class="special">;</span>
+<span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> CharT<span class="special">,</span> <span class="keyword">typename</span> Traits<span class="special">,</span> <span class="keyword">typename</span> Alloc1<span class="special">,</span> <span class="keyword">typename</span> Alloc2<span class="special">&gt;</span> 
+  <span class="keyword">bool</span> <a name="operato_idp105544918191376"></a><span class="keyword">operator</span><span class="special">!=</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">basic_string</span><span class="special">&lt;</span> <span class="identifier">CharT</span><span class="special">,</span> <span class="identifier">Traits</span><span class="special">,</span> <span class="identifier">Alloc1</span> <span class="special">&gt;</span> <span class="special">&amp;</span> str1<span class="special">,</span> 
+                  <span class="keyword">const</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">basic_string</span><span class="special">&lt;</span> <span class="identifier">CharT</span><span class="special">,</span> <span class="identifier">Traits</span><span class="special">,</span> <span class="identifier">Alloc2</span> <span class="special">&gt;</span> <span class="special">&amp;</span> str2<span class="special">)</span><span class="special">;</span>
+<span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> CharT<span class="special">,</span> <span class="keyword">typename</span> Traits<span class="special">,</span> <span class="keyword">typename</span> Alloc1<span class="special">,</span> <span class="keyword">typename</span> Alloc2<span class="special">&gt;</span> 
+  <span class="keyword">bool</span> <a name="operato_idp105544918194832"></a><span class="keyword">operator</span><span class="special">!=</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">basic_string</span><span class="special">&lt;</span> <span class="identifier">CharT</span><span class="special">,</span> <span class="identifier">Traits</span><span class="special">,</span> <span class="identifier">Alloc1</span> <span class="special">&gt;</span> <span class="special">&amp;</span> str2<span class="special">,</span> 
+                  <span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">basic_string</span><span class="special">&lt;</span> <span class="identifier">CharT</span><span class="special">,</span> <span class="identifier">Traits</span><span class="special">,</span> <span class="identifier">Alloc2</span> <span class="special">&gt;</span> <span class="special">&amp;</span> str1<span class="special">)</span><span class="special">;</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.string_serialize_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/string_serialize.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/string_serialize.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+  <span class="keyword">namespace</span> <span class="identifier">serialization</span> <span class="special">{</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Archive<span class="special">,</span> <span class="keyword">typename</span> CharT<span class="special">,</span> <span class="keyword">typename</span> CharTraits<span class="special">,</span> 
+             <span class="keyword">typename</span> AllocType<span class="special">&gt;</span> 
+      <span class="keyword">void</span> <a name="boost.serialization.save_idp105544918199568"></a><span class="identifier">save</span><span class="special">(</span><span class="identifier">Archive</span> <span class="special">&amp;</span> ar<span class="special">,</span> 
+                <span class="keyword">const</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">basic_string</span><span class="special">&lt;</span> <span class="identifier">CharT</span><span class="special">,</span> <span class="identifier">CharTraits</span><span class="special">,</span> <span class="identifier">AllocType</span> <span class="special">&gt;</span> <span class="special">&amp;</span> s<span class="special">,</span> 
+                <span class="keyword">unsigned</span> <span class="keyword">int</span> version<span class="special">)</span><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Archive<span class="special">,</span> <span class="keyword">typename</span> CharT<span class="special">,</span> <span class="keyword">typename</span> CharTraits<span class="special">,</span> 
+             <span class="keyword">typename</span> AllocType<span class="special">&gt;</span> 
+      <span class="keyword">void</span> <a name="boost.serialization.load_idp105544918203536"></a><span class="identifier">load</span><span class="special">(</span><span class="identifier">Archive</span> <span class="special">&amp;</span> ar<span class="special">,</span> 
+                <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">basic_string</span><span class="special">&lt;</span> <span class="identifier">CharT</span><span class="special">,</span> <span class="identifier">CharTraits</span><span class="special">,</span> <span class="identifier">AllocType</span> <span class="special">&gt;</span> <span class="special">&amp;</span> s<span class="special">,</span> 
+                <span class="keyword">unsigned</span> <span class="keyword">int</span> version<span class="special">)</span><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> CharT<span class="special">,</span> <span class="keyword">typename</span> CharTraits<span class="special">,</span> <span class="keyword">typename</span> AllocType<span class="special">&gt;</span> 
+      <span class="keyword">void</span> <a name="boost.serialization.save_idp105544918207504"></a><span class="identifier">save</span><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">archive</span><span class="special">::</span><span class="identifier">xml_oarchive</span> <span class="special">&amp;</span> ar<span class="special">,</span> 
+                <span class="keyword">const</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">basic_string</span><span class="special">&lt;</span> <span class="identifier">CharT</span><span class="special">,</span> <span class="identifier">CharTraits</span><span class="special">,</span> <span class="identifier">AllocType</span> <span class="special">&gt;</span> <span class="special">&amp;</span> s<span class="special">,</span> 
+                <span class="keyword">unsigned</span> <span class="keyword">int</span> version<span class="special">)</span><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> CharT<span class="special">,</span> <span class="keyword">typename</span> CharTraits<span class="special">,</span> <span class="keyword">typename</span> AllocType<span class="special">&gt;</span> 
+      <span class="keyword">void</span> <a name="boost.serialization.load_idp105544918211088"></a><span class="identifier">load</span><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">archive</span><span class="special">::</span><span class="identifier">xml_iarchive</span> <span class="special">&amp;</span> ar<span class="special">,</span> 
+                <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">basic_string</span><span class="special">&lt;</span> <span class="identifier">CharT</span><span class="special">,</span> <span class="identifier">CharTraits</span><span class="special">,</span> <span class="identifier">AllocType</span> <span class="special">&gt;</span> <span class="special">&amp;</span> s<span class="special">,</span> 
+                <span class="keyword">unsigned</span> <span class="keyword">int</span> version<span class="special">)</span><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Archive<span class="special">,</span> <span class="keyword">typename</span> CharT<span class="special">,</span> <span class="keyword">typename</span> CharTraits<span class="special">,</span> 
+             <span class="keyword">typename</span> AllocType<span class="special">&gt;</span> 
+      <span class="keyword">void</span> <a name="boost.serialization.seriali_idp105544918214672"></a><span class="identifier">serialize</span><span class="special">(</span><span class="identifier">Archive</span> <span class="special">&amp;</span> ar<span class="special">,</span> 
+                     <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">basic_string</span><span class="special">&lt;</span> <span class="identifier">CharT</span><span class="special">,</span> <span class="identifier">CharTraits</span><span class="special">,</span> <span class="identifier">AllocType</span> <span class="special">&gt;</span> <span class="special">&amp;</span> t<span class="special">,</span> 
+                     <span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">int</span> file_version<span class="special">)</span><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Archive<span class="special">,</span> <span class="keyword">typename</span> CharT<span class="special">,</span> <span class="keyword">typename</span> CharTraits<span class="special">,</span> 
+             <span class="keyword">typename</span> AllocType<span class="special">&gt;</span> 
+      <span class="keyword">void</span> <a name="boost.serialization.save_idp105544918153104"></a><span class="identifier">save</span><span class="special">(</span><span class="identifier">Archive</span> <span class="special">&amp;</span> ar<span class="special">,</span> 
+                <span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">basic_string</span><span class="special">&lt;</span> <span class="identifier">CharT</span><span class="special">,</span> <span class="identifier">CharTraits</span><span class="special">,</span> <span class="identifier">AllocType</span> <span class="special">&gt;</span> <span class="special">&amp;</span> s<span class="special">,</span> 
+                <span class="keyword">unsigned</span> <span class="keyword">int</span> version<span class="special">)</span><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Archive<span class="special">,</span> <span class="keyword">typename</span> CharT<span class="special">,</span> <span class="keyword">typename</span> CharTraits<span class="special">,</span> 
+             <span class="keyword">typename</span> AllocType<span class="special">&gt;</span> 
+      <span class="keyword">void</span> <a name="boost.serialization.load_idp105544918157072"></a><span class="identifier">load</span><span class="special">(</span><span class="identifier">Archive</span> <span class="special">&amp;</span> ar<span class="special">,</span> 
+                <span class="identifier">std</span><span class="special">::</span><span class="identifier">basic_string</span><span class="special">&lt;</span> <span class="identifier">CharT</span><span class="special">,</span> <span class="identifier">CharTraits</span><span class="special">,</span> <span class="identifier">AllocType</span> <span class="special">&gt;</span> <span class="special">&amp;</span> s<span class="special">,</span> 
+                <span class="keyword">unsigned</span> <span class="keyword">int</span> version<span class="special">)</span><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Archive<span class="special">,</span> <span class="keyword">typename</span> CharT<span class="special">,</span> <span class="keyword">typename</span> CharTraits<span class="special">,</span> 
+             <span class="keyword">typename</span> AllocType<span class="special">&gt;</span> 
+      <span class="keyword">void</span> <a name="boost.serialization.seriali_idp105544918161040"></a><span class="identifier">serialize</span><span class="special">(</span><span class="identifier">Archive</span> <span class="special">&amp;</span> ar<span class="special">,</span> 
+                     <span class="identifier">std</span><span class="special">::</span><span class="identifier">basic_string</span><span class="special">&lt;</span> <span class="identifier">CharT</span><span class="special">,</span> <span class="identifier">CharTraits</span><span class="special">,</span> <span class="identifier">AllocType</span> <span class="special">&gt;</span> <span class="special">&amp;</span> t<span class="special">,</span> 
+                     <span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">int</span> file_version<span class="special">)</span><span class="special">;</span>
+  <span class="special">}</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.trans_assoc_iterator_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_assoc_iterator.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_assoc_iterator.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">&gt;</span> 
+    <span class="keyword">class</span> <a class="link" href="stldb/trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">&gt;</span> 
+    <span class="keyword">bool</span> <a name="stldb.operato_idp105544918124688"></a><span class="keyword">operator</span><span class="special">==</span><span class="special">(</span><span class="keyword">const</span> <a class="link" href="stldb/trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span> <span class="special">&gt;</span> <span class="special">&amp;</span> larg<span class="special">,</span> 
+                    <span class="keyword">const</span> <a class="link" href="stldb/trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span> <span class="special">&gt;</span> <span class="special">&amp;</span> rarg<span class="special">)</span><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">&gt;</span> 
+    <span class="keyword">bool</span> <a name="stldb.operato_idp105544918128144"></a><span class="keyword">operator</span><span class="special">==</span><span class="special">(</span><span class="keyword">const</span> <a class="link" href="stldb/trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span> <span class="special">&gt;</span> <span class="special">&amp;</span> larg<span class="special">,</span> 
+                    <span class="keyword">const</span> <span class="identifier">base_iterator</span> <span class="special">&amp;</span> rarg<span class="special">)</span><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">&gt;</span> 
+    <span class="keyword">bool</span> <a name="stldb.operato_idp105544918131216"></a><span class="keyword">operator</span><span class="special">==</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">base_iterator</span> <span class="special">&amp;</span> larg<span class="special">,</span> 
+                    <span class="keyword">const</span> <a class="link" href="stldb/trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span> <span class="special">&gt;</span> <span class="special">&amp;</span> rarg<span class="special">)</span><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">&gt;</span> 
+    <span class="keyword">bool</span> <a name="stldb.operato_idp105544918134288"></a><span class="keyword">operator</span><span class="special">!=</span><span class="special">(</span><span class="keyword">const</span> <a class="link" href="stldb/trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span> <span class="special">&gt;</span> <span class="special">&amp;</span> larg<span class="special">,</span> 
+                    <span class="keyword">const</span> <a class="link" href="stldb/trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span> <span class="special">&gt;</span> <span class="special">&amp;</span> rarg<span class="special">)</span><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">&gt;</span> 
+    <span class="keyword">bool</span> <a name="stldb.operato_idp105544918137744"></a><span class="keyword">operator</span><span class="special">!=</span><span class="special">(</span><span class="keyword">const</span> <a class="link" href="stldb/trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span> <span class="special">&gt;</span> <span class="special">&amp;</span> larg<span class="special">,</span> 
+                    <span class="keyword">const</span> <span class="identifier">base_iterator</span> <span class="special">&amp;</span> rarg<span class="special">)</span><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">&gt;</span> 
+    <span class="keyword">bool</span> <a name="stldb.operato_idp105544918140816"></a><span class="keyword">operator</span><span class="special">!=</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">base_iterator</span> <span class="special">&amp;</span> larg<span class="special">,</span> 
+                    <span class="keyword">const</span> <a class="link" href="stldb/trans_assoc_iterator.html" title="Class template trans_assoc_iterator">trans_assoc_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span> <span class="special">&gt;</span> <span class="special">&amp;</span> rarg<span class="special">)</span><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.trans_iterator_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_iterator.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_iterator.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">,</span> <span class="keyword">bool</span> IsConst<span class="special">&gt;</span> 
+    <span class="keyword">class</span> <a class="link" href="stldb/trans_iterator.html" title="Class template trans_iterator">trans_iterator</a><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">,</span> <span class="keyword">bool</span> IsConst<span class="special">&gt;</span> 
+    <span class="keyword">bool</span> <a name="stldb.operato_idp105544918103056"></a><span class="keyword">operator</span><span class="special">==</span><span class="special">(</span><span class="keyword">const</span> <a class="link" href="stldb/trans_iterator.html" title="Class template trans_iterator">trans_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span><span class="special">,</span> <span class="identifier">IsConst</span> <span class="special">&gt;</span> <span class="special">&amp;</span> larg<span class="special">,</span> 
+                    <span class="keyword">const</span> <a class="link" href="stldb/trans_iterator.html" title="Class template trans_iterator">trans_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span><span class="special">,</span> <span class="identifier">IsConst</span> <span class="special">&gt;</span> <span class="special">&amp;</span> rarg<span class="special">)</span><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">,</span> <span class="keyword">bool</span> IsConst<span class="special">&gt;</span> 
+    <span class="keyword">bool</span> <a name="stldb.operato_idp105544918107152"></a><span class="keyword">operator</span><span class="special">==</span><span class="special">(</span><span class="keyword">const</span> <a class="link" href="stldb/trans_iterator.html" title="Class template trans_iterator">trans_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span><span class="special">,</span> <span class="identifier">IsConst</span> <span class="special">&gt;</span> <span class="special">&amp;</span> larg<span class="special">,</span> 
+                    <span class="keyword">const</span> <span class="identifier">base_iterator</span> <span class="special">&amp;</span> rarg<span class="special">)</span><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">,</span> <span class="keyword">bool</span> IsConst<span class="special">&gt;</span> 
+    <span class="keyword">bool</span> <a name="stldb.operato_idp105544918110864"></a><span class="keyword">operator</span><span class="special">==</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">base_iterator</span> <span class="special">&amp;</span> larg<span class="special">,</span> 
+                    <span class="keyword">const</span> <a class="link" href="stldb/trans_iterator.html" title="Class template trans_iterator">trans_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span><span class="special">,</span> <span class="identifier">IsConst</span> <span class="special">&gt;</span> <span class="special">&amp;</span> rarg<span class="special">)</span><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">,</span> <span class="keyword">bool</span> IsConst<span class="special">&gt;</span> 
+    <span class="keyword">bool</span> <a name="stldb.operato_idp105544918114576"></a><span class="keyword">operator</span><span class="special">!=</span><span class="special">(</span><span class="keyword">const</span> <a class="link" href="stldb/trans_iterator.html" title="Class template trans_iterator">trans_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span><span class="special">,</span> <span class="identifier">IsConst</span> <span class="special">&gt;</span> <span class="special">&amp;</span> larg<span class="special">,</span> 
+                    <span class="keyword">const</span> <a class="link" href="stldb/trans_iterator.html" title="Class template trans_iterator">trans_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span><span class="special">,</span> <span class="identifier">IsConst</span> <span class="special">&gt;</span> <span class="special">&amp;</span> rarg<span class="special">)</span><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">,</span> <span class="keyword">bool</span> IsConst<span class="special">&gt;</span> 
+    <span class="keyword">bool</span> <a name="stldb.operato_idp105544918118672"></a><span class="keyword">operator</span><span class="special">!=</span><span class="special">(</span><span class="keyword">const</span> <a class="link" href="stldb/trans_iterator.html" title="Class template trans_iterator">trans_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span><span class="special">,</span> <span class="identifier">IsConst</span> <span class="special">&gt;</span> <span class="special">&amp;</span> larg<span class="special">,</span> 
+                    <span class="keyword">const</span> <span class="identifier">base_iterator</span> <span class="special">&amp;</span> rarg<span class="special">)</span><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_t<span class="special">,</span> <span class="keyword">typename</span> base_iterator<span class="special">,</span> <span class="keyword">bool</span> IsConst<span class="special">&gt;</span> 
+    <span class="keyword">bool</span> <a name="stldb.operato_idp105544918056848"></a><span class="keyword">operator</span><span class="special">!=</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">base_iterator</span> <span class="special">&amp;</span> larg<span class="special">,</span> 
+                    <span class="keyword">const</span> <a class="link" href="stldb/trans_iterator.html" title="Class template trans_iterator">trans_iterator</a><span class="special">&lt;</span> <span class="identifier">container_t</span><span class="special">,</span> <span class="identifier">base_iterator</span><span class="special">,</span> <span class="identifier">IsConst</span> <span class="special">&gt;</span> <span class="special">&amp;</span> rarg<span class="special">)</span><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.trans_map_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_map.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_map.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> ManagedRegionType<span class="special">,</span> <span class="keyword">typename</span> K<span class="special">,</span> <span class="keyword">typename</span> V<span class="special">,</span> <span class="keyword">typename</span> Pred<span class="special">,</span> 
+           <span class="keyword">typename</span> Allocator<span class="special">,</span> <span class="keyword">typename</span> mutex_family<span class="special">&gt;</span> 
+    <span class="keyword">class</span> <a class="link" href="stldb/contain_idp105544918061584.html" title="Class template container_proxy&lt;ManagedRegionType, trans_map&lt; K, V, Pred, Allocator, mutex_family &gt;&gt;">container_proxy</a><span class="special">&lt;</span><span class="identifier">ManagedRegionType</span><span class="special">,</span> <span class="identifier">trans_map</span><span class="special">&lt;</span> <span class="identifier">K</span><span class="special">,</span> <span class="identifier">V</span><span class="special">,</span> <span class="identifier">Pred</span><span class="special">,</span> <span class="identifier">Allocator</span><span class="special">,</span> <span class="identifier">mutex_family</span> <span class="special">&gt;</span><span class="special">&gt;</span><span class="special">;</span>
+
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> K<span class="special">,</span> <span class="keyword">typename</span> V<span class="special">,</span> <span class="keyword">typename</span> Comparator <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">less</span><span class="special">&lt;</span><span class="identifier">K</span><span class="special">&gt;</span><span class="special">,</span> 
+           <span class="keyword">typename</span> Allocator <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">allocator</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">pair</span><span class="special">&lt;</span><span class="keyword">const</span> <span class="identifier">K</span><span class="special">,</span> <span class="identifier">V</span><span class="special">&gt;</span><span class="special">,</span>						    <span class="keyword">typename</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">managed_mapped_file</span><span class="special">::</span><span class="identifier">segment_manager</span><span class="special">&gt;</span><span class="special">,</span> 
+           <span class="keyword">typename</span> mutex_family <span class="special">=</span> <a class="link" href="stldb/bounded_mutex_family.html" title="Struct bounded_mutex_family">stldb::bounded_mutex_family</a><span class="special">&gt;</span> 
+    <span class="keyword">class</span> <a class="link" href="stldb/trans_map.html" title="Class template trans_map">trans_map</a><span class="special">;</span>
+<span class="special">}</span><span class="keyword">namespace</span> <span class="identifier">std</span> <span class="special">{</span>
+<span class="special">}</span>
+
+<span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">archive</span><span class="special">::</span><span class="identifier">binary_iarchive</span> <a name="boost_iarchive_t"></a><span class="identifier">boost_iarchive_t</span><span class="special">;</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.trans_map_entry_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_map_entry.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_map_entry.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis">
+
+<a class="link" href="SET_CHECKSUM.html" title="Macro SET_CHECKSUM">SET_CHECKSUM</a>()
+<a class="link" href="CHECK_CHECKSUM.html" title="Macro CHECK_CHECKSUM">CHECK_CHECKSUM</a>()</pre>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/trans_set_hook.html" title="Class trans_set_hook">trans_set_hook</a><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> T<span class="special">&gt;</span> <span class="keyword">class</span> <a class="link" href="stldb/TransEntry.html" title="Class template TransEntry">TransEntry</a><span class="special">;</span>
+
+  <span class="keyword">enum</span> <a name="stldb.TransactionalOperations"></a>TransactionalOperations <span class="special">{</span> No_op = = 0, Lock_op = = 1, Insert_op, 
+                                 Update_op, Delete_op, Deleted_Insert_op, 
+                                 Clear_op, Swap_op <span class="special">}</span><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.containers.trans_vector_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_vector.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/containers/trans_vector.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> T<span class="special">,</span> <span class="keyword">typename</span> Alloc<span class="special">,</span> 
+           <span class="keyword">typename</span> Lock <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">interprocess_upgradable_mutex</span><span class="special">,</span> 
+           <span class="keyword">typename</span> CondVar <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">interprocess_condition</span><span class="special">&gt;</span> 
+    <span class="keyword">class</span> <a class="link" href="stldb/trans_vector.html" title="Class template trans_vector">trans_vector</a><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.creation_tags_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/creation_tags.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/creation_tags.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">struct</span> <a class="link" href="stldb/create_or_recover_t.html" title="Struct create_or_recover_t">create_or_recover_t</a><span class="special">;</span>
+  <span class="keyword">struct</span> <a class="link" href="stldb/open_create_or_recover_t.html" title="Struct open_create_or_recover_t">open_create_or_recover_t</a><span class="special">;</span>
+  <span class="keyword">struct</span> <a class="link" href="stldb/open_only_t.html" title="Struct open_only_t">open_only_t</a><span class="special">;</span>
+  <span class="keyword">struct</span> <a class="link" href="stldb/open_or_create_t.html" title="Struct open_or_create_t">open_or_create_t</a><span class="special">;</span>
+  <span class="keyword">struct</span> <a class="link" href="stldb/open_or_recover_t.html" title="Struct open_or_recover_t">open_or_recover_t</a><span class="special">;</span>
+
+  <span class="keyword">static</span> <span class="keyword">const</span> <a class="link" href="stldb/create_or_recover_t.html" title="Struct create_or_recover_t">create_or_recover_t</a> <a class="link" href="stldb/create_or_recover.html" title="Global create_or_recover">create_or_recover</a><span class="special">;</span>
+  <span class="keyword">static</span> <span class="keyword">const</span> <a class="link" href="stldb/open_only_t.html" title="Struct open_only_t">open_only_t</a> <a class="link" href="stldb/open_only.html" title="Global open_only">open_only</a><span class="special">;</span>
+  <span class="keyword">static</span> <span class="keyword">const</span> <a class="link" href="stldb/open_create_or_recover_t.html" title="Struct open_create_or_recover_t">open_create_or_recover_t</a> <a class="link" href="stldb/open_create_or_recover.html" title="Global open_create_or_recover">open_create_or_recover</a><span class="special">;</span>
+  <span class="keyword">static</span> <span class="keyword">const</span> <a class="link" href="stldb/open_or_create_t.html" title="Struct open_or_create_t">open_or_create_t</a> <a class="link" href="stldb/open_or_create.html" title="Global open_or_create">open_or_create</a><span class="special">;</span>
+  <span class="keyword">static</span> <span class="keyword">const</span> <a class="link" href="stldb/open_or_recover_t.html" title="Struct open_or_recover_t">open_or_recover_t</a> <a class="link" href="stldb/open_or_recover.html" title="Global open_or_recover">open_or_recover</a><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.Database_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/Database.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/Database.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> ManagedRegionType<span class="special">&gt;</span> <span class="keyword">class</span> <a class="link" href="stldb/Database.html" title="Class template Database">Database</a><span class="special">;</span>
+
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> void_allocator_t<span class="special">,</span> <span class="keyword">typename</span> mutex_t<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="stldb/DatabaseInfo.html" title="Struct template DatabaseInfo">DatabaseInfo</a><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.database_registry_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/database_registry.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/database_registry.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> void_alloc_t<span class="special">&gt;</span> <span class="keyword">class</span> <a class="link" href="stldb/database_registry.html" title="Class template database_registry">database_registry</a><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.dynamic_managed_mapped_file_hpp"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/dynamic_managed_mapped_file.hpp" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/dynamic_managed_mapped_file.hpp</a>&gt;</h3></div></div></div>
+<pre class="synopsis">
+
+<a class="link" href="STLDB_D_idp105544917571856.html" title="Macro STLDB_DYNAMIC__MANAGED_MAPPED_FILE_HPP">STLDB_DYNAMIC__MANAGED_MAPPED_FILE_HPP</a></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.exceptions_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/exceptions.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/exceptions.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/lock_timeout_exception.html" title="Class lock_timeout_exception">lock_timeout_exception</a><span class="special">;</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/recover_from_log_failed.html" title="Class recover_from_log_failed">recover_from_log_failed</a><span class="special">;</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/recovery_needed.html" title="Class recovery_needed">recovery_needed</a><span class="special">;</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/row_deleted_exception.html" title="Class row_deleted_exception">row_deleted_exception</a><span class="special">;</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/row_level_lock_contention.html" title="Class row_level_lock_contention">row_level_lock_contention</a><span class="special">;</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/stldb_exception.html" title="Class stldb_exception">stldb_exception</a><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.log_reader_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/log_reader.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/log_reader.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/log_reader.html" title="Class log_reader">log_reader</a><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.logger_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/logger.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/logger.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> void_alloc_t<span class="special">,</span> <span class="keyword">typename</span> mutex_type<span class="special">&gt;</span> <span class="keyword">class</span> <a class="link" href="stldb/Logger.html" title="Class template Logger">Logger</a><span class="special">;</span>
+
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> void_alloc_t<span class="special">,</span> <span class="keyword">typename</span> mutex_type<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="stldb/SharedLogInfo.html" title="Struct template SharedLogInfo">SharedLogInfo</a><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.logging_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/logging.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/logging.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">struct</span> <a class="link" href="stldb/log_header.html" title="Struct log_header">log_header</a><span class="special">;</span>
+  <span class="identifier">BOOST_STLDB_DECL</span> <span class="identifier">uint32_t</span> <a name="stldb.adler"></a><span class="identifier">adler</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">uint8_t</span> <span class="special">*</span> data<span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> len<span class="special">)</span><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.recovery_manager_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/recovery_manager.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/recovery_manager.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> ManagedRegionType<span class="special">&gt;</span> <span class="keyword">class</span> <a class="link" href="stldb/recovery_manager.html" title="Class template recovery_manager">recovery_manager</a><span class="special">;</span>
+<span class="special">}</span>
+
+<span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">archive</span><span class="special">::</span><span class="identifier">binary_iarchive</span> <a name="boost_iarchive_t"></a><span class="identifier">boost_iarchive_t</span><span class="special">;</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.statistics_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/statistics.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/statistics.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">struct</span> <a class="link" href="stldb/database_stats.html" title="Struct database_stats">database_stats</a><span class="special">;</span>
+  <span class="keyword">struct</span> <a class="link" href="stldb/log_stats.html" title="Struct log_stats">log_stats</a><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.stldb_hpp"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/stldb.hpp" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/stldb.hpp</a>&gt;</h3></div></div></div>
+<pre class="synopsis">
+
+<a class="link" href="BOOST_STLDB_DECL.html" title="Macro BOOST_STLDB_DECL">BOOST_STLDB_DECL</a></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.sync.bounded_interprocess_mutex_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/bounded_interprocess_mutex.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/bounded_interprocess_mutex.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/bounded_interprocess_mutex.html" title="Class bounded_interprocess_mutex">bounded_interprocess_mutex</a><span class="special">;</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/bounded_idp105544917481488.html" title="Class bounded_interprocess_recursive_mutex">bounded_interprocess_recursive_mutex</a><span class="special">;</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/bounded_idp105544917483536.html" title="Class bounded_interprocess_upgradable_mutex">bounded_interprocess_upgradable_mutex</a><span class="special">;</span>
+
+  <span class="keyword">struct</span> <a class="link" href="stldb/bounded_mutex_family.html" title="Struct bounded_mutex_family">bounded_mutex_family</a><span class="special">;</span>
+
+  <span class="identifier">boost</span><span class="special">::</span><span class="identifier">posix_time</span><span class="special">::</span><span class="identifier">time_duration</span> <span class="identifier">BOOST_STLDB_DECL</span> <a class="link" href="stldb/bounded_mutex_timeout.html" title="Global bounded_mutex_timeout">bounded_mutex_timeout</a><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.sync.file_lock_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/file_lock.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/file_lock.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/file_lock.html" title="Class file_lock">file_lock</a><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.sync.picket_lock_set_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/picket_lock_set.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/picket_lock_set.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> T<span class="special">,</span> <span class="keyword">typename</span> mutex_type<span class="special">,</span> <span class="keyword">int</span> NumLocks <span class="special">=</span> <span class="number">31</span><span class="special">&gt;</span> 
+    <span class="keyword">class</span> <a class="link" href="stldb/picket_lock_set.html" title="Class template picket_lock_set">picket_lock_set</a><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.sync.wait_policy_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/wait_policy.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/wait_policy.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_lock_t<span class="special">&gt;</span> <span class="keyword">class</span> <a class="link" href="stldb/bounded_wait_policy.html" title="Class template bounded_wait_policy">bounded_wait_policy</a><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_lock_t<span class="special">&gt;</span> <span class="keyword">class</span> <a class="link" href="stldb/wait_indefinitely_policy.html" title="Class template wait_indefinitely_policy">wait_indefinitely_policy</a><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.trace_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/trace.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/trace.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis">
+
+<a class="link" href="STLDB_TRACE.html" title="Macro STLDB_TRACE">STLDB_TRACE</a>(lvl, msg)
+<a class="link" href="STLDB_TRACEDB.html" title="Macro STLDB_TRACEDB">STLDB_TRACEDB</a>(lvl, dbname, msg)
+<a class="link" href="STLDB_TRACE_DEBUG.html" title="Macro STLDB_TRACE_DEBUG">STLDB_TRACE_DEBUG</a>(lvl, msg)
+<a class="link" href="STLDB_TRACEDB_DEBUG.html" title="Macro STLDB_TRACEDB_DEBUG">STLDB_TRACEDB_DEBUG</a>(lvl, dbname, msg)</pre>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/cerr_tracer.html" title="Class cerr_tracer">cerr_tracer</a><span class="special">;</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/tracer.html" title="Class tracer">tracer</a><span class="special">;</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/tracing.html" title="Class tracing">tracing</a><span class="special">;</span>
+
+  <span class="keyword">enum</span> <a name="stldb.trace_level_t"></a>trace_level_t <span class="special">{</span> none_e = = 0, severe_e, error_e, warning_e, info_e, 
+                       fine_e, finer_e, finest_e <span class="special">}</span><span class="special">;</span>
+<span class="special">}</span></pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.transaction_h"></a>Header &lt;<a href="http://www.boost.org/doc/libs/release/doc/html//Users/bobw/workspaces/boost_1_79_0//Users/bobw/workspaces/STLdb/stldb_lib/stldb/transaction.h" target="_top">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/transaction.h</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">stldb</span> <span class="special">{</span>
+  <span class="keyword">struct</span> <a class="link" href="stldb/disposer.html" title="Struct disposer">disposer</a><span class="special">;</span>
+
+  <span class="keyword">class</span> <a class="link" href="stldb/exclusive_transaction.html" title="Class exclusive_transaction">exclusive_transaction</a><span class="special">;</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/Transaction.html" title="Class Transaction">Transaction</a><span class="special">;</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/transactional_op_list.html" title="Class transactional_op_list">transactional_op_list</a><span class="special">;</span>
+  <span class="keyword">class</span> <a class="link" href="stldb/TransactionalOperation.html" title="Class TransactionalOperation">TransactionalOperation</a><span class="special">;</span>
+
+  <span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">intrusive</span><span class="special">::</span><span class="identifier">list</span><span class="special">&lt;</span> <a class="link" href="stldb/TransactionalOperation.html" title="Class TransactionalOperation">TransactionalOperation</a> <span class="special">&gt;</span> <a name="stldb.trans_op_list_type"></a><span class="identifier">trans_op_list_type</span><span class="special">;</span>
+<span class="special">}</span>
+
+<span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">archive</span><span class="special">::</span><span class="identifier">binary_oarchive</span> <a name="boost_oarchive_t"></a><span class="identifier">boost_oarchive_t</span><span class="special">;</span>
+<span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">archive</span><span class="special">::</span><span class="identifier">binary_iarchive</span> <a name="boost_iarchive_t"></a><span class="identifier">boost_iarchive_t</span><span class="special">;</span></pre>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2009 Bob Walters<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="stldb/logging_opt.html"><img src="images/prev.png" alt="Prev"></a><a accesskey="u" href="index.html"><img src="images/up.png" alt="Up"></a><a accesskey="h" href="index.html"><img src="images/home.png" alt="Home"></a><a accesskey="n" href="stldb/transaction_id_t.html"><img src="images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

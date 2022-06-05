@@ -1,0 +1,62 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Class lock_timeout_exception</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../index.html" title="Chapter 1. STLdb 1.0">
+<link rel="up" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.exceptions_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/exceptions.h&gt;">
+<link rel="prev" href="../STLDB_D_idp105544917571856.html" title="Macro STLDB_DYNAMIC__MANAGED_MAPPED_FILE_HPP">
+<link rel="next" href="recover_from_log_failed.html" title="Class recover_from_log_failed">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="STLdb" width="253" height="108" src="../images/stldb_logo.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../STLDB_D_idp105544917571856.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.exceptions_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="recover_from_log_failed.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+<div class="refentry">
+<a name="stldb.lock_timeout_exception"></a><div class="titlepage"></div>
+<div class="refnamediv">
+<h2><span class="refentrytitle">Class lock_timeout_exception</span></h2>
+<p>stldb::lock_timeout_exception</p>
+</div>
+<h2 xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv-title">Synopsis</h2>
+<div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.exceptions_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/exceptions.h&gt;">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/exceptions.h</a>&gt;
+
+</span>
+<span class="keyword">class</span> <a class="link" href="lock_timeout_exception.html" title="Class lock_timeout_exception">lock_timeout_exception</a> <span class="special">:</span> <span class="keyword">public</span> <span class="identifier">stldb</span><span class="special">::</span><span class="identifier">stldb_exception</span> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// <a class="link" href="lock_timeout_exception.html#stldb.lock_timeout_exceptionconstruct-copy-destruct">construct/copy/destruct</a></span>
+  <a class="link" href="lock_timeout_exception.html#idp105544917574672-bb"><span class="identifier">lock_timeout_exception</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="lock_timeout_exception.html#idp105544917574928-bb"><span class="identifier">lock_timeout_exception</span></a><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+<span class="special">}</span><span class="special">;</span></pre></div>
+<div class="refsect1">
+<a name="idp105545219070992"></a><h2>Description</h2>
+<p>Exception type thrown when a blocking wait is done with a timeout. If the timeout elapses before the lock or condition is acquired, An exception of this type is thrown. </p>
+<div class="refsect2">
+<a name="idp105545219071632"></a><h3>
+<a name="stldb.lock_timeout_exceptionconstruct-copy-destruct"></a><code class="computeroutput">lock_timeout_exception</code> 
+        public
+       construct/copy/destruct</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><a name="idp105544917574672-bb"></a><span class="identifier">lock_timeout_exception</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><a name="idp105544917574928-bb"></a><span class="identifier">lock_timeout_exception</span><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> why<span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2009 Bob Walters<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../STLDB_D_idp105544917571856.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.exceptions_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="recover_from_log_failed.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

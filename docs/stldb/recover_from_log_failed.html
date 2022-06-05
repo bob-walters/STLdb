@@ -1,0 +1,80 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Class recover_from_log_failed</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../index.html" title="Chapter 1. STLdb 1.0">
+<link rel="up" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.exceptions_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/exceptions.h&gt;">
+<link rel="prev" href="lock_timeout_exception.html" title="Class lock_timeout_exception">
+<link rel="next" href="recovery_needed.html" title="Class recovery_needed">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="STLdb" width="253" height="108" src="../images/stldb_logo.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="lock_timeout_exception.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.exceptions_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="recovery_needed.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+<div class="refentry">
+<a name="stldb.recover_from_log_failed"></a><div class="titlepage"></div>
+<div class="refnamediv">
+<h2><span class="refentrytitle">Class recover_from_log_failed</span></h2>
+<p>stldb::recover_from_log_failed</p>
+</div>
+<h2 xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv-title">Synopsis</h2>
+<div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.exceptions_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/exceptions.h&gt;">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/exceptions.h</a>&gt;
+
+</span>
+<span class="keyword">class</span> <a class="link" href="recover_from_log_failed.html" title="Class recover_from_log_failed">recover_from_log_failed</a> <span class="special">:</span> <span class="keyword">public</span> <span class="identifier">stldb</span><span class="special">::</span><span class="identifier">stldb_exception</span> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// <a class="link" href="recover_from_log_failed.html#stldb.recover_from_log_failedconstruct-copy-destruct">construct/copy/destruct</a></span>
+  <a class="link" href="recover_from_log_failed.html#idp105544917579536-bb"><span class="identifier">recover_from_log_failed</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="recover_from_log_failed.html#idp105544917579792-bb"><span class="identifier">recover_from_log_failed</span></a><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">,</span> <span class="identifier">transaction_id_t</span><span class="special">,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">uintmax_t</span><span class="special">,</span> 
+                          <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="recover_from_log_failed.html#idp105544917582096-bb"><span class="special">~</span><span class="identifier">recover_from_log_failed</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="recover_from_log_failed.html#idp105544917576720-bb">public member functions</a></span>
+  <span class="identifier">transaction_id_t</span> <a class="link" href="recover_from_log_failed.html#idp105544917577104-bb"><span class="identifier">failed_txn</span></a><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+  <span class="identifier">boost</span><span class="special">::</span><span class="identifier">uintmax_t</span> <a class="link" href="recover_from_log_failed.html#idp105544917577872-bb"><span class="identifier">offset_in_file</span></a><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+  <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <a class="link" href="recover_from_log_failed.html#idp105544917578640-bb"><span class="identifier">filename</span></a><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+<span class="special">}</span><span class="special">;</span></pre></div>
+<div class="refsect1">
+<a name="idp105545219308816"></a><h2>Description</h2>
+<p>Exception thrown when there is a failure to recover transactions from a log file. There are several fields of usefull data intended to inform the caller exactly where the problem was encountered. </p>
+<div class="refsect2">
+<a name="idp105545219309456"></a><h3>
+<a name="stldb.recover_from_log_failedconstruct-copy-destruct"></a><code class="computeroutput">recover_from_log_failed</code> 
+        public
+       construct/copy/destruct</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><a name="idp105544917579536-bb"></a><span class="identifier">recover_from_log_failed</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><a name="idp105544917579792-bb"></a><span class="identifier">recover_from_log_failed</span><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> why<span class="special">,</span> <span class="identifier">transaction_id_t</span> txn<span class="special">,</span> 
+                        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">uintmax_t</span> loc<span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> filename<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><a name="idp105544917582096-bb"></a><span class="special">~</span><span class="identifier">recover_from_log_failed</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545219259408"></a><h3>
+<a name="idp105544917576720-bb"></a><code class="computeroutput">recover_from_log_failed</code> public member functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><span class="identifier">transaction_id_t</span> <a name="idp105544917577104-bb"></a><span class="identifier">failed_txn</span><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">uintmax_t</span> <a name="idp105544917577872-bb"></a><span class="identifier">offset_in_file</span><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <a name="idp105544917578640-bb"></a><span class="identifier">filename</span><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2009 Bob Walters<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="lock_timeout_exception.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.exceptions_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="recovery_needed.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

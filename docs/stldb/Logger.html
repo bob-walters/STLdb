@@ -1,0 +1,108 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Class template Logger</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../index.html" title="Chapter 1. STLdb 1.0">
+<link rel="up" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.logger_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/logger.h&gt;">
+<link rel="prev" href="log_reader.html" title="Class log_reader">
+<link rel="next" href="SharedLogInfo.html" title="Struct template SharedLogInfo">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="STLdb" width="253" height="108" src="../images/stldb_logo.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="log_reader.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.logger_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="SharedLogInfo.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+<div class="refentry">
+<a name="stldb.Logger"></a><div class="titlepage"></div>
+<div class="refnamediv">
+<h2><span class="refentrytitle">Class template Logger</span></h2>
+<p>stldb::Logger</p>
+</div>
+<h2 xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv-title">Synopsis</h2>
+<div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.logger_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/logger.h&gt;">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/logger.h</a>&gt;
+
+</span><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> void_alloc_t<span class="special">,</span> <span class="keyword">typename</span> mutex_type<span class="special">&gt;</span> 
+<span class="keyword">class</span> <a class="link" href="Logger.html" title="Class template Logger">Logger</a> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// <a class="link" href="Logger.html#stldb.Loggerconstruct-copy-destruct">construct/copy/destruct</a></span>
+  <a class="link" href="Logger.html#idp105544917550608-bb"><span class="identifier">Logger</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="Logger.html#idp105544917550864-bb"><span class="special">~</span><span class="identifier">Logger</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="Logger.html#idp105544917541008-bb">public member functions</a></span>
+  <span class="keyword">void</span> <a class="link" href="Logger.html#idp105544917541392-bb"><span class="identifier">set_shared_info</span></a><span class="special">(</span><a class="link" href="SharedLogInfo.html" title="Struct template SharedLogInfo">SharedLogInfo</a><span class="special">&lt;</span> <span class="identifier">void_alloc_t</span><span class="special">,</span> <span class="identifier">mutex_type</span> <span class="special">&gt;</span> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="Logger.html#idp105544917543184-bb"><span class="identifier">record_diskless_commit</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="log_stats.html" title="Struct log_stats">log_stats</a> <a class="link" href="Logger.html#idp105544917543824-bb"><span class="identifier">get_stats</span></a><span class="special">(</span><span class="keyword">bool</span> <span class="special">=</span> <span class="keyword">false</span><span class="special">)</span><span class="special">;</span>
+  <span class="identifier">transaction_id_t</span> <a class="link" href="Logger.html#idp105544917545360-bb"><span class="identifier">queue_for_commit</span></a><span class="special">(</span><a class="link" href="commit_buffer_t.html" title="Class template commit_buffer_t">stldb::commit_buffer_t</a><span class="special">&lt;</span> <span class="identifier">void_alloc_t</span> <span class="special">&gt;</span> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="Logger.html#idp105544917547152-bb"><span class="identifier">log</span></a><span class="special">(</span><span class="identifier">transaction_id_t</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="Logger.html#idp105544917548688-bb"><span class="identifier">sync_log</span></a><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">scoped_lock</span><span class="special">&lt;</span> <span class="identifier">mutex_type</span> <span class="special">&gt;</span> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="Logger.html#idp105544917549840-bb"><span class="identifier">advance_logfile</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="Logger.html#idp105544917551504-bb">private member functions</a></span>
+  <span class="keyword">void</span> <a class="link" href="Logger.html#idp105544917551888-bb"><span class="identifier">ensure_open_logfile</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+<span class="special">}</span><span class="special">;</span></pre></div>
+<div class="refsect1">
+<a name="idp105545219563920"></a><h2>Description</h2>
+<p>The logger is invoked when transactions are committing. </p>
+<div class="refsect2">
+<a name="idp105545219564560"></a><h3>
+<a name="stldb.Loggerconstruct-copy-destruct"></a><code class="computeroutput">Logger</code> 
+        public
+       construct/copy/destruct</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><a name="idp105544917550608-bb"></a><span class="identifier">Logger</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem">
+<pre class="literallayout"><a name="idp105544917550864-bb"></a><span class="special">~</span><span class="identifier">Logger</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre>
+<p>Destructor closes this processes file handle to any open log file. </p>
+</li>
+</ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545219571472"></a><h3>
+<a name="idp105544917541008-bb"></a><code class="computeroutput">Logger</code> public member functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+<pre class="literallayout"><span class="keyword">void</span> <a name="idp105544917541392-bb"></a><span class="identifier">set_shared_info</span><span class="special">(</span><a class="link" href="SharedLogInfo.html" title="Struct template SharedLogInfo">SharedLogInfo</a><span class="special">&lt;</span> <span class="identifier">void_alloc_t</span><span class="special">,</span> <span class="identifier">mutex_type</span> <span class="special">&gt;</span> <span class="special">*</span> log_info<span class="special">)</span><span class="special">;</span></pre>
+<p>Set the shared log info. </p>
+</li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544917543184-bb"></a><span class="identifier">record_diskless_commit</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><a class="link" href="log_stats.html" title="Struct log_stats">log_stats</a> <a name="idp105544917543824-bb"></a><span class="identifier">get_stats</span><span class="special">(</span><span class="keyword">bool</span> reset <span class="special">=</span> <span class="keyword">false</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem">
+<pre class="literallayout"><span class="identifier">transaction_id_t</span> 
+<a name="idp105544917545360-bb"></a><span class="identifier">queue_for_commit</span><span class="special">(</span><a class="link" href="commit_buffer_t.html" title="Class template commit_buffer_t">stldb::commit_buffer_t</a><span class="special">&lt;</span> <span class="identifier">void_alloc_t</span> <span class="special">&gt;</span> <span class="special">*</span> buff<span class="special">)</span><span class="special">;</span></pre>
+<p>If there is no txn currently waiting for a shot at the log, then immediately grant the process access to the log. Otherwise, it joins the waiting list. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><span class="keyword">void</span> <a name="idp105544917547152-bb"></a><span class="identifier">log</span><span class="special">(</span><span class="identifier">transaction_id_t</span> my_commit_seq<span class="special">)</span><span class="special">;</span></pre>
+<p>Acquire the right to write to the log file, and then write data from the commit queue as necessary until out buffer has been written. Once the data has been written, optionally call sync() to wait for that data to make it out of OS memory and to the disk. </p>
+</li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544917548688-bb"></a><span class="identifier">sync_log</span><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">scoped_lock</span><span class="special">&lt;</span> <span class="identifier">mutex_type</span> <span class="special">&gt;</span> <span class="special">&amp;</span> held_file_lock<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544917549840-bb"></a><span class="identifier">advance_logfile</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545219540368"></a><h3>
+<a name="idp105544917551504-bb"></a><code class="computeroutput">Logger</code> private member functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+<pre class="literallayout"><span class="keyword">void</span> <a name="idp105544917551888-bb"></a><span class="identifier">ensure_open_logfile</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre>
+<p>ensure that _logfd is referring to the correct (current) logfile, and that the logfile in question has not exceeded its maximum size. Caller holds _shm_info-&gt;file_mutex. </p>
+</li></ol></div>
+</div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2009 Bob Walters<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="log_reader.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.logger_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="SharedLogInfo.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

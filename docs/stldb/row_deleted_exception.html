@@ -1,0 +1,62 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Class row_deleted_exception</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../index.html" title="Chapter 1. STLdb 1.0">
+<link rel="up" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.exceptions_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/exceptions.h&gt;">
+<link rel="prev" href="recovery_needed.html" title="Class recovery_needed">
+<link rel="next" href="row_level_lock_contention.html" title="Class row_level_lock_contention">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="STLdb" width="253" height="108" src="../images/stldb_logo.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="recovery_needed.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.exceptions_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="row_level_lock_contention.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+<div class="refentry">
+<a name="stldb.row_deleted_exception"></a><div class="titlepage"></div>
+<div class="refnamediv">
+<h2><span class="refentrytitle">Class row_deleted_exception</span></h2>
+<p>stldb::row_deleted_exception</p>
+</div>
+<h2 xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv-title">Synopsis</h2>
+<div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.exceptions_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/exceptions.h&gt;">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/exceptions.h</a>&gt;
+
+</span>
+<span class="keyword">class</span> <a class="link" href="row_deleted_exception.html" title="Class row_deleted_exception">row_deleted_exception</a> <span class="special">:</span> <span class="keyword">public</span> <span class="identifier">stldb</span><span class="special">::</span><span class="identifier">stldb_exception</span> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// <a class="link" href="row_deleted_exception.html#stldb.row_deleted_exceptionconstruct-copy-destruct">construct/copy/destruct</a></span>
+  <a class="link" href="row_deleted_exception.html#idp105544917586960-bb"><span class="identifier">row_deleted_exception</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="row_deleted_exception.html#idp105544917587216-bb"><span class="identifier">row_deleted_exception</span></a><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+<span class="special">}</span><span class="special">;</span></pre></div>
+<div class="refsect1">
+<a name="idp105545219245328"></a><h2>Description</h2>
+<p>Exception thrown when a transaction attempts to modify a row which has been deleted by another thread/transaction. This exception is only thrown from blocking methods. Upon discovering that the row indicated by an iterator is already locked by another thread, the method will block until that lock is resolved (via transaction commit/rollback), at that point if the entry that the iterator was on is deleted by that transaction, the blocking method fails, throwing this exception. </p>
+<div class="refsect2">
+<a name="idp105545219245968"></a><h3>
+<a name="stldb.row_deleted_exceptionconstruct-copy-destruct"></a><code class="computeroutput">row_deleted_exception</code> 
+        public
+       construct/copy/destruct</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><a name="idp105544917586960-bb"></a><span class="identifier">row_deleted_exception</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><a name="idp105544917587216-bb"></a><span class="identifier">row_deleted_exception</span><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> why<span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2009 Bob Walters<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="recovery_needed.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.exceptions_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="row_level_lock_contention.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Struct template DatabaseInfo</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../index.html" title="Chapter 1. STLdb 1.0">
+<link rel="up" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.Database_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/Database.h&gt;">
+<link rel="prev" href="Database.html" title="Class template Database">
+<link rel="next" href="database_registry.html" title="Class template database_registry">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="STLdb" width="253" height="108" src="../images/stldb_logo.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="Database.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.Database_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="database_registry.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+<div class="refentry">
+<a name="stldb.DatabaseInfo"></a><div class="titlepage"></div>
+<div class="refnamediv">
+<h2><span class="refentrytitle">Struct template DatabaseInfo</span></h2>
+<p>stldb::DatabaseInfo</p>
+</div>
+<h2 xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv-title">Synopsis</h2>
+<div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.Database_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/Database.h&gt;">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/Database.h</a>&gt;
+
+</span><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> void_allocator_t<span class="special">,</span> <span class="keyword">typename</span> mutex_t<span class="special">&gt;</span> 
+<span class="keyword">struct</span> <a class="link" href="DatabaseInfo.html" title="Struct template DatabaseInfo">DatabaseInfo</a> <span class="special">{</span>
+  <span class="comment">// types</span>
+  <span class="keyword">typedef</span> <span class="identifier">void_allocator_t</span><span class="special">::</span><span class="keyword">template</span> <span class="identifier">rebind</span><span class="special">&lt;</span> <span class="keyword">char</span> <span class="special">&gt;</span><span class="special">::</span><span class="identifier">other</span>                                                                                                                                  <a name="stldb.DatabaseInfo.shm_char_allocator_t"></a><span class="identifier">shm_char_allocator_t</span><span class="special">;</span>
+  <span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">basic_string</span><span class="special">&lt;</span> <span class="keyword">char</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">char_traits</span><span class="special">&lt;</span> <span class="keyword">char</span> <span class="special">&gt;</span><span class="special">,</span> <span class="identifier">shm_char_allocator_t</span> <span class="special">&gt;</span>                                                                                         <a name="stldb.DatabaseInfo.shm_string"></a><span class="identifier">shm_string</span><span class="special">;</span>          
+  <span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">map</span><span class="special">&lt;</span> <span class="identifier">shm_string</span><span class="special">,</span> <span class="identifier">transaction_id_t</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">less</span><span class="special">&lt;</span> <span class="identifier">shm_string</span> <span class="special">&gt;</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">void_allocator_t</span><span class="special">::</span><span class="keyword">template</span> <span class="identifier">rebind</span><span class="special">&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">pair</span><span class="special">&lt;</span> <span class="identifier">shm_string</span><span class="special">,</span> <span class="identifier">transaction_id_t</span> <span class="special">&gt;</span> <span class="special">&gt;</span><span class="special">::</span><span class="identifier">other</span> <span class="special">&gt;</span> <a name="stldb.DatabaseInfo.ckpt_history_map_t"></a><span class="identifier">ckpt_history_map_t</span><span class="special">;</span>  
+
+  <span class="comment">// <a class="link" href="DatabaseInfo.html#stldb.DatabaseInfoconstruct-copy-destruct">construct/copy/destruct</a></span>
+  <a class="link" href="DatabaseInfo.html#idp105544917612944-bb"><span class="identifier">DatabaseInfo</span></a><span class="special">(</span><span class="keyword">const</span> <span class="identifier">void_allocator_t</span> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="DatabaseInfo.html#idp105544917614224-bb"><span class="identifier">DatabaseInfo</span></a><span class="special">(</span><span class="keyword">void</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="DatabaseInfo.html#idp105544917610128-bb">public member functions</a></span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Archive<span class="special">&gt;</span> <span class="keyword">void</span> <a class="link" href="DatabaseInfo.html#idp105544917610512-bb"><span class="identifier">serialize</span></a><span class="special">(</span><span class="identifier">Archive</span> <span class="special">&amp;</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">int</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="DatabaseInfo.html#stldb.DatabaseInfopublic-data-members">public data members</a></span>
+  <span class="identifier">mutex_t</span> <span class="identifier">mutex</span><span class="special">;</span>  <span class="comment">// This region needs a mutex to protect its contents from concurrent modification. </span>
+  <span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">interprocess_upgradable_mutex</span> <span class="identifier">transaction_lock</span><span class="special">;</span>  <span class="comment">// lock for coordinating regular vs exclusive transactions </span>
+  <span class="identifier">transaction_id_t</span> <a class="link" href="DatabaseInfo.html#stldb.DatabaseInfo.next_txn_id"><span class="identifier">next_txn_id</span></a><span class="special">;</span>
+  <span class="identifier">slist</span><span class="special">&lt;</span> <a class="link" href="commit_buffer_t.html" title="Class template commit_buffer_t">commit_buffer_t</a><span class="special">&lt;</span> <span class="identifier">void_allocator_t</span> <span class="special">&gt;</span><span class="special">,</span> <span class="identifier">cache_last</span><span class="special">&lt;</span> <span class="keyword">true</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <a class="link" href="DatabaseInfo.html#stldb.DatabaseInfo._buffer_queue"><span class="identifier">_buffer_queue</span></a><span class="special">;</span>
+  <a class="link" href="SharedLogInfo.html" title="Struct template SharedLogInfo">SharedLogInfo</a><span class="special">&lt;</span> <span class="identifier">void_allocator_t</span><span class="special">,</span> <span class="identifier">mutex_t</span> <span class="special">&gt;</span> <a class="link" href="DatabaseInfo.html#stldb.DatabaseInfo.logInfo"><span class="identifier">logInfo</span></a><span class="special">;</span>
+  <span class="identifier">ckpt_history_map_t</span> <span class="identifier">ckpt_history_map</span><span class="special">;</span>
+  <span class="keyword">float</span> <span class="identifier">max_incremental_percent</span><span class="special">;</span>
+  <span class="identifier">shm_string</span> <span class="identifier">database_name</span><span class="special">;</span>
+  <span class="identifier">shm_string</span> <span class="identifier">database_directory</span><span class="special">;</span>
+  <span class="identifier">shm_string</span> <span class="identifier">checkpoint_directory</span><span class="special">;</span>
+<span class="special">}</span><span class="special">;</span></pre></div>
+<div class="refsect1">
+<a name="idp105545219048336"></a><h2>Description</h2>
+<p>The master database information record - stored in the shared region. </p>
+<div class="refsect2">
+<a name="idp105545219048976"></a><h3>
+<a name="stldb.DatabaseInfoconstruct-copy-destruct"></a><code class="computeroutput">DatabaseInfo</code> 
+        public
+       construct/copy/destruct</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><a name="idp105544917612944-bb"></a><span class="identifier">DatabaseInfo</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">void_allocator_t</span> <span class="special">&amp;</span> alloc<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><a name="idp105544917614224-bb"></a><span class="identifier">DatabaseInfo</span><span class="special">(</span><span class="keyword">void</span><span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545219057168"></a><h3>
+<a name="idp105544917610128-bb"></a><code class="computeroutput">DatabaseInfo</code> public member functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><pre class="literallayout"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Archive<span class="special">&gt;</span> 
+  <span class="keyword">void</span> <a name="idp105544917610512-bb"></a><span class="identifier">serialize</span><span class="special">(</span><span class="identifier">Archive</span> <span class="special">&amp;</span> ar<span class="special">,</span> <span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">int</span> version<span class="special">)</span><span class="special">;</span></pre></li></ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545219000848"></a><h3>
+<a name="stldb.DatabaseInfopublic-data-members"></a><code class="computeroutput">DatabaseInfo</code> 
+        public
+       public data members</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+<pre class="literallayout"><span class="identifier">transaction_id_t</span> <a name="stldb.DatabaseInfo.next_txn_id"></a><span class="identifier">next_txn_id</span><span class="special">;</span></pre>
+<p>In progress transactions have one set of Ids. When they are committed, they are assigned a log sequence number (see the logger's shared data) </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><span class="identifier">slist</span><span class="special">&lt;</span> <a class="link" href="commit_buffer_t.html" title="Class template commit_buffer_t">commit_buffer_t</a><span class="special">&lt;</span> <span class="identifier">void_allocator_t</span> <span class="special">&gt;</span><span class="special">,</span> <span class="identifier">cache_last</span><span class="special">&lt;</span> <span class="keyword">true</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <a name="stldb.DatabaseInfo._buffer_queue"></a><span class="identifier">_buffer_queue</span><span class="special">;</span></pre>
+<p>An intrusive list of available commit buffers. These are created as needed and then reused across processes to minimize allocation. </p>
+</li>
+<li class="listitem">
+<pre class="literallayout"><a class="link" href="SharedLogInfo.html" title="Struct template SharedLogInfo">SharedLogInfo</a><span class="special">&lt;</span> <span class="identifier">void_allocator_t</span><span class="special">,</span> <span class="identifier">mutex_t</span> <span class="special">&gt;</span> <a name="stldb.DatabaseInfo.logInfo"></a><span class="identifier">logInfo</span><span class="special">;</span></pre>
+<p>Data held in shared memory for supporting the write-ahead log. </p>
+</li>
+</ol></div>
+</div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2009 Bob Walters<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="Database.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.Database_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="database_registry.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

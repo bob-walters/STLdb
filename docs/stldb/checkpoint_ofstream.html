@@ -1,0 +1,111 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Class checkpoint_ofstream</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../index.html" title="Chapter 1. STLdb 1.0">
+<link rel="up" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.checkpoint_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/checkpoint.h&gt;">
+<link rel="prev" href="checkpoint_iterator.html" title="Class template checkpoint_iterator">
+<link rel="next" href="checkpoint_manager.html" title="Class template checkpoint_manager">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="STLdb" width="253" height="108" src="../images/stldb_logo.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="checkpoint_iterator.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.checkpoint_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="checkpoint_manager.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+<div class="refentry">
+<a name="stldb.checkpoint_ofstream"></a><div class="titlepage"></div>
+<div class="refnamediv">
+<h2><span class="refentrytitle">Class checkpoint_ofstream</span></h2>
+<p>stldb::checkpoint_ofstream</p>
+</div>
+<h2 xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv-title">Synopsis</h2>
+<div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.checkpoint_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/checkpoint.h&gt;">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/checkpoint.h</a>&gt;
+
+</span>
+<span class="keyword">class</span> <a class="link" href="checkpoint_ofstream.html" title="Class checkpoint_ofstream">checkpoint_ofstream</a> <span class="special">:</span> <span class="keyword">protected</span> <span class="identifier">stldb</span><span class="special">::</span><span class="identifier">checkpoint_fstream_base</span> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// <a class="link" href="checkpoint_ofstream.html#stldb.checkpoint_ofstreamconstruct-copy-destruct">construct/copy/destruct</a></span>
+  <a class="link" href="checkpoint_ofstream.html#idp105544918602384-bb"><span class="identifier">checkpoint_ofstream</span></a><span class="special">(</span><span class="keyword">const</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">filesystem</span><span class="special">::</span><span class="identifier">path</span> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="checkpoint_ofstream.html#idp105544918603152-bb"><span class="identifier">checkpoint_ofstream</span></a><span class="special">(</span><span class="keyword">const</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">filesystem</span><span class="special">::</span><span class="identifier">path</span> <span class="special">&amp;</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="checkpoint_ofstream.html#idp105544918604432-bb"><span class="identifier">checkpoint_ofstream</span></a><span class="special">(</span><span class="keyword">const</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">filesystem</span><span class="special">::</span><span class="identifier">path</span> <span class="special">&amp;</span><span class="special">,</span> 
+                      <span class="keyword">const</span> <span class="identifier">checkpoint_file_info</span> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="checkpoint_ofstream.html#idp105544918605712-bb"><span class="special">~</span><span class="identifier">checkpoint_ofstream</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="checkpoint_ofstream.html#idp105544918594320-bb">public member functions</a></span>
+  <span class="keyword">void</span> <a class="link" href="checkpoint_ofstream.html#idp105544918594704-bb"><span class="identifier">clear</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> InputIterator<span class="special">&gt;</span> 
+    <span class="keyword">void</span> <a class="link" href="checkpoint_ofstream.html#idp105544918595344-bb"><span class="identifier">add_free_space</span></a><span class="special">(</span><span class="identifier">InputIterator</span><span class="special">,</span> <span class="identifier">InputIterator</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="checkpoint_ofstream.html#idp105544918597648-bb"><span class="identifier">add_free_space</span></a><span class="special">(</span><span class="keyword">const</span> <span class="identifier">checkpoint_loc_t</span> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> T<span class="special">&gt;</span> <span class="identifier">checkpoint_loc_t</span> <a class="link" href="checkpoint_ofstream.html#idp105544918598800-bb"><span class="identifier">write</span></a><span class="special">(</span><span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="checkpoint_ofstream.html#idp105544918600592-bb"><span class="identifier">commit</span></a><span class="special">(</span><span class="identifier">transaction_id_t</span><span class="special">,</span> <span class="identifier">transaction_id_t</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="checkpoint_ofstream.html#idp105544918605968-bb">protected member functions</a></span>
+  <span class="identifier">checkpoint_loc_t</span> <a class="link" href="checkpoint_ofstream.html#idp105544918606352-bb"><span class="identifier">allocate</span></a><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="checkpoint_ofstream.html#idp105544918607504-bb"><span class="identifier">write</span></a><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">offset_t</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="checkpoint_ofstream.html#idp105544918609680-bb"><span class="identifier">add_free_space</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="checkpoint_ofstream.html#idp105544918610448-bb">private member functions</a></span>
+  <span class="keyword">void</span> <a class="link" href="checkpoint_ofstream.html#idp105544918545296-bb"><span class="identifier">open_checkpoint</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+<span class="special">}</span><span class="special">;</span></pre></div>
+<div class="refsect1">
+<a name="idp105545087218320"></a><h2>Description</h2>
+<div class="refsect2">
+<a name="idp105545087218704"></a><h3>
+<a name="stldb.checkpoint_ofstreamconstruct-copy-destruct"></a><code class="computeroutput">checkpoint_ofstream</code> 
+        public
+       construct/copy/destruct</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><a name="idp105544918602384-bb"></a><span class="identifier">checkpoint_ofstream</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">filesystem</span><span class="special">::</span><span class="identifier">path</span> <span class="special">&amp;</span> metafile<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><a name="idp105544918603152-bb"></a><span class="identifier">checkpoint_ofstream</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">filesystem</span><span class="special">::</span><span class="identifier">path</span> <span class="special">&amp;</span> checkpoint_path<span class="special">,</span> 
+                    <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> container_name<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><a name="idp105544918604432-bb"></a><span class="identifier">checkpoint_ofstream</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">filesystem</span><span class="special">::</span><span class="identifier">path</span> <span class="special">&amp;</span> checkpoint_path<span class="special">,</span> 
+                    <span class="keyword">const</span> <span class="identifier">checkpoint_file_info</span> <span class="special">&amp;</span> checkpoint_info<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><a name="idp105544918605712-bb"></a><span class="special">~</span><span class="identifier">checkpoint_ofstream</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545020004880"></a><h3>
+<a name="idp105544918594320-bb"></a><code class="computeroutput">checkpoint_ofstream</code> public member functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544918594704-bb"></a><span class="identifier">clear</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> InputIterator<span class="special">&gt;</span> 
+  <span class="keyword">void</span> <a name="idp105544918595344-bb"></a><span class="identifier">add_free_space</span><span class="special">(</span><span class="identifier">InputIterator</span> begin<span class="special">,</span> <span class="identifier">InputIterator</span> end<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544918597648-bb"></a><span class="identifier">add_free_space</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">checkpoint_loc_t</span> <span class="special">&amp;</span> space<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> T<span class="special">&gt;</span> <span class="identifier">checkpoint_loc_t</span> <a name="idp105544918598800-bb"></a><span class="identifier">write</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> obj<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544918600592-bb"></a><span class="identifier">commit</span><span class="special">(</span><span class="identifier">transaction_id_t</span> lsn_at_start<span class="special">,</span> <span class="identifier">transaction_id_t</span> lsn_at_end<span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545150353168"></a><h3>
+<a name="idp105544918605968-bb"></a><code class="computeroutput">checkpoint_ofstream</code> protected member functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><span class="identifier">checkpoint_loc_t</span> <a name="idp105544918606352-bb"></a><span class="identifier">allocate</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> size<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544918607504-bb"></a><span class="identifier">write</span><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">offset_t</span> offset<span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> length<span class="special">,</span> 
+           <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> image<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544918609680-bb"></a><span class="identifier">add_free_space</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545150370320"></a><h3>
+<a name="idp105544918610448-bb"></a><code class="computeroutput">checkpoint_ofstream</code> private member functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544918545296-bb"></a><span class="identifier">open_checkpoint</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li></ol></div>
+</div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2009 Bob Walters<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="checkpoint_iterator.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.checkpoint_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="checkpoint_manager.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

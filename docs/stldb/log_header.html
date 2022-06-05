@@ -1,0 +1,78 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Struct log_header</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../index.html" title="Chapter 1. STLdb 1.0">
+<link rel="up" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.logging_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/logging.h&gt;">
+<link rel="prev" href="SharedLogInfo.html" title="Struct template SharedLogInfo">
+<link rel="next" href="recovery_manager.html" title="Class template recovery_manager">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="STLdb" width="253" height="108" src="../images/stldb_logo.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="SharedLogInfo.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.logging_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="recovery_manager.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+<div class="refentry">
+<a name="stldb.log_header"></a><div class="titlepage"></div>
+<div class="refnamediv">
+<h2><span class="refentrytitle">Struct log_header</span></h2>
+<p>stldb::log_header</p>
+</div>
+<h2 xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv-title">Synopsis</h2>
+<div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.logging_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/logging.h&gt;">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/logging.h</a>&gt;
+
+</span>
+<span class="keyword">struct</span> <a class="link" href="log_header.html" title="Struct log_header">log_header</a> <span class="special">{</span>
+  <span class="comment">// <a class="link" href="log_header.html#stldb.log_headerconstruct-copy-destruct">construct/copy/destruct</a></span>
+  <a class="link" href="log_header.html#idp105544917511952-bb"><span class="identifier">log_header</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="log_header.html#idp105544917509264-bb">public member functions</a></span>
+  <span class="keyword">bool</span> <a class="link" href="log_header.html#idp105544917509648-bb"><span class="identifier">padding</span></a><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+  <span class="keyword">bool</span> <a class="link" href="log_header.html#idp105544917510416-bb"><span class="identifier">empty</span></a><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="log_header.html#idp105544917511184-bb"><span class="identifier">finalize</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// public data members</span>
+  <span class="identifier">uint32_t</span> <span class="identifier">op_count</span><span class="special">;</span>
+  <span class="identifier">uint32_t</span> <span class="identifier">segment_size</span><span class="special">;</span>
+  <span class="identifier">transaction_id_t</span> <span class="identifier">lsn</span><span class="special">;</span>
+  <span class="identifier">uint32_t</span> <span class="identifier">segment_checksum</span><span class="special">;</span>
+  <span class="identifier">uint32_t</span> <span class="identifier">header_checksum</span><span class="special">;</span>
+<span class="special">}</span><span class="special">;</span></pre></div>
+<div class="refsect1">
+<a name="idp105545219665936"></a><h2>Description</h2>
+<p>Each transaction log record is proceeded by a fixed size header which indicates the length of the ensuing log records, and provides a checksum value. </p>
+<div class="refsect2">
+<a name="idp105545219666576"></a><h3>
+<a name="stldb.log_headerconstruct-copy-destruct"></a><code class="computeroutput">log_header</code> 
+        public
+       construct/copy/destruct</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><pre class="literallayout"><a name="idp105544917511952-bb"></a><span class="identifier">log_header</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li></ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545219670416"></a><h3>
+<a name="idp105544917509264-bb"></a><code class="computeroutput">log_header</code> public member functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><span class="keyword">bool</span> <a name="idp105544917509648-bb"></a><span class="identifier">padding</span><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">bool</span> <a name="idp105544917510416-bb"></a><span class="identifier">empty</span><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544917511184-bb"></a><span class="identifier">finalize</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2009 Bob Walters<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="SharedLogInfo.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.logging_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="recovery_manager.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

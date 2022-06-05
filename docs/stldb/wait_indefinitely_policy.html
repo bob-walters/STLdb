@@ -1,0 +1,75 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Class template wait_indefinitely_policy</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../index.html" title="Chapter 1. STLdb 1.0">
+<link rel="up" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.sync.wait_policy_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/wait_policy.h&gt;">
+<link rel="prev" href="bounded_wait_policy.html" title="Class template bounded_wait_policy">
+<link rel="next" href="cerr_tracer.html" title="Class cerr_tracer">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="STLdb" width="253" height="108" src="../images/stldb_logo.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="bounded_wait_policy.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.sync.wait_policy_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="cerr_tracer.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+<div class="refentry">
+<a name="stldb.wait_indefinitely_policy"></a><div class="titlepage"></div>
+<div class="refnamediv">
+<h2><span class="refentrytitle">Class template wait_indefinitely_policy</span></h2>
+<p>stldb::wait_indefinitely_policy</p>
+</div>
+<h2 xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv-title">Synopsis</h2>
+<div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.sync.wait_policy_h" title="Header &lt;/Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/wait_policy.h&gt;">/Users/bobw/workspaces/STLdb/stldb_lib/stldb/sync/wait_policy.h</a>&gt;
+
+</span><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> container_lock_t<span class="special">&gt;</span> 
+<span class="keyword">class</span> <a class="link" href="wait_indefinitely_policy.html" title="Class template wait_indefinitely_policy">wait_indefinitely_policy</a> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// <a class="link" href="wait_indefinitely_policy.html#stldb.wait_indefinitely_policyconstruct-copy-destruct">construct/copy/destruct</a></span>
+  <a class="link" href="wait_indefinitely_policy.html#idp105544917457040-bb"><span class="identifier">wait_indefinitely_policy</span></a><span class="special">(</span><span class="identifier">container_lock_t</span> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+
+  <span class="comment">// <a class="link" href="wait_indefinitely_policy.html#idp105544917452560-bb">public member functions</a></span>
+  <span class="keyword">void</span> <a class="link" href="wait_indefinitely_policy.html#idp105544917452944-bb"><span class="identifier">unlock_container</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">void</span> <a class="link" href="wait_indefinitely_policy.html#idp105544917453584-bb"><span class="identifier">relock_container</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> row_mutex_t<span class="special">,</span> <span class="keyword">typename</span> condition_t<span class="special">&gt;</span> 
+    <span class="keyword">void</span> <a class="link" href="wait_indefinitely_policy.html#idp105544917454224-bb"><span class="identifier">wait</span></a><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">scoped_lock</span><span class="special">&lt;</span> <span class="identifier">row_mutex_t</span> <span class="special">&gt;</span> <span class="special">&amp;</span><span class="special">,</span> 
+              <span class="identifier">condition_t</span> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+<span class="special">}</span><span class="special">;</span></pre></div>
+<div class="refsect1">
+<a name="idp105545220187792"></a><h2>Description</h2>
+<div class="refsect2">
+<a name="idp105545220188176"></a><h3>
+<a name="stldb.wait_indefinitely_policyconstruct-copy-destruct"></a><code class="computeroutput">wait_indefinitely_policy</code> 
+        public
+       construct/copy/destruct</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><pre class="literallayout"><a name="idp105544917457040-bb"></a><span class="identifier">wait_indefinitely_policy</span><span class="special">(</span><span class="identifier">container_lock_t</span> <span class="special">&amp;</span> lock<span class="special">)</span><span class="special">;</span></pre></li></ol></div>
+</div>
+<div class="refsect2">
+<a name="idp105545220193040"></a><h3>
+<a name="idp105544917452560-bb"></a><code class="computeroutput">wait_indefinitely_policy</code> public member functions</h3>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544917452944-bb"></a><span class="identifier">unlock_container</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">void</span> <a name="idp105544917453584-bb"></a><span class="identifier">relock_container</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> row_mutex_t<span class="special">,</span> <span class="keyword">typename</span> condition_t<span class="special">&gt;</span> 
+  <span class="keyword">void</span> <a name="idp105544917454224-bb"></a><span class="identifier">wait</span><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">interprocess</span><span class="special">::</span><span class="identifier">scoped_lock</span><span class="special">&lt;</span> <span class="identifier">row_mutex_t</span> <span class="special">&gt;</span> <span class="special">&amp;</span> mutex<span class="special">,</span> 
+            <span class="identifier">condition_t</span> <span class="special">&amp;</span> condition<span class="special">)</span><span class="special">;</span></pre></li>
+</ol></div>
+</div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2009 Bob Walters<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="bounded_wait_policy.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../stldb_reference.html#header..Users.bobw.workspaces.STLdb.stldb_lib.stldb.sync.wait_policy_h"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="cerr_tracer.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>
